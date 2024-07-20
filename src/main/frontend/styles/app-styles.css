@@ -1,0 +1,38 @@
+.iot-domain {
+    color: black;
+    font-weight: bold;
+}
+
+.architecture-solution {
+    color: blue;
+    font-weight: bold;
+}
+
+.quality-requirement {
+    color: green;
+    font-style: normal;
+    font-weight: bold;
+}
+
+.technology {
+    color: red;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.custom-summary {
+    color: black;
+    font-weight: bold;
+    background-color: #f0f0f0; /* Background color for summary */
+    padding: 15px; /* Padding for summary text */
+    border-radius: 5px;
+    border-width: thin;
+    border-color: black;
+}
+
+#mynetwork {
+    width: 100%;
+    height: 400px;
+    border: 1px solid grey;
+    background-color: grey;
+}
