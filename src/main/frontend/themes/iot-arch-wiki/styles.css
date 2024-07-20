@@ -1,0 +1,36 @@
+@import url('./main-layout.css');
+@import url('./views/board-view.css');
+@import url('./views/io-t-arch-view.css');
+@import url('./views/quality-requirement-view.css');
+@import url('./views/about-view-view.css');    html {
+      --lumo-font-size: 1rem;
+      --lumo-font-size-xxxl: 1.75rem;
+      --lumo-font-size-xxl: 1.375rem;
+      --lumo-font-size-xl: 1.125rem;
+      --lumo-font-size-l: 1rem;
+      --lumo-font-size-m: 0.875rem;
+      --lumo-font-size-s: 0.8125rem;
+      --lumo-font-size-xs: 0.75rem;
+      --lumo-font-size-xxs: 0.6875rem;
+      --lumo-line-height-m: 1.4;
+      --lumo-line-height-s: 1.2;
+      --lumo-line-height-xs: 1.1;
+
+    }
+
+    [theme~="dark"] {
+      --lumo-base-color: hsl(214, 5%, 19%);
+      --lumo-shade: hsl(214, 4%, 59%);
+      --lumo-shade-5pct: hsla(214, 4%, 59%, 0.05);
+      --lumo-shade-10pct: hsla(214, 4%, 59%, 0.1);
+      --lumo-shade-20pct: hsla(214, 4%, 59%, 0.2);
+      --lumo-shade-30pct: hsla(214, 4%, 59%, 0.3);
+      --lumo-shade-40pct: hsla(214, 4%, 59%, 0.4);
+      --lumo-shade-50pct: hsla(214, 4%, 59%, 0.5);
+      --lumo-shade-60pct: hsla(214, 4%, 59%, 0.6);
+      --lumo-shade-70pct: hsla(214, 4%, 59%, 0.7);
+      --lumo-shade-80pct: hsla(214, 4%, 59%, 0.8);
+      --lumo-shade-90pct: hsla(214, 4%, 59%, 0.9);
+      --lumo-body-text-color: hsla(31, 86%, 50%, 0.9);
+
+    }
