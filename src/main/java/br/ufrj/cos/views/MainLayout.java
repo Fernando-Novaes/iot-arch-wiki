@@ -1,7 +1,7 @@
 package br.ufrj.cos.views;
 
 
-import br.ufrj.cos.views.aboutview.AboutViewView;
+import br.ufrj.cos.views.about.AboutViewView;
 import br.ufrj.cos.views.board.BoardView;
 import br.ufrj.cos.views.iotarch.IoTArchView;
 import br.ufrj.cos.views.qualityrequirement.QualityRequirementView;

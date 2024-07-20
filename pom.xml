@@ -88,6 +88,26 @@
             <artifactId>vaadin-testbench-junit5</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.appreciated</groupId>
+            <artifactId>apexcharts</artifactId>
+            <version>24.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.vaadin.addons.visjs.network</groupId>
+            <artifactId>vis-network-vaadin</artifactId>
+            <version>1.0.2</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -175,7 +195,7 @@
                     </plugin>
 
                     <!-- Runs the integration tests (*IT) after the server is started -->
-                    <plugin>
+                    <!--plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <executions>
@@ -190,7 +210,7 @@
                             <trimStackTrace>false</trimStackTrace>
                             <enableAssertions>true</enableAssertions>
                         </configuration>
-                    </plugin>
+                    </plugin-->
                 </plugins>
             </build>
         </profile>

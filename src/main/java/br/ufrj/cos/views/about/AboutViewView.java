@@ -1,4 +1,4 @@
-package br.ufrj.cos.views.aboutview;
+package br.ufrj.cos.views.about;
 
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Composite;
