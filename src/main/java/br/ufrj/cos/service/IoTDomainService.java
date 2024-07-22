@@ -4,6 +4,7 @@ import br.ufrj.cos.components.chart.data.IoTDomainRecord;
 import br.ufrj.cos.components.treeview.TreeBuilder;
 import br.ufrj.cos.components.treeview.TreeNode;
 import br.ufrj.cos.domain.IoTDomain;
+import br.ufrj.cos.domain.PaperReference;
 import br.ufrj.cos.repository.IoTDomainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,5 +30,13 @@ public class IoTDomainService {
 
     public List<IoTDomainRecord> getIoTDomainCountGroupedByName() {
         return ioTDomainRepository.countIoTDomainsGroupedByName();
+    }
+
+    public List<IoTDomain> findAll() {
+        return ioTDomainRepository.findAll();
+    }
+
+    public IoTDomain saveAndFlush(IoTDomain domain) {
+        return ioTDomainRepository.saveAndFlush(domain);
     }
 }
