@@ -7,6 +7,8 @@ import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.service.IoTDomainService;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -22,7 +24,10 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.spring.annotation.UIScope;
+import com.vaadin.flow.spring.annotation.VaadinSessionScope;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
@@ -31,11 +36,11 @@ import java.util.List;
 
 @UIScope
 @Component
-@PreserveOnRefresh
 @CssImport(value = "./styles/app-styles.css", themeFor = "vaadin-grid")
-public class TreeViewComponent extends Composite<VerticalLayout> {
+public class TreeViewComponent extends VerticalLayout {
 
     private final IoTDomainService ioTDomainService;
+    @Getter private Boolean loaded = Boolean.FALSE;
 
     @Autowired
     public TreeViewComponent(IoTDomainService ioTDomainService) {
@@ -64,7 +69,7 @@ public class TreeViewComponent extends Composite<VerticalLayout> {
                 "this.shadowRoot.querySelectorAll('thead th').forEach(th => {" +
                         "    th.style.fontSize = '16px';" +
                         "    th.style.fontWeight = 'bold';" +
-                        "    th.style.color = '#111';" +
+                        "    th.style.color = '#373a3f';" +
                         "    th.style.border = '2px solid gray';" +
                         "});"
         );
@@ -122,9 +127,14 @@ public class TreeViewComponent extends Composite<VerticalLayout> {
 
         // Add styling variant to the TreeGrid for better visibility
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
+        treeGrid.getStyle().setBackgroundColor("#373a3f");
 
         // Add the TreeGrid to the main layout
-        getContent().add(treeGrid);
+        add(treeGrid);
+        setSizeFull();
+        getStyle().set("flex-grow", "1");
+
+        this.loaded = Boolean.TRUE;
     }
 
     /***
@@ -179,4 +189,9 @@ public class TreeViewComponent extends Composite<VerticalLayout> {
         return path;
     }
 
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
+        this.removeAll();
+    }
 }

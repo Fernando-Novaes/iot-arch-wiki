@@ -7,6 +7,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Data @AllArgsConstructor @NoArgsConstructor
@@ -23,6 +24,6 @@ public class ArchitectureSolution {
     private List<QualityRequirement> qrs;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<PaperReference> paperReferences;
+    private Set<PaperReference> paperReferences;
 
 }

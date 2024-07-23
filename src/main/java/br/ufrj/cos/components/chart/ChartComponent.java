@@ -10,6 +10,7 @@ import com.github.appreciated.apexcharts.config.chart.Type;
 import com.github.appreciated.apexcharts.config.legend.Position;
 import com.github.appreciated.apexcharts.config.responsive.builder.OptionsBuilder;
 import com.github.appreciated.apexcharts.config.subtitle.Align;
+import com.github.appreciated.apexcharts.config.subtitle.Style;
 import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
 
@@ -53,6 +54,9 @@ public class ChartComponent extends ApexChartsBuilder {
         TitleSubtitle titleChart = new TitleSubtitle();
         titleChart.setText(title);
         titleChart.setAlign(Align.CENTER);
+        Style style = new Style();
+        style.setColor("white");
+        titleChart.setStyle(style);
 
         ApexChartsBuilder b = withChart(ChartBuilder.get().withType(Type.PIE).build())
                 .withLabels(labels.toArray(value ->

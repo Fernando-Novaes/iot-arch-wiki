@@ -4,9 +4,6 @@ import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.PaperReference;
 import br.ufrj.cos.domain.QualityRequirement;
-import br.ufrj.cos.repository.ArchitectureSolutionRepository;
-import br.ufrj.cos.repository.IoTDomainRepository;
-import br.ufrj.cos.repository.QualityRequirementRepository;
 import br.ufrj.cos.service.ArchitectureSolutionService;
 import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.PaperReferenceService;
@@ -14,22 +11,18 @@ import br.ufrj.cos.service.QualityRequirementService;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
-import com.vaadin.flow.data.renderer.TextRenderer;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
 import org.vaadin.crudui.crud.impl.GridCrud;
-import org.vaadin.crudui.form.CrudFormFactory;
 import org.vaadin.crudui.form.impl.field.provider.CheckBoxGroupProvider;
-import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
 
-@PageTitle("IoTArch - Data Manager View")
+@PageTitle("IoT-Arch - Data Manager")
 @Route(value = "datamanager-view", layout = MainLayout.class)
 public class DataManagerView extends BaseView {
 
@@ -45,7 +38,7 @@ public class DataManagerView extends BaseView {
         this.qualityRequirementService = qualityRequirementService;
         this.paperReferenceService = paperReferenceService;
 
-        getContent().setWidth("100%");
+        getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
 
         this.createHeader("Data Manager");
@@ -67,18 +60,17 @@ public class DataManagerView extends BaseView {
         Tab papers = new Tab(new Span("References"), this.createBadge(String.valueOf(this.paperReferenceService.findAll().size())));
 
         Tabs tabs = new Tabs(domains, archs, qrs, papers);
-        tabs.setSizeFull();
 
         GridCrud<IoTDomain> gridDomains = new GridCrud<>(IoTDomain.class);
         gridDomains.setSizeFull();
-        gridDomains.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
-        gridDomains.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
+        gridDomains.getCrudFormFactory().setVisibleProperties("name","archs");
 
         gridDomains.getCrudFormFactory().setFieldProvider("archs",
-                new CheckBoxGroupProvider<>("Arch. Solutions", this.architectureSolutionService.findAll(),
+                new CheckBoxGroupProvider<ArchitectureSolution>("Arch. Solutions", this.architectureSolutionService.findAll(),
                         ArchitectureSolution::getName));
         gridDomains.setAddOperation(this.domainService::saveAndFlush);
         gridDomains.setFindAllOperation(this.domainService::findAll);
+        gridDomains.setUpdateOperation(this.domainService::saveAndUpdate);
 
         GridCrud<ArchitectureSolution> gridArchs = new GridCrud<>(ArchitectureSolution.class);
         gridArchs.setSizeFull();
@@ -88,6 +80,9 @@ public class DataManagerView extends BaseView {
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
         gridArchs.setAddOperation(this.architectureSolutionService::saveAndFlush);
         gridArchs.setFindAllOperation(this.architectureSolutionService::findAll);
+        gridArchs.getCrudFormFactory().setFieldProvider("paperReferences",
+                new CheckBoxGroupProvider<PaperReference>("Reference", this.paperReferenceService.findAll(),
+                        PaperReference::getPaperTitle));
 
         GridCrud<QualityRequirement> gridQualityRequirements = new GridCrud<>(QualityRequirement.class);
         gridQualityRequirements.setSizeFull();

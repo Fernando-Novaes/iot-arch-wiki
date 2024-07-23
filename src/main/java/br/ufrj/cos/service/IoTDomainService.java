@@ -39,4 +39,8 @@ public class IoTDomainService {
     public IoTDomain saveAndFlush(IoTDomain domain) {
         return ioTDomainRepository.saveAndFlush(domain);
     }
+
+    public IoTDomain saveAndUpdate(IoTDomain domain) {
+        return ioTDomainRepository.save(domain);
+    }
 }

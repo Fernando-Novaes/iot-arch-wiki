@@ -10,6 +10,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.spring.annotation.UIScope;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 
 import java.io.IOException;
@@ -50,21 +51,6 @@ public abstract class BaseView extends Composite<VerticalLayout> {
         content.setWidthFull();
 
         return content;
-    }
-
-    /***
-     * Creates the layout to the Tree View
-     * @param title
-     * @param treeView
-     * @return Details
-     */
-    public HorizontalLayout createTreeViewLayout(String title, TreeViewComponent treeView) {
-        HorizontalLayout treeViewContainer = new HorizontalLayout(treeView);
-        treeViewContainer.setWidth("100%");
-        treeViewContainer.setHeight("100%");
-        //treeViewContainer.setClassName("tree-view-container");
-
-        return treeViewContainer;
     }
 
     /***
