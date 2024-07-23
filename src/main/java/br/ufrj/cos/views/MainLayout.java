@@ -79,6 +79,7 @@ public class MainLayout extends AppLayout {
 
         Div layout = new Div();
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
+        layout.getStyle().setBoxShadow("0 4px 8px rgba(0, 0, 0, 0.2)");
 
         H1 appName = new H1("IoT-Arch Wiki");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
@@ -110,7 +111,7 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo("Quality Requirement", LineAwesomeIcon.BOOK_OPEN_SOLID.create(),
                         QualityRequirementView.class), //
 
-                new MenuItemInfo("About View", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class), //
+                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class), //
 
         };
     }

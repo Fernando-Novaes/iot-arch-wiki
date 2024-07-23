@@ -1,5 +1,6 @@
 package br.ufrj.cos.views;
 
+import br.ufrj.cos.components.treeview.TreeViewComponent;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
@@ -46,17 +47,7 @@ public abstract class BaseView extends Composite<VerticalLayout> {
      */
     public HorizontalLayout createContentLayout() {
         HorizontalLayout content = new HorizontalLayout();
-        getContent().setWidth("100%");
-        getContent().getStyle().set("flex-grow", "1");
-
         content.setWidthFull();
-        getContent().setFlexGrow(1.0, content);
-        content.addClassName(LumoUtility.Gap.MEDIUM);
-
-        content.setMinHeight("100%");
-        content.setMaxHeight("100%");
-
-        content.getStyle().set("background-color", "lightgray");
 
         return content;
     }
@@ -67,16 +58,14 @@ public abstract class BaseView extends Composite<VerticalLayout> {
      * @param treeView
      * @return Details
      */
-//    public Details createTreeViewLayout(String title, TreeViewComponent treeView) {
-//        Details treeViewDetails = new Details(title, treeView);
-//        treeViewDetails.setOpened(true);
-//        treeViewDetails.setWidth("100%");
-//        treeViewDetails.setHeight("100%");
-//        treeViewDetails.getStyle().set("background-color", "#dce8fa");
-//        treeViewDetails.addThemeVariants(DetailsVariant.FILLED);
-//
-//        return treeViewDetails;
-//    }
+    public HorizontalLayout createTreeViewLayout(String title, TreeViewComponent treeView) {
+        HorizontalLayout treeViewContainer = new HorizontalLayout(treeView);
+        treeViewContainer.setWidth("100%");
+        treeViewContainer.setHeight("100%");
+        //treeViewContainer.setClassName("tree-view-container");
+
+        return treeViewContainer;
+    }
 
     /***
      * Creates container details

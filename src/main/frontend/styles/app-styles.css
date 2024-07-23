@@ -1,23 +1,33 @@
+.root {
+    border-width: 1px;
+    border-style: solid;
+    border-color: grey;
+}
+
 .iot-domain {
-    color: black;
+    color: #ED8312E5;
     font-weight: bold;
+    padding: 5px;
 }
 
 .architecture-solution {
-    color: blue;
+    color: white;
     font-weight: bold;
+    padding: 5px;
 }
 
 .quality-requirement {
-    color: green;
+    color: goldenrod;
     font-style: normal;
     font-weight: bold;
+    padding: 5px;
 }
 
 .technology {
-    color: red;
+    color: limegreen;
     cursor: pointer;
     font-weight: bold;
+    padding: 5px;
 }
 
 .custom-summary {
@@ -32,11 +42,21 @@
 
 #mynetwork {
     width: 100%;
-    height: 400px;
+    height: 500px;
     border: 1px solid grey;
     background-color: grey;
 }
 
 .box {
+    width: 25%;
+    height: 25%;
+    border: 1px solid grey;
+    background-color: grey;
+}
 
+.tree-view-container {
+    border: 1px solid grey;
+    background-color: grey;
+    width: 100%;
+    height: 500px;
 }

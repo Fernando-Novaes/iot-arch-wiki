@@ -23,7 +23,7 @@ public class NotificationDialog {
         return closeBtn;
     }
 
-    public static void showNotificationDialogOnBotton(String title, String message) {
+    public static void showNotificationDialogAtTheBotton(String title, String message) {
         Notification notification = new Notification();
         notification.setPosition(Notification.Position.BOTTOM_STRETCH);
 

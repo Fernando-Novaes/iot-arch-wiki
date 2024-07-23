@@ -14,7 +14,6 @@ import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.github.appreciated.apexcharts.ApexCharts;
 import com.github.appreciated.apexcharts.config.builder.LegendBuilder;
-import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -41,6 +40,8 @@ public class BoardView extends BaseView {
     private final ChartComponent chart;
     private final DiagramComponent diagramComponent;
 
+    private final HorizontalLayout pageContent;
+
     public BoardView(
             IoTDomainService domainService,
             QualityRequirementService qualityReqService,
@@ -62,8 +63,8 @@ public class BoardView extends BaseView {
         //Header
         this.createHeader("Board");
         //Content
-        HorizontalLayout content = this.createContentLayout();
-        getContent().add(content);
+        pageContent = this.createContentLayout();
+        getContent().add(pageContent);
     }
 
     @PostConstruct
@@ -98,6 +99,8 @@ public class BoardView extends BaseView {
 
     private void createDiagramLayout() {
         HorizontalLayout container = createContainer();
+        container.getStyle().set("flex-grow", "1");
+        container.setSizeFull();
         VerticalLayout box01 = createVerticalContainer();
 
         Div diagram = new Div();
@@ -116,9 +119,17 @@ public class BoardView extends BaseView {
     private void createChartsLayout() {
         HorizontalLayout container = this.createContainer();
         VerticalLayout box01 = this.createVerticalContainer();
+        box01.setClassName("box");
+        box01.getStyle().set("flex-grow", "1");
         VerticalLayout box02 = this.createVerticalContainer();
+        box02.setClassName("box");
+        box02.getStyle().set("flex-grow", "1");
         VerticalLayout box03 = this.createVerticalContainer();
+        box03.setClassName("box");
+        box03.getStyle().set("flex-grow", "1");
         VerticalLayout box04 = this.createVerticalContainer();
+        box04.setClassName("box");
+        box04.getStyle().set("flex-grow", "1");
 
         box01.add(this.createArchitectureSolutionChart("Architectural Solutions"));
         box02.add(this.createIoTDomainChart("IoT Domains"));
