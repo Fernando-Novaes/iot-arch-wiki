@@ -26,4 +26,9 @@ public class PaperReference {
 
     @Column(columnDefinition = "VARCHAR(255)")
     private String paperLink;
+
+    @Override
+    public String toString() {
+        return this.paperTitle;
+    }
 }

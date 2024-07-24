@@ -76,6 +76,7 @@ public class DataManagerView extends BaseView {
         gridArchs.getCrudFormFactory().setVisibleProperties("name","paperReferences", "qrs");
         gridArchs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
+        gridArchs.getGrid().getColumnByKey("qrs").setAutoWidth(true);
         gridArchs.setAddOperation(this.architectureSolutionService::saveAndFlush);
         gridArchs.setFindAllOperation(this.architectureSolutionService::findAll);
         gridArchs.setUpdateOperation(this.architectureSolutionService::saveAndUpdate);
@@ -93,6 +94,7 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridQualityRequirements.setAddOperation(this.qualityRequirementService::saveAndFlush);
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAll);
+        gridQualityRequirements.setUpdateOperation(this.qualityRequirementService::saveAndUpdate);
 
         GridCrud<PaperReference> gridPapers = new GridCrud<>(PaperReference.class);
         gridPapers.setSizeFull();
@@ -102,6 +104,7 @@ public class DataManagerView extends BaseView {
         gridPapers.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
         gridPapers.setAddOperation(this.paperReferenceService::saveAndFlush);
         gridPapers.setFindAllOperation(this.paperReferenceService::findAll);
+        gridPapers.setUpdateOperation(this.paperReferenceService::saveAndUpdate);
 
         Div contentContainer = new Div();
         contentContainer.setSizeFull();

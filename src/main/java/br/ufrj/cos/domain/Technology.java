@@ -18,4 +18,8 @@ public class Technology {
 
     @Column(columnDefinition = "VARCHAR(255)")
     private String description;
+
+    @ManyToOne
+    @JoinColumn(name = "quality_requirement_id")
+    private QualityRequirement qualityRequirement;
 }

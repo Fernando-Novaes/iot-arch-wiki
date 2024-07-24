@@ -12,7 +12,6 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = {"techs", "architectureSolutions"})
-@ToString(exclude = {"techs", "architectureSolutions"})
 public class QualityRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,9 +20,14 @@ public class QualityRequirement {
     @Column(columnDefinition = "VARCHAR(255)")
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "qualityRequirement", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Technology> techs;
 
     @ManyToMany(mappedBy = "qrs", fetch = FetchType.EAGER)
     private Set<ArchitectureSolution> architectureSolutions;
+
+    @Override
+    public String toString() {
+        return this.getName();
+    }
 }

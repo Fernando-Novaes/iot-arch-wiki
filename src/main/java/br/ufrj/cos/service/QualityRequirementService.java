@@ -29,4 +29,8 @@ public class QualityRequirementService {
     public QualityRequirement saveAndFlush(QualityRequirement qualityRequirement) {
         return qualityRequirementRepository.saveAndFlush(qualityRequirement);
     }
+
+    public QualityRequirement saveAndUpdate(QualityRequirement qualityRequirement) {
+        return qualityRequirementRepository.saveAndFlush(qualityRequirement);
+    }
 }

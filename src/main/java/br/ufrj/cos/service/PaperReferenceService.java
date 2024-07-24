@@ -24,4 +24,8 @@ public class PaperReferenceService {
     public PaperReference saveAndFlush(PaperReference paper) {
         return paperReferenceRepository.saveAndFlush(paper);
     }
+
+    public PaperReference saveAndUpdate(PaperReference paper) {
+        return paperReferenceRepository.saveAndFlush(paper);
+    }
 }

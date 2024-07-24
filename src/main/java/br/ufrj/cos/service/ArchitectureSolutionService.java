@@ -31,6 +31,6 @@ public class ArchitectureSolutionService {
     }
 
     public ArchitectureSolution saveAndUpdate(ArchitectureSolution architectureSolution) {
-        return this.architectureSolutionRepository.save(architectureSolution);
+        return this.architectureSolutionRepository.saveAndFlush(architectureSolution);
     }
 }
