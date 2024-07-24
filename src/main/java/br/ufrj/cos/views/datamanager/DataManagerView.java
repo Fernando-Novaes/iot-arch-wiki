@@ -64,7 +64,6 @@ public class DataManagerView extends BaseView {
         GridCrud<IoTDomain> gridDomains = new GridCrud<>(IoTDomain.class);
         gridDomains.setSizeFull();
         gridDomains.getCrudFormFactory().setVisibleProperties("name","archs");
-
         gridDomains.getCrudFormFactory().setFieldProvider("archs",
                 new CheckBoxGroupProvider<ArchitectureSolution>("Arch. Solutions", this.architectureSolutionService.findAll(),
                         ArchitectureSolution::getName));
@@ -74,15 +73,18 @@ public class DataManagerView extends BaseView {
 
         GridCrud<ArchitectureSolution> gridArchs = new GridCrud<>(ArchitectureSolution.class);
         gridArchs.setSizeFull();
-        gridArchs.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
-        gridArchs.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
+        gridArchs.getCrudFormFactory().setVisibleProperties("name","paperReferences", "qrs");
         gridArchs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
         gridArchs.setAddOperation(this.architectureSolutionService::saveAndFlush);
         gridArchs.setFindAllOperation(this.architectureSolutionService::findAll);
+        gridArchs.setUpdateOperation(this.architectureSolutionService::saveAndUpdate);
         gridArchs.getCrudFormFactory().setFieldProvider("paperReferences",
                 new CheckBoxGroupProvider<PaperReference>("Reference", this.paperReferenceService.findAll(),
                         PaperReference::getPaperTitle));
+        gridArchs.getCrudFormFactory().setFieldProvider("qrs",
+                new CheckBoxGroupProvider<QualityRequirement>("QRs", this.qualityRequirementService.findAll(),
+                        QualityRequirement::getName));
 
         GridCrud<QualityRequirement> gridQualityRequirements = new GridCrud<>(QualityRequirement.class);
         gridQualityRequirements.setSizeFull();

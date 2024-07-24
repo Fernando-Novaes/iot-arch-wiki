@@ -29,4 +29,8 @@ public class ArchitectureSolutionService {
     public ArchitectureSolution saveAndFlush(ArchitectureSolution architectureSolution) {
         return this.architectureSolutionRepository.saveAndFlush(architectureSolution);
     }
+
+    public ArchitectureSolution saveAndUpdate(ArchitectureSolution architectureSolution) {
+        return this.architectureSolutionRepository.save(architectureSolution);
+    }
 }

@@ -1,11 +1,9 @@
 package br.ufrj.cos.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -13,7 +11,8 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"techs", "architectureSolutions"})
+@ToString(exclude = {"techs", "architectureSolutions"})
 public class QualityRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,4 +23,7 @@ public class QualityRequirement {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<Technology> techs;
+
+    @ManyToMany(mappedBy = "qrs", fetch = FetchType.EAGER)
+    private Set<ArchitectureSolution> architectureSolutions;
 }

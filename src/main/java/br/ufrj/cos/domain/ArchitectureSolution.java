@@ -1,17 +1,15 @@
 package br.ufrj.cos.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.List;
 import java.util.Set;
 
 @Entity
 @Data @AllArgsConstructor @NoArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(exclude = {"qrs", "paperReferences"})
+@ToString(exclude = {"qrs", "paperReferences"})
 public class ArchitectureSolution {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,10 +18,9 @@ public class ArchitectureSolution {
     @Column(columnDefinition = "VARCHAR(255)")
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<QualityRequirement> qrs;
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
+    private Set<QualityRequirement> qrs;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<PaperReference> paperReferences;
-
 }
