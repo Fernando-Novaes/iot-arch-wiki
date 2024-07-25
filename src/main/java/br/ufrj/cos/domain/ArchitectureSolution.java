@@ -7,18 +7,21 @@ import java.util.List;
 import java.util.Set;
 
 @Entity
-@Data @AllArgsConstructor @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"qrs", "paperReferences"})
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode(exclude = {"qrs", "technologies"})
 public class ArchitectureSolution {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(nullable = false)
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<PaperReference> paperReferences;
+    @OneToOne
+    @JoinColumn(name = "paper_reference_id")
+    private PaperReference paperReference;
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
     @JoinTable(
@@ -27,6 +30,9 @@ public class ArchitectureSolution {
             inverseJoinColumns = @JoinColumn(name = "quality_requirement_id")
     )
     private Set<QualityRequirement> qrs;
+
+    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private Set<Technology> technologies;
 
     @Override
     public String toString() {

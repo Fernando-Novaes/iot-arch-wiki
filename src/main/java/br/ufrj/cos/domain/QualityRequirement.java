@@ -11,17 +11,18 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"techs", "architectureSolutions"})
+@EqualsAndHashCode(exclude = {"architectureSolutions"})
 public class QualityRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "qualityRequirement", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private Set<Technology> techs;
+    @OneToOne
+    @JoinColumn(name = "technology_id")
+    private Technology technology;
 
     @ManyToMany(mappedBy = "qrs", fetch = FetchType.EAGER)
     private Set<ArchitectureSolution> architectureSolutions;

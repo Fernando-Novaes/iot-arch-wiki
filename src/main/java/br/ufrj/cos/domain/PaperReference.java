@@ -18,13 +18,13 @@ public class PaperReference {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(nullable = false)
     private String paperTitle;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column
     private String paperDoi;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column
     private String paperLink;
 
     @Override

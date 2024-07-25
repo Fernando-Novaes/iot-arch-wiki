@@ -20,8 +20,8 @@ public class TreeBuilder {
                 TreeNode<QualityRequirement> qrNode = new TreeNode<>(qr);
                 solutionNode.addChild(qrNode);
 
-                for (Technology tech : qr.getTechs()) {
-                    TreeNode<Technology> techNode = new TreeNode<>(tech);
+                if (qr.getTechnology() !=null) {
+                    TreeNode<Technology> techNode = new TreeNode<>(qr.getTechnology());
                     qrNode.addChild(techNode);
                 }
             }

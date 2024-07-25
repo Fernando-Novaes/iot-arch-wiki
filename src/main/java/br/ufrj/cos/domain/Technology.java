@@ -16,10 +16,18 @@ public class Technology {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(columnDefinition = "VARCHAR(255)")
+    @Column(nullable = false)
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "quality_requirement_id")
+    @JoinColumn(name = "architecture_solution_id")
+    private ArchitectureSolution architectureSolution;
+
+    @OneToOne(mappedBy = "technology", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private QualityRequirement qualityRequirement;
+
+    @Override
+    public String toString() {
+        return getDescription();
+    }
 }

@@ -30,4 +30,8 @@ public class TechnologyService {
     public Technology saveAndUpdate(Technology technology) {
         return technologyRepository.saveAndFlush(technology);
     }
+
+    public List<Technology> findAll(){
+        return technologyRepository.findAll();
+    }
 }
