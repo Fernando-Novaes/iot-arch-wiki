@@ -20,15 +20,10 @@ public class ArchitectureSolution {
     private String name;
 
     @OneToOne
-    @JoinColumn(name = "paper_reference_id")
+    @JoinColumn(name = "paper_reference_id", nullable = true)
     private PaperReference paperReference;
 
-    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "architecture_solution_quality_requirement",
-            joinColumns = @JoinColumn(name = "architecture_solution_id"),
-            inverseJoinColumns = @JoinColumn(name = "quality_requirement_id")
-    )
+    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private Set<QualityRequirement> qrs;
 
     @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

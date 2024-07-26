@@ -5,17 +5,23 @@ import br.ufrj.cos.service.*;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
 import org.vaadin.crudui.crud.impl.GridCrud;
+import org.vaadin.crudui.form.FieldProvider;
 import org.vaadin.crudui.form.impl.field.provider.CheckBoxGroupProvider;
 import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
+
+import java.util.Collections;
+import java.util.List;
 
 @PageTitle("IoT-Arch - Data Manager")
 @Route(value = "datamanager-view", layout = MainLayout.class)
@@ -110,12 +116,38 @@ public class DataManagerView extends BaseView {
         gridTechs.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
         gridTechs.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
         gridTechs.setAddOperation(this.technologyService::saveAndFlush);
-        gridTechs.setFindAllOperation(this.technologyService::findAll);
         gridTechs.setUpdateOperation(this.technologyService::saveAndUpdate);
-        gridTechs.getCrudFormFactory().setFieldProvider("architectureSolution",
-                new ComboBoxProvider<ArchitectureSolution>("Archs", this.architectureSolutionService.findAll()));
-        gridTechs.getCrudFormFactory().setFieldProvider("qualityRequirement",
-                new ComboBoxProvider<QualityRequirement>("QRs", this.qualityRequirementService.findAll()));
+
+        ComboBox<ArchitectureSolution> comboBoxArch = new ComboBox<ArchitectureSolution>("Archs", this.architectureSolutionService.findAll());
+        ComboBox<QualityRequirement> comboBoxQR = new ComboBox<QualityRequirement>("Archs", Collections.emptyList());
+        comboBoxQR.setEnabled(false);
+
+        comboBoxArch.addValueChangeListener(event -> {
+            ArchitectureSolution selectedArchSolution = event.getValue();
+            if (selectedArchSolution != null) {
+                List<QualityRequirement> qualityRequirements = this.qualityRequirementService.findAllByArchitectureSolution(selectedArchSolution);
+                comboBoxQR.setItems(qualityRequirements);
+                comboBoxQR.setEnabled(true);
+            } else {
+                comboBoxQR.clear();
+                comboBoxQR.setItems(Collections.emptyList());
+                comboBoxQR.setEnabled(false);
+            }
+        });
+
+        gridTechs.getCrudFormFactory().setFieldProvider("architectureSolution", i -> comboBoxArch);
+        gridTechs.getCrudFormFactory().setFieldProvider("qualityRequirement", i -> comboBoxQR);
+
+        // additional components
+        TextField filter = new TextField();
+        filter.setPlaceholder("Filter by Architectural Solution Name");
+        filter.setClearButtonVisible(true);
+        filter.setMinWidth("400px");
+        gridTechs.getCrudLayout().addFilterComponent(filter);
+        filter.addValueChangeListener(e -> gridTechs.refreshGrid());
+
+        gridTechs.setFindAllOperation( () -> this.technologyService.findByArchitectureSolutionName(filter.getValue()));
+
         return gridTechs;
     }
 
@@ -141,15 +173,14 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.setSizeFull();
         gridQualityRequirements.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
         gridQualityRequirements.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
-        gridQualityRequirements.getCrudFormFactory().setVisibleProperties("id","name");
-        gridQualityRequirements.getCrudFormFactory().setDisabledProperties("architectureSolutions","technologies");
+        gridQualityRequirements.getCrudFormFactory().setVisibleProperties("id","name","technology", "architectureSolution");
         gridQualityRequirements.getGrid().setDetailsVisibleOnClick(true);
         gridQualityRequirements.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridQualityRequirements.setAddOperation(this.qualityRequirementService::saveAndFlush);
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAll);
         gridQualityRequirements.setUpdateOperation(this.qualityRequirementService::saveAndUpdate);
-//        gridQualityRequirements.getCrudFormFactory().setFieldProvider("architectureSolutions",
-//                new ComboBoxProvider<ArchitectureSolution>("Archs", this.architectureSolutionService.findAll()));
+        gridQualityRequirements.getCrudFormFactory().setFieldProvider("architectureSolution",
+                new ComboBoxProvider<ArchitectureSolution>("Arch", this.architectureSolutionService.findAll()));
         return gridQualityRequirements;
     }
 
@@ -158,16 +189,13 @@ public class DataManagerView extends BaseView {
         gridArchs.setSizeFull();
         gridArchs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
-        //gridArchs.getGrid().getColumnByKey("qrs").setAutoWidth(true);
         gridArchs.setAddOperation(this.architectureSolutionService::saveAndFlush);
         gridArchs.setFindAllOperation(this.architectureSolutionService::findAll);
         gridArchs.setUpdateOperation(this.architectureSolutionService::saveAndUpdate);
+        gridArchs.getCrudFormFactory().setVisibleProperties("id", "name", "paperReference", "qrs", "technologies");
+        gridArchs.getCrudFormFactory().setDisabledProperties("id");
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
                 new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
-//        gridArchs.getCrudFormFactory().setFieldProvider("qrs",
-//                new CheckBoxGroupProvider<QualityRequirement>("QRs", this.qualityRequirementService.findAll(),
-//                        QualityRequirement::getName));
-        gridArchs.getCrudFormFactory().setVisibleProperties("name","paperReference");
         return gridArchs;
     }
 

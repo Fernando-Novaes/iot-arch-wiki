@@ -33,4 +33,12 @@ public class ArchitectureSolutionService {
     public ArchitectureSolution saveAndUpdate(ArchitectureSolution architectureSolution) {
         return this.architectureSolutionRepository.saveAndFlush(architectureSolution);
     }
+
+    public List<ArchitectureSolution> findByQualityRequirementId(Long id) {
+        return this.architectureSolutionRepository.findByQualityRequirementId(id);
+    }
+
+    public List<ArchitectureSolution> findByNameContainingIgnoreCase(String name) {
+        return this.architectureSolutionRepository.findByNameContainingIgnoreCase(name);
+    }
 }

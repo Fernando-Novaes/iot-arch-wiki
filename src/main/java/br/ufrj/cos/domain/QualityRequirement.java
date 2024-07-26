@@ -11,7 +11,7 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"architectureSolutions"})
+@EqualsAndHashCode(exclude = {"architectureSolution", "technology"})
 public class QualityRequirement {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,12 +20,11 @@ public class QualityRequirement {
     @Column(nullable = false)
     private String name;
 
-    @OneToOne
-    @JoinColumn(name = "technology_id")
+    @OneToOne(mappedBy = "qualityRequirement")
     private Technology technology;
 
-    @ManyToMany(mappedBy = "qrs", fetch = FetchType.EAGER)
-    private Set<ArchitectureSolution> architectureSolutions;
+    @ManyToOne
+    private ArchitectureSolution architectureSolution;
 
     @Override
     public String toString() {

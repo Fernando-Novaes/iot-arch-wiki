@@ -20,10 +20,9 @@ public class Technology {
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "architecture_solution_id")
     private ArchitectureSolution architectureSolution;
 
-    @OneToOne(mappedBy = "technology", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToOne
     private QualityRequirement qualityRequirement;
 
     @Override
