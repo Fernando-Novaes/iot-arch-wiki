@@ -13,4 +13,5 @@ public interface PaperReferenceRepository extends JpaRepository<PaperReference, 
     @Query(value = "select q from PaperReference as q")
     List<PaperReference> searchAll();
 
+    List<PaperReference> findByPaperTitleContainingIgnoreCase(String title);
 }

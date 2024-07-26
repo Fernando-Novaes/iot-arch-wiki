@@ -11,17 +11,21 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
+import org.vaadin.crudui.crud.FindAllCrudOperationListener;
 import org.vaadin.crudui.crud.impl.GridCrud;
 import org.vaadin.crudui.form.FieldProvider;
 import org.vaadin.crudui.form.impl.field.provider.CheckBoxGroupProvider;
 import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 @PageTitle("IoT-Arch - Data Manager")
 @Route(value = "datamanager-view", layout = MainLayout.class)
@@ -139,16 +143,21 @@ public class DataManagerView extends BaseView {
         gridTechs.getCrudFormFactory().setFieldProvider("qualityRequirement", i -> comboBoxQR);
 
         // additional components
-        TextField filter = new TextField();
-        filter.setPlaceholder("Filter by Architectural Solution Name");
-        filter.setClearButtonVisible(true);
-        filter.setMinWidth("400px");
-        gridTechs.getCrudLayout().addFilterComponent(filter);
-        filter.addValueChangeListener(e -> gridTechs.refreshGrid());
-
+        TextField filter = this.createGridTextFilter(gridTechs,"Filter by Architectural Solution Name","400px");
         gridTechs.setFindAllOperation( () -> this.technologyService.findByArchitectureSolutionName(filter.getValue()));
 
         return gridTechs;
+    }
+
+    private TextField createGridTextFilter(GridCrud<?> gridCRUD, String filterText, String textFieldSize) {
+        TextField filter = new TextField();
+        filter.setPlaceholder(filterText);
+        filter.setClearButtonVisible(true);
+        filter.setMinWidth(textFieldSize);
+        gridCRUD.getCrudLayout().addFilterComponent(filter);
+        filter.addValueChangeListener(e -> gridCRUD.refreshGrid());
+
+        return filter;
     }
 
     /***
@@ -165,6 +174,11 @@ public class DataManagerView extends BaseView {
         gridPapers.setAddOperation(this.paperReferenceService::saveAndFlush);
         gridPapers.setFindAllOperation(this.paperReferenceService::findAll);
         gridPapers.setUpdateOperation(this.paperReferenceService::saveAndUpdate);
+
+        // additional components
+        TextField filter = this.createGridTextFilter(gridPapers,"Filter by Paper Title","400px");
+        gridPapers.setFindAllOperation( () -> this.paperReferenceService.findByPaperReferenceTitle(filter.getValue()));
+
         return gridPapers;
     }
 
@@ -181,6 +195,11 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.setUpdateOperation(this.qualityRequirementService::saveAndUpdate);
         gridQualityRequirements.getCrudFormFactory().setFieldProvider("architectureSolution",
                 new ComboBoxProvider<ArchitectureSolution>("Arch", this.architectureSolutionService.findAll()));
+
+        // additional components
+//        TextField filter = this.createGridTextFilter(gridQualityRequirements,"Filter by Quality Requirement","400px");
+//        gridQualityRequirements.setFindAllOperation( () -> this.qualityRequirementService.(filter.getValue()));
+
         return gridQualityRequirements;
     }
 

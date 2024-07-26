@@ -2,6 +2,7 @@
     border-width: 1px;
     border-style: solid;
     border-color: grey;
+    white-space: pre-wrap;
 }
 
 .iot-domain {
@@ -9,6 +10,7 @@
     font-weight: bold;
     padding: 5px;
     background-color: #373a3f;
+    white-space: pre-wrap;
 }
 
 .architecture-solution {
@@ -16,6 +18,7 @@
     font-weight: bold;
     padding: 5px;
     background-color: #373a3f;
+    white-space: pre-wrap;;
 }
 
 .quality-requirement {
@@ -24,14 +27,16 @@
     font-weight: bold;
     padding: 5px;
     background-color: #373a3f;
+    white-space: pre-wrap;
 }
 
 .technology {
     color: limegreen;
-    cursor: pointer;
     font-weight: bold;
     padding: 5px;
     background-color: #373a3f;
+    white-space: pre-wrap;
+    word-break: break-word;
 }
 
 .custom-summary {

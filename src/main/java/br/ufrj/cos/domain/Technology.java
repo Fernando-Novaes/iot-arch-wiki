@@ -16,7 +16,7 @@ public class Technology {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "CLOB")
     private String description;
 
     @ManyToOne

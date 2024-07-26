@@ -28,4 +28,8 @@ public class PaperReferenceService {
     public PaperReference saveAndUpdate(PaperReference paper) {
         return paperReferenceRepository.saveAndFlush(paper);
     }
+
+    public List<PaperReference> findByPaperReferenceTitle(String title) {
+        return paperReferenceRepository.findByPaperTitleContainingIgnoreCase(title);
+    }
 }
