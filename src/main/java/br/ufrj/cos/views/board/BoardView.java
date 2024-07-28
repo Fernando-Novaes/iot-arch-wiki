@@ -6,10 +6,8 @@ import br.ufrj.cos.components.chart.data.IoTDomainRecord;
 import br.ufrj.cos.components.chart.data.QualityRequirementRecord;
 import br.ufrj.cos.components.chart.data.TechnologyRecord;
 import br.ufrj.cos.components.diagram.DiagramComponent;
-import br.ufrj.cos.service.ArchitectureSolutionService;
-import br.ufrj.cos.service.IoTDomainService;
-import br.ufrj.cos.service.QualityRequirementService;
-import br.ufrj.cos.service.TechnologyService;
+import br.ufrj.cos.domain.ArchitectureSolution;
+import br.ufrj.cos.service.*;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.github.appreciated.apexcharts.ApexCharts;
@@ -26,6 +24,7 @@ import jakarta.annotation.PostConstruct;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 @UIScope
 @Route(value = "", layout = MainLayout.class)
@@ -37,6 +36,7 @@ public class BoardView extends BaseView {
     private final QualityRequirementService qualityReqService;
     private final ArchitectureSolutionService architectureSolutionService;
     private final TechnologyService technologyService;
+    private final PaperReferenceService paperReferenceService;
     private final ChartComponent chart;
     private final DiagramComponent diagramComponent;
 
@@ -46,7 +46,7 @@ public class BoardView extends BaseView {
             IoTDomainService domainService,
             QualityRequirementService qualityReqService,
             ArchitectureSolutionService architectureSolutionService,
-            TechnologyService technologyService,
+            TechnologyService technologyService, PaperReferenceService paperReferenceService,
             ChartComponent chart,
             DiagramComponent diagramComponent) {
 
@@ -54,10 +54,11 @@ public class BoardView extends BaseView {
         this.qualityReqService = qualityReqService;
         this.architectureSolutionService = architectureSolutionService;
         this.technologyService = technologyService;
+        this.paperReferenceService = paperReferenceService;
         this.chart = chart;
         this.diagramComponent = diagramComponent;
 
-        getContent().setWidth("100%");
+        getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
 
         //Header
@@ -70,7 +71,8 @@ public class BoardView extends BaseView {
     @PostConstruct
     private void init() {
         this.createChartsLayout();
-        this.createDiagramLayout();
+        //this.createDiagramLayout();
+        this.createBarGraphLayout();
     }
 
     /***
@@ -80,7 +82,9 @@ public class BoardView extends BaseView {
     private VerticalLayout createVerticalContainer() {
         VerticalLayout verticalLayout = new VerticalLayout();
         verticalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        verticalLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
         verticalLayout.getStyle().setBorder("1px solid grey");
+        verticalLayout.setSizeFull();
 
         return verticalLayout;
     }
@@ -92,24 +96,34 @@ public class BoardView extends BaseView {
     private HorizontalLayout createContainer() {
         HorizontalLayout horizontalLayout = new HorizontalLayout();
         horizontalLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        horizontalLayout.setWidthFull();
+        horizontalLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        horizontalLayout.setSizeFull();
 
         return horizontalLayout;
     }
 
     private void createDiagramLayout() {
         HorizontalLayout container = createContainer();
-        container.getStyle().set("flex-grow", "1");
-        container.setSizeFull();
         VerticalLayout box01 = createVerticalContainer();
 
         Div diagram = new Div();
-        diagram.setId("mynetwork");
+        diagram.setId("diagram");
         box01.add(diagram);
         container.add(box01);
         getContent().add(container);
 
         this.diagramComponent.execute();
+    }
+
+    private void createBarGraphLayout() {
+        HorizontalLayout container = createContainer();
+
+        VerticalLayout box01 = createVerticalContainer();
+        box01.setClassName("bar_graph");
+
+        box01.add(this.createCountRegistersBarChart());
+        container.add(box01);
+        getContent().add(container);
     }
 
     /***
@@ -131,10 +145,11 @@ public class BoardView extends BaseView {
         box04.setClassName("box");
         box04.getStyle().set("flex-grow", "1");
 
-        box01.add(this.createArchitectureSolutionChart("Architectural Solutions"));
-        box02.add(this.createIoTDomainChart("IoT Domains"));
-        box03.add(this.createQualityRequirementChart("Quality Requirements"));
+        box01.add(this.createIoTDomainChart("IoT Domains"));
+        box02.add(this.createQualityRequirementChart("Quality Requirements"));
+        box03.add(this.createArchitectureSolutionChart("Architectural Solutions"));
         box04.add(this.createTechnologyChart("Technologies"));
+        //box05.add(this.createCountRegistersBarChart());
 
         container.add(box01, box02, box03, box04);
 
@@ -146,6 +161,18 @@ public class BoardView extends BaseView {
         this.chart.withLegend(LegendBuilder.get().withShow(Boolean.FALSE).build()).build();
     }
 
+    private ApexCharts createCountRegistersBarChart() {
+        this.chartInitialConfig();
+
+        this.chart.addData("IoT Domains", (long) this.domainService.findAll().size(), 0L);
+        this.chart.addData("Architecture Solutions", (long) this.architectureSolutionService.findAll().size(), 0L);
+        this.chart.addData("Quality Requirements", (long) this.qualityReqService.getQualityRequirementCountGroupedByName().size(), 0L);
+        this.chart.addData("Technologies", (long) this.technologyService.findAll().size(), 0L);
+        this.chart.addData("References", (long) this.paperReferenceService.findAll().size(), 0L);
+
+        return chart.createBarChart("Data Summary", false);
+    }
+
     /***
      * Create the IoT Domains chart
      * @param chartTitle
@@ -153,7 +180,8 @@ public class BoardView extends BaseView {
      * @throws IOException
      */
     private ApexCharts createIoTDomainChart(String chartTitle) {
-        List<IoTDomainRecord> recordData = this.domainService.getIoTDomainCountGroupedByName();
+        //List<IoTDomainRecord> recordData = this.domainService.getIoTDomainCountGroupedByName();
+        List<IoTDomainRecord> recordData = this.domainService.countIoTDomainByArchitectureSolution();
 
         this.chartInitialConfig();
         recordData.forEach(d -> {

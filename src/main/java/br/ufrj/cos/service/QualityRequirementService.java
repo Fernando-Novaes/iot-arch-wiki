@@ -5,11 +5,13 @@ import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.repository.QualityRequirementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static java.util.Arrays.stream;
 
 @Service
 public class QualityRequirementService {
@@ -39,5 +41,26 @@ public class QualityRequirementService {
 
     public List<QualityRequirement> findAllByArchitectureSolution(ArchitectureSolution architectureSolution) {
         return this.qualityRequirementRepository.findByArchitectureSolutionId(architectureSolution.getId());
+    }
+
+    public List<QualityRequirement> findAllByName(String name) {
+        return this.qualityRequirementRepository.findAllByNameContainingIgnoreCase(name);
+    }
+
+    public void delete(QualityRequirement qualityRequirement) {
+        this.qualityRequirementRepository.delete(qualityRequirement);
+    }
+
+    public List<QualityRequirement> listAllByNameDistinct() {
+        return this.findAll().stream()
+                .filter(distinctByKey(QualityRequirement::getName))
+                .sorted((qr1, qr2) -> qr1.getName().compareToIgnoreCase(qr2.getName()))
+                .collect(Collectors.toList());
+    }
+
+    // Helper method to create a distinct filter based on a key
+    private <T> java.util.function.Predicate<T> distinctByKey(java.util.function.Function<? super T, ?> keyExtractor) {
+        java.util.Map<Object, Boolean> seen = new java.util.concurrent.ConcurrentHashMap<>();
+        return t -> seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == null;
     }
 }

@@ -11,21 +11,16 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.provider.DataProvider;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
-import org.vaadin.crudui.crud.FindAllCrudOperationListener;
 import org.vaadin.crudui.crud.impl.GridCrud;
-import org.vaadin.crudui.form.FieldProvider;
 import org.vaadin.crudui.form.impl.field.provider.CheckBoxGroupProvider;
 import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 
 @PageTitle("IoT-Arch - Data Manager")
 @Route(value = "datamanager-view", layout = MainLayout.class)
@@ -61,13 +56,7 @@ public class DataManagerView extends BaseView {
     }
 
     private void createTabLayout() {
-        Tab domains = new Tab(new Span("IoT Domains"), this.createBadge(String.valueOf(this.domainService.findAll().size())));
-        Tab archs = new Tab(new Span("Arch. Solutions"), this.createBadge(String.valueOf(this.architectureSolutionService.findAll().size())));
-        Tab qrs = new Tab(new Span("Quality Requirements"), this.createBadge(String.valueOf(this.qualityRequirementService.findAll().size())));
-        Tab techs = new Tab(new Span("Technologies"), this.createBadge(String.valueOf(this.technologyService.findAll().size())));
-        Tab papers = new Tab(new Span("References"), this.createBadge(String.valueOf(this.paperReferenceService.findAll().size())));
-
-        Tabs tabs = new Tabs(domains, archs, qrs, techs, papers);
+        Tabs tabs = createTabs();
 
         GridCrud<IoTDomain> gridDomains = createIoTDomainGridCrud();
         GridCrud<ArchitectureSolution> gridArchs = createArchitectureSolutionGridCrud();
@@ -104,6 +93,22 @@ public class DataManagerView extends BaseView {
         });
 
         getContent().add(tabs, contentContainer);
+    }
+
+    /***
+     * Creates all CRUD tabs
+     * @return Tabs
+     */
+    private Tabs createTabs() {
+        Tab domains = new Tab(new Span("IoT Domains"), this.createBadge(String.valueOf(this.domainService.findAll().size())));
+        Tab archs = new Tab(new Span("Arch. Solutions"), this.createBadge(String.valueOf(this.architectureSolutionService.findAll().size())));
+        Tab qrs = new Tab(new Span("Quality Requirements"), this.createBadge(String.valueOf(this.qualityRequirementService.findAll().size())));
+        Tab techs = new Tab(new Span("Technologies"), this.createBadge(String.valueOf(this.technologyService.findAll().size())));
+        Tab papers = new Tab(new Span("References"), this.createBadge(String.valueOf(this.paperReferenceService.findAll().size())));
+
+        Tabs tabs = new Tabs(domains, archs, qrs, techs, papers);
+
+        return tabs;
     }
 
     /***
@@ -193,12 +198,18 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.setAddOperation(this.qualityRequirementService::saveAndFlush);
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAll);
         gridQualityRequirements.setUpdateOperation(this.qualityRequirementService::saveAndUpdate);
+        gridQualityRequirements.setDeleteOperation(this.qualityRequirementService::delete);
+
+        ComboBox<QualityRequirement> comboBoxQR = new ComboBox<QualityRequirement>("Name", this.qualityRequirementService.listAllByNameDistinct());
+        comboBoxQR.setAllowCustomValue(true);
+        gridQualityRequirements.getCrudFormFactory().setFieldProvider("Name", qr -> comboBoxQR);
+
         gridQualityRequirements.getCrudFormFactory().setFieldProvider("architectureSolution",
                 new ComboBoxProvider<ArchitectureSolution>("Arch", this.architectureSolutionService.findAll()));
 
         // additional components
-//        TextField filter = this.createGridTextFilter(gridQualityRequirements,"Filter by Quality Requirement","400px");
-//        gridQualityRequirements.setFindAllOperation( () -> this.qualityRequirementService.(filter.getValue()));
+        TextField filter = this.createGridTextFilter(gridQualityRequirements,"Filter by Quality Requirement","250px");
+        gridQualityRequirements.setFindAllOperation( () -> this.qualityRequirementService.findAllByName(filter.getValue()));
 
         return gridQualityRequirements;
     }
@@ -215,6 +226,10 @@ public class DataManagerView extends BaseView {
         gridArchs.getCrudFormFactory().setDisabledProperties("id");
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
                 new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
+
+        // additional components
+        TextField filter = this.createGridTextFilter(gridArchs,"Filter by Architectural Solution Name","400px");
+        gridArchs.setFindAllOperation( () -> this.architectureSolutionService.findByNameContainingIgnoreCase(filter.getValue()));
         return gridArchs;
     }
 

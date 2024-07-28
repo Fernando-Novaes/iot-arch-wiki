@@ -1,6 +1,7 @@
 package br.ufrj.cos.repository;
 
 
+import br.ufrj.cos.components.chart.data.IoTDomainRecord;
 import br.ufrj.cos.components.chart.data.QualityRequirementRecord;
 import br.ufrj.cos.domain.QualityRequirement;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,4 +22,9 @@ public interface QualityRequirementRepository extends JpaRepository<QualityRequi
 
     @Query("select q from QualityRequirement q join q.architectureSolution a where a.id = :id")
     List<QualityRequirement> findByArchitectureSolutionId(@Param("id") Long id);
+
+    List<QualityRequirement> findAllByNameContainingIgnoreCase(String name);
+
+    @Query("SELECT DISTINCT qr.name FROM QualityRequirement qr")
+    List<String> findDistinctNames();
 }

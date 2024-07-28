@@ -1,6 +1,7 @@
 package br.ufrj.cos.components.treeview;
 
 
+import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.QualityRequirement;
@@ -13,8 +14,10 @@ import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -39,11 +42,13 @@ import java.util.List;
 @CssImport(value = "./styles/app-styles.css", themeFor = "vaadin-grid")
 public class TreeViewComponent extends VerticalLayout {
 
+    private final QRCodeComponent qrCodeComponent;
     private final IoTDomainService ioTDomainService;
     @Getter private Boolean loaded = Boolean.FALSE;
 
     @Autowired
-    public TreeViewComponent(IoTDomainService ioTDomainService) {
+    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService) {
+        this.qrCodeComponent = qrCodeComponent;
         this.ioTDomainService = ioTDomainService;
     }
 
@@ -153,15 +158,9 @@ public class TreeViewComponent extends VerticalLayout {
             // Action when the icon is clicked
             //Notification.show("Icon clicked for: " + tech.getDescription());
 
-            Dialog dialog = new Dialog();
-            dialog.setModal(true);
-            dialog.setDraggable(true);
-            dialog.setResizable(true);
-            dialog.setHeaderTitle("Details");
-            Button close = new Button("Close", (e) -> dialog.close());
-            close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            dialog.getFooter().add(close);
-            dialog.open();
+            addDetailsDialog(
+                    ((Technology) node.getData()).getArchitectureSolution().getPaperReference().getPaperTitle(),
+                    ((Technology) node.getData()).getArchitectureSolution().getPaperReference().getPaperLink());
         });
 
         button.getStyle().set("min-width", "15px"); // Set the button size
@@ -175,6 +174,41 @@ public class TreeViewComponent extends VerticalLayout {
 
         return layout;
     }
+
+    private void addDetailsDialog(String paperTitle, String paperLink) {
+        Dialog dialog = new Dialog();
+        dialog.setModal(true);
+        dialog.setDraggable(true);
+        dialog.setResizable(true);
+        dialog.setHeaderTitle("Details");
+
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.setAlignItems(FlexComponent.Alignment.CENTER);
+        hl.setSpacing(true);
+
+        VerticalLayout vlLeft = new VerticalLayout();
+        VerticalLayout vlRight = new VerticalLayout();
+        vlLeft.setAlignItems(Alignment.START);
+        vlRight.setAlignItems(Alignment.END);
+        vlLeft.setSpacing(true);
+        vlRight.setSpacing(true);
+        vlRight.setWidth("50%");
+        vlRight.setWidth("100%");
+
+        H4 paperTitleH1 = new H4(paperTitle);
+        Anchor link = new Anchor(paperLink, paperLink);
+        link.setTarget("_blank"); // Opens the link in a new tab
+        vlLeft.add(paperTitleH1, link);
+        vlRight.add(this.qrCodeComponent.generateQRCode(paperLink, 100, 100));
+
+        dialog.add(vlLeft, vlRight);
+
+        Button close = new Button("Close", (e) -> dialog.close());
+        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        dialog.getFooter().add(close);
+        dialog.open();
+    }
+
     private void selectRow(Technology tech, TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {
         treeGrid.getSelectionModel().select(node);
     }

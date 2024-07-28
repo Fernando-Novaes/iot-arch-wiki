@@ -33,7 +33,7 @@ public class DiagramComponent {
                         "  { from: 2, to: 3, arrows: 'to', shadow: { color: 'black' } }" +
 
                         "]);" +
-                        "var container = document.getElementById('mynetwork');" +
+                        "var container = document.getElementById('diagram');" +
                         "var data = { nodes: nodes, edges: edges };" +
                         "var options = {" +
                         "  nodes: {" +
