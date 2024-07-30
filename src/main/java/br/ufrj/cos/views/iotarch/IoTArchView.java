@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 @PageTitle("IoT-Arch Wiki - Tree")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
-@JavaScript(value = "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js", loadMode = LoadMode.EAGER)
 public class IoTArchView extends BaseView {
 
     private TreeViewComponent treeView;

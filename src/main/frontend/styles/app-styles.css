@@ -50,8 +50,8 @@
 }
 
 #diagram {
-    width: 50%;
-    height: 100%;
+    width: 30vw;
+    height: 20vh;
     border: 1px solid #373a3f;
     background-color: #373a3f;
 }

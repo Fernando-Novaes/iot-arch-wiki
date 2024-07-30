@@ -26,6 +26,7 @@ public class NotificationDialog {
     public static void showNotificationDialogAtTheBotton(String title, String message) {
         Notification notification = new Notification();
         notification.setPosition(Notification.Position.BOTTOM_STRETCH);
+        notification.setDuration(200);
 
         Icon icon = VaadinIcon.CHECK_CIRCLE.create();
         icon.setColor("var(--lumo-success-color)");

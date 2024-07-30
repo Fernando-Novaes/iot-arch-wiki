@@ -4,6 +4,7 @@ package br.ufrj.cos.components.treeview;
 import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
+import br.ufrj.cos.components.notification.NotificationDialog;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
@@ -62,7 +63,7 @@ public class TreeViewComponent extends VerticalLayout {
             } else if (data instanceof QualityRequirement) {
                 return new Text(((QualityRequirement) data).getName());
             } else if (data instanceof Technology) {
-                return createNodeWithIcon((Technology) data, node, treeGrid);
+                return new Text(((Technology) data).getDescription());
             }
             return new Text("");
         }).setHeader("IoT Domain -> Architectural Solution -> Quality Requirement -> Technology/Feature");
@@ -83,6 +84,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         treeGrid.setClassNameGenerator(node -> {
             Object data = node.getData();
+
             if (data instanceof IoTDomain) {
                 return "iot-domain";
             } else if (data instanceof ArchitectureSolution) {
@@ -96,36 +98,43 @@ public class TreeViewComponent extends VerticalLayout {
         });
 
         // Add a click listener to the TreeGrid nodes
-//        treeGrid.addItemClickListener(event -> {
-//            TreeNode<?> node = event.getItem();
-//            if (node.getData() instanceof Technology) {
-//
-//                List<TreeNode<?>> path = getPathToRoot(node);
-//
-//                // Construct the full path string
-//                StringBuilder pathString = new StringBuilder();
-//                for (int i = path.size() - 1; i >= 0; i--) {
-//                    Object data = path.get(i).getData();
-//                    if (data instanceof IoTDomain) {
-//                        pathString.append(((IoTDomain) data).getName());
-//                    } else if (data instanceof ArchitectureSolution) {
-//                        pathString.append(((ArchitectureSolution) data).getName());
-//                    } else if (data instanceof QualityRequirement) {
-//                        pathString.append(((QualityRequirement) data).getName());
-//                    } else if (data instanceof Technology) {
-//                        pathString.append(((Technology) data).getDescription());
-//                    }
-//                    if (i > 0) {
-//                        pathString.append(" >> ");
-//                    }
-//                }
-//
-//                // Print or display the full path
-//                NotificationDialog.showNotificationDialogAtTheBotton(
-//                        ((Technology) node.getData()).getDescription(), pathString.toString()
-//                );
-//            }
-//        });
+        treeGrid.addItemClickListener(event -> {
+            TreeNode<?> node = event.getItem();
+            if (node.getData() instanceof Technology) {
+
+                List<TreeNode<?>> path = getPathToRoot(node);
+                List<String> diagramNames = new ArrayList<>();
+
+                // Construct the full path string
+                StringBuilder pathString = new StringBuilder();
+                for (int i = path.size() - 1; i >= 0; i--) {
+                    Object data = path.get(i).getData();
+                    if (data instanceof IoTDomain) {
+                        diagramNames.add(((IoTDomain)data).getName());
+                        pathString.append(((IoTDomain) data).getName());
+                    } else if (data instanceof ArchitectureSolution) {
+                        diagramNames.add(((ArchitectureSolution)data).getName());
+                        pathString.append(((ArchitectureSolution) data).getName());
+                    } else if (data instanceof QualityRequirement) {
+                        diagramNames.add(((QualityRequirement)data).getName());
+                        pathString.append(((QualityRequirement) data).getName());
+                    } else if (data instanceof Technology) {
+                        diagramNames.add(((Technology)data).getDescription());
+                        pathString.append(((Technology) data).getDescription());
+                    }
+                    if (i > 0) {
+                        pathString.append(" >> ");
+                    }
+                }
+
+                createNodeWithIcon(treeGrid, node, diagramNames);
+
+                // Print or display the full path
+                NotificationDialog.showNotificationDialogAtTheBotton(
+                        ((Technology) node.getData()).getDescription(), pathString.toString()
+                );
+            }
+        });
 
         // Add styling variant to the TreeGrid for better visibility
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
@@ -142,7 +151,7 @@ public class TreeViewComponent extends VerticalLayout {
     /***
      * Method to create a component for the node with text and icon
      */
-    private HorizontalLayout  createNodeWithIcon(Technology tech, TreeNode<?> node, TreeGrid<TreeNode<?>>  treeGrid) {
+    private HorizontalLayout createNodeWithIcon(TreeGrid<TreeNode<?>>  treeGrid, TreeNode<?> node, List<String> diagramNames) {
         // Create an icon
         Icon icon = VaadinIcon.INFO_CIRCLE.create(); // Use any icon you prefer
         icon.getElement().getStyle().set("cursor", "pointer"); // Change cursor style to pointer for clickable effect
@@ -151,7 +160,7 @@ public class TreeViewComponent extends VerticalLayout {
         Button button = new Button(icon);
         button.setTooltipText("More details");
         button.addClickListener(event -> {
-            this.selectRow(tech, node, treeGrid);
+            this.selectRow(node, treeGrid);
             // Action when the icon is clicked
             //Notification.show("Icon clicked for: " + tech.getDescription());
 
@@ -160,30 +169,38 @@ public class TreeViewComponent extends VerticalLayout {
                     ((Technology) node.getData()).getArchitectureSolution().getPaperReference().getPaperLink());
         });
 
-        this.createDiagram((Technology) node.getData());
+        this.createDiagram(diagramNames);
 
         button.getStyle().set("min-width", "15px"); // Set the button size
         button.getStyle().set("height", "25px"); // Set the button size
 
         // Create a layout to hold the text and the icon
         HorizontalLayout  layout = new HorizontalLayout ();
-        layout.add(new Text(tech.getDescription()), button);
+        layout.add(new Text(((Technology) node.getData()).getDescription()), button);
         layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.setSpacing(true); // Remove spacing between text and icon
 
         return layout;
     }
 
-    private DiagramComponent createDiagram(Technology tech) {
+    private DiagramComponent createDiagram(List<String> diagramNames) {
         List<NodeDiagram> nodes = new ArrayList<>();
-        NodeDiagram arch = NodeDiagram.builder().id(tech.getArchitectureSolution().getId().toString()).label(tech.getArchitectureSolution().getName()).color("white").build();
+        NodeDiagram dom = NodeDiagram.builder().id("0").label(diagramNames.getFirst()).color("lightblue").build();
+        nodes.add(dom);
+        NodeDiagram arch = NodeDiagram.builder().id("1").label(diagramNames.get(1)).color("white").build();
         nodes.add(arch);
-        NodeDiagram qr = NodeDiagram.builder().id(tech.getArchitectureSolution().getQrs().stream().findFirst().get().getId().toString()).label(tech.getArchitectureSolution().getQrs().stream().findFirst().get().getName()).color("yellow").build();
+        NodeDiagram qr = NodeDiagram.builder().id("2").label(diagramNames.get(2)).color("yellow").build();
         nodes.add(qr);
+        NodeDiagram te = NodeDiagram.builder().id("3").label(diagramNames.get(3)).color("gray").build();
+        nodes.add(te);
 
         List<EdgeDiagram> edges = new ArrayList<>();
-        EdgeDiagram edge01 = EdgeDiagram.builder().from(tech.getArchitectureSolution().getId().toString()).to(tech.getArchitectureSolution().getQrs().stream().findFirst().get().getId().toString()).build();
+        EdgeDiagram edge01 = EdgeDiagram.builder().from("0").to("1").build();
         edges.add(edge01);
+        EdgeDiagram edge02 = EdgeDiagram.builder().from("1").to("2").build();
+        edges.add(edge02);
+        EdgeDiagram edge03 = EdgeDiagram.builder().from("2").to("3").build();
+        edges.add(edge03);
 
         this.diagramComponent.setNodes(nodes);
         this.diagramComponent.setEdges(edges);
@@ -210,10 +227,10 @@ public class TreeViewComponent extends VerticalLayout {
         vlRight.setAlignItems(Alignment.END);
         vlLeft.setSpacing(true);
         vlRight.setSpacing(true);
-//        vlRight.setWidth("50%");
-        vlRight.setSizeFull();
-        vlLeft.setSizeFull();
-//        vlLeft.setHeight("50%");
+        //vlRight.setWidth("50%");
+        //vlRight.setSizeFull();
+        //vlLeft.setSizeFull();
+        //vlLeft.setHeight("50%");
 
         H4 paperTitleH1 = new H4(paperTitle);
         Anchor link = new Anchor(paperLink, paperLink);
@@ -233,7 +250,7 @@ public class TreeViewComponent extends VerticalLayout {
         dialog.open();
     }
 
-    private void selectRow(Technology tech, TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {
+    private void selectRow(TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {
         treeGrid.getSelectionModel().select(node);
     }
 
