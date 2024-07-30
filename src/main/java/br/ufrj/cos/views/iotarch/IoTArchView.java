@@ -3,11 +3,14 @@ package br.ufrj.cos.views.iotarch;
 import br.ufrj.cos.components.treeview.TreeViewComponent;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
+import com.vaadin.flow.component.dependency.JavaScript;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.shared.ui.LoadMode;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @PageTitle("IoT-Arch Wiki - Tree")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
+@JavaScript(value = "https://unpkg.com/vis-network/standalone/umd/vis-network.min.js", loadMode = LoadMode.EAGER)
 public class IoTArchView extends BaseView {
 
     private TreeViewComponent treeView;

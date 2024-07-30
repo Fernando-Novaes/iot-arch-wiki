@@ -174,7 +174,7 @@ public class TreeViewComponent extends VerticalLayout {
         return layout;
     }
 
-    private void createDiagram(Technology tech) {
+    private DiagramComponent createDiagram(Technology tech) {
         List<NodeDiagram> nodes = new ArrayList<>();
         NodeDiagram arch = NodeDiagram.builder().id(tech.getArchitectureSolution().getId().toString()).label(tech.getArchitectureSolution().getName()).color("white").build();
         nodes.add(arch);
@@ -188,6 +188,8 @@ public class TreeViewComponent extends VerticalLayout {
         this.diagramComponent.setNodes(nodes);
         this.diagramComponent.setEdges(edges);
         this.diagramComponent.execute();
+
+        return this.diagramComponent;
     }
 
     private void addDetailsDialog(String paperTitle, String paperLink) {
@@ -196,6 +198,7 @@ public class TreeViewComponent extends VerticalLayout {
         dialog.setDraggable(true);
         dialog.setResizable(true);
         dialog.setHeaderTitle("Details");
+        dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
 
         HorizontalLayout hl = new HorizontalLayout();
         hl.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -207,8 +210,10 @@ public class TreeViewComponent extends VerticalLayout {
         vlRight.setAlignItems(Alignment.END);
         vlLeft.setSpacing(true);
         vlRight.setSpacing(true);
-        vlRight.setWidth("50%");
-        vlRight.setWidth("100%");
+//        vlRight.setWidth("50%");
+        vlRight.setSizeFull();
+        vlLeft.setSizeFull();
+//        vlLeft.setHeight("50%");
 
         H4 paperTitleH1 = new H4(paperTitle);
         Anchor link = new Anchor(paperLink, paperLink);
@@ -220,7 +225,7 @@ public class TreeViewComponent extends VerticalLayout {
         vlLeft.add(paperTitleH1, link, divDiagram);
         vlRight.add(this.qrCodeComponent.generateQRCode(paperLink, 100, 100));
 
-        dialog.add(vlLeft, vlRight);
+        dialog.add(vlLeft, vlRight, this.diagramComponent);
 
         Button close = new Button("Close", (e) -> dialog.close());
         close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
