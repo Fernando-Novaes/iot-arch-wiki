@@ -1,39 +1,34 @@
 package br.ufrj.cos.components.treeview;
 
 
+import br.ufrj.cos.components.diagram.DiagramComponent;
+import br.ufrj.cos.components.diagram.EdgeDiagram;
+import br.ufrj.cos.components.diagram.NodeDiagram;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.service.IoTDomainService;
-import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.HasComponents;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.router.PreserveOnRefresh;
 import com.vaadin.flow.spring.annotation.UIScope;
-import com.vaadin.flow.spring.annotation.VaadinSessionScope;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,12 +39,14 @@ public class TreeViewComponent extends VerticalLayout {
 
     private final QRCodeComponent qrCodeComponent;
     private final IoTDomainService ioTDomainService;
+    private final DiagramComponent diagramComponent;
     @Getter private Boolean loaded = Boolean.FALSE;
 
     @Autowired
-    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService) {
+    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent) {
         this.qrCodeComponent = qrCodeComponent;
         this.ioTDomainService = ioTDomainService;
+        this.diagramComponent = diagramComponent;
     }
 
     public void load() {
@@ -163,6 +160,8 @@ public class TreeViewComponent extends VerticalLayout {
                     ((Technology) node.getData()).getArchitectureSolution().getPaperReference().getPaperLink());
         });
 
+        this.createDiagram((Technology) node.getData());
+
         button.getStyle().set("min-width", "15px"); // Set the button size
         button.getStyle().set("height", "25px"); // Set the button size
 
@@ -173,6 +172,22 @@ public class TreeViewComponent extends VerticalLayout {
         layout.setSpacing(true); // Remove spacing between text and icon
 
         return layout;
+    }
+
+    private void createDiagram(Technology tech) {
+        List<NodeDiagram> nodes = new ArrayList<>();
+        NodeDiagram arch = NodeDiagram.builder().id(tech.getArchitectureSolution().getId().toString()).label(tech.getArchitectureSolution().getName()).color("white").build();
+        nodes.add(arch);
+        NodeDiagram qr = NodeDiagram.builder().id(tech.getArchitectureSolution().getQrs().stream().findFirst().get().getId().toString()).label(tech.getArchitectureSolution().getQrs().stream().findFirst().get().getName()).color("yellow").build();
+        nodes.add(qr);
+
+        List<EdgeDiagram> edges = new ArrayList<>();
+        EdgeDiagram edge01 = EdgeDiagram.builder().from(tech.getArchitectureSolution().getId().toString()).to(tech.getArchitectureSolution().getQrs().stream().findFirst().get().getId().toString()).build();
+        edges.add(edge01);
+
+        this.diagramComponent.setNodes(nodes);
+        this.diagramComponent.setEdges(edges);
+        this.diagramComponent.execute();
     }
 
     private void addDetailsDialog(String paperTitle, String paperLink) {
@@ -198,7 +213,11 @@ public class TreeViewComponent extends VerticalLayout {
         H4 paperTitleH1 = new H4(paperTitle);
         Anchor link = new Anchor(paperLink, paperLink);
         link.setTarget("_blank"); // Opens the link in a new tab
-        vlLeft.add(paperTitleH1, link);
+
+        Div divDiagram = new Div();
+        divDiagram.setId("diagram");
+
+        vlLeft.add(paperTitleH1, link, divDiagram);
         vlRight.add(this.qrCodeComponent.generateQRCode(paperLink, 100, 100));
 
         dialog.add(vlLeft, vlRight);
