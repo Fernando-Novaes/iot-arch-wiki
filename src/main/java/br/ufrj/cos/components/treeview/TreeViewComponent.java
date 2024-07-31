@@ -63,7 +63,9 @@ public class TreeViewComponent extends VerticalLayout {
             } else if (data instanceof QualityRequirement) {
                 return new Text(((QualityRequirement) data).getName());
             } else if (data instanceof Technology) {
-                return new Text(((Technology) data).getDescription());
+                //return new Text(((Technology) data).getDescription());
+                List<String> nodeNames = this.createPathToNode(node);
+                return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
         }).setHeader("IoT Domain -> Architectural Solution -> Quality Requirement -> Technology/Feature");
@@ -98,43 +100,10 @@ public class TreeViewComponent extends VerticalLayout {
         });
 
         // Add a click listener to the TreeGrid nodes
-        treeGrid.addItemClickListener(event -> {
-            TreeNode<?> node = event.getItem();
-            if (node.getData() instanceof Technology) {
-
-                List<TreeNode<?>> path = getPathToRoot(node);
-                List<String> diagramNames = new ArrayList<>();
-
-                // Construct the full path string
-                StringBuilder pathString = new StringBuilder();
-                for (int i = path.size() - 1; i >= 0; i--) {
-                    Object data = path.get(i).getData();
-                    if (data instanceof IoTDomain) {
-                        diagramNames.add(((IoTDomain)data).getName());
-                        pathString.append(((IoTDomain) data).getName());
-                    } else if (data instanceof ArchitectureSolution) {
-                        diagramNames.add(((ArchitectureSolution)data).getName());
-                        pathString.append(((ArchitectureSolution) data).getName());
-                    } else if (data instanceof QualityRequirement) {
-                        diagramNames.add(((QualityRequirement)data).getName());
-                        pathString.append(((QualityRequirement) data).getName());
-                    } else if (data instanceof Technology) {
-                        diagramNames.add(((Technology)data).getDescription());
-                        pathString.append(((Technology) data).getDescription());
-                    }
-                    if (i > 0) {
-                        pathString.append(" >> ");
-                    }
-                }
-
-                createNodeWithIcon(treeGrid, node, diagramNames);
-
-                // Print or display the full path
-                NotificationDialog.showNotificationDialogAtTheBotton(
-                        ((Technology) node.getData()).getDescription(), pathString.toString()
-                );
-            }
-        });
+//        treeGrid.addItemClickListener(event -> {
+//            TreeNode<?> node = event.getItem();
+//
+//        });
 
         // Add styling variant to the TreeGrid for better visibility
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
@@ -146,6 +115,32 @@ public class TreeViewComponent extends VerticalLayout {
         getStyle().set("flex-grow", "1");
 
         this.loaded = Boolean.TRUE;
+    }
+
+    private List<String> createPathToNode(TreeNode<?> node) {
+        List<TreeNode<?>> path = getPathToRoot(node);
+        List<String> diagramNames = new ArrayList<>();
+
+        // Construct the full path string
+        //StringBuilder pathString = new StringBuilder();
+        for (int i = path.size() - 1; i >= 0; i--) {
+            Object data = path.get(i).getData();
+            if (data instanceof IoTDomain) {
+                diagramNames.add(((IoTDomain)data).getName());
+                //pathString.append(((IoTDomain) data).getName());
+            } else if (data instanceof ArchitectureSolution) {
+                diagramNames.add(((ArchitectureSolution)data).getName());
+                //pathString.append(((ArchitectureSolution) data).getName());
+            } else if (data instanceof QualityRequirement) {
+                diagramNames.add(((QualityRequirement)data).getName());
+                //pathString.append(((QualityRequirement) data).getName());
+            } else if (data instanceof Technology) {
+                diagramNames.add(((Technology)data).getDescription());
+                //pathString.append(((Technology) data).getDescription());
+            }
+        }
+
+        return diagramNames;
     }
 
     /***
@@ -185,13 +180,13 @@ public class TreeViewComponent extends VerticalLayout {
 
     private DiagramComponent createDiagram(List<String> diagramNames) {
         List<NodeDiagram> nodes = new ArrayList<>();
-        NodeDiagram dom = NodeDiagram.builder().id("0").label(diagramNames.getFirst()).color("lightblue").build();
+        NodeDiagram dom = NodeDiagram.builder().id("0").label(diagramNames.getFirst()).color("lightblue").tooltip("IoT Domain").build();
         nodes.add(dom);
-        NodeDiagram arch = NodeDiagram.builder().id("1").label(diagramNames.get(1)).color("white").build();
+        NodeDiagram arch = NodeDiagram.builder().id("1").label(diagramNames.get(1)).color("white").tooltip("Architecture Solution").build();
         nodes.add(arch);
-        NodeDiagram qr = NodeDiagram.builder().id("2").label(diagramNames.get(2)).color("yellow").build();
+        NodeDiagram qr = NodeDiagram.builder().id("2").label(diagramNames.get(2)).color("yellow").tooltip("Quality Requirement").build();
         nodes.add(qr);
-        NodeDiagram te = NodeDiagram.builder().id("3").label(diagramNames.get(3)).color("gray").build();
+        NodeDiagram te = NodeDiagram.builder().id("3").label(diagramNames.get(3)).color("gray").tooltip("Technology").build();
         nodes.add(te);
 
         List<EdgeDiagram> edges = new ArrayList<>();

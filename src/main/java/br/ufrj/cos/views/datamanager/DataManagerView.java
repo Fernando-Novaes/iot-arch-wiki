@@ -154,6 +154,13 @@ public class DataManagerView extends BaseView {
         return gridTechs;
     }
 
+    /***
+     * Creates the filter for the GridCRUD
+     * @param gridCRUD the Grid to insert the filter
+     * @param filterText Text to be shown in the filter
+     * @param textFieldSize the ize of the filter field
+     * @return TextField
+     */
     private TextField createGridTextFilter(GridCrud<?> gridCRUD, String filterText, String textFieldSize) {
         TextField filter = new TextField();
         filter.setPlaceholder(filterText);
@@ -223,7 +230,8 @@ public class DataManagerView extends BaseView {
         gridArchs.setFindAllOperation(this.architectureSolutionService::findAll);
         gridArchs.setUpdateOperation(this.architectureSolutionService::saveAndUpdate);
         gridArchs.getCrudFormFactory().setVisibleProperties("id", "name", "paperReference", "qrs", "technologies");
-        gridArchs.getCrudFormFactory().setDisabledProperties("id");
+        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name", "paperReference");
+        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name", "paperReference");
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
                 new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
 
