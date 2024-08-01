@@ -15,6 +15,7 @@ import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
@@ -83,6 +84,7 @@ public class MainLayout extends AppLayout {
 
         H1 appName = new H1("IoT-Arch Wiki");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
+        appName.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
         layout.add(appName);
 
         Nav nav = new Nav();
@@ -94,6 +96,7 @@ public class MainLayout extends AppLayout {
         nav.add(list);
 
         for (MenuItemInfo menuItem : createMenuItems()) {
+            menuItem.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
             list.add(menuItem);
 
         }
