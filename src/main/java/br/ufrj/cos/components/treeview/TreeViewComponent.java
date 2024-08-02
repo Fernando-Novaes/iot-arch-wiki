@@ -42,6 +42,7 @@ public class TreeViewComponent extends VerticalLayout {
     private final IoTDomainService ioTDomainService;
     private final DiagramComponent diagramComponent;
     @Getter private Boolean loaded = Boolean.FALSE;
+    StringBuilder pathString;
 
     @Autowired
     public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent) {
@@ -122,21 +123,21 @@ public class TreeViewComponent extends VerticalLayout {
         List<String> diagramNames = new ArrayList<>();
 
         // Construct the full path string
-        //StringBuilder pathString = new StringBuilder();
+        this.pathString = new StringBuilder();
         for (int i = path.size() - 1; i >= 0; i--) {
             Object data = path.get(i).getData();
             if (data instanceof IoTDomain) {
                 diagramNames.add(((IoTDomain)data).getName());
-                //pathString.append(((IoTDomain) data).getName());
+                pathString.append(((IoTDomain) data).getName().toUpperCase() + " >> ");
             } else if (data instanceof ArchitectureSolution) {
                 diagramNames.add(((ArchitectureSolution)data).getName());
-                //pathString.append(((ArchitectureSolution) data).getName());
+                pathString.append(((ArchitectureSolution) data).getName().toUpperCase() + " >> ");
             } else if (data instanceof QualityRequirement) {
                 diagramNames.add(((QualityRequirement)data).getName());
-                //pathString.append(((QualityRequirement) data).getName());
+                pathString.append(((QualityRequirement) data).getName().toUpperCase() + " >> ");
             } else if (data instanceof Technology) {
                 diagramNames.add(((Technology)data).getDescription());
-                //pathString.append(((Technology) data).getDescription());
+                pathString.append(((Technology) data).getDescription().toUpperCase());
             }
         }
 
@@ -234,7 +235,7 @@ public class TreeViewComponent extends VerticalLayout {
         Div divDiagram = new Div();
         divDiagram.setId("diagram");
 
-        vlLeft.add(paperTitleH1, link, divDiagram);
+        vlLeft.add(paperTitleH1, link, divDiagram, new Text(this.pathString.toString()));
         vlRight.add(this.qrCodeComponent.generateQRCode(paperLink, 100, 100));
 
         dialog.add(vlLeft, vlRight, this.diagramComponent);

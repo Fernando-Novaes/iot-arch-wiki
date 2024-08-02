@@ -8,12 +8,14 @@
 .iot-domain {
     color: #ED8312E5;
     font-weight: bold;
+    font-size: large;
     padding: 5px;
     background-color: #373a3f;
     white-space: pre-wrap;
 }
 
 .architecture-solution {
+    font-size: large;
     color: white;
     font-weight: bold;
     padding: 5px;
@@ -22,6 +24,7 @@
 }
 
 .quality-requirement {
+    font-size: large;
     color: goldenrod;
     font-style: normal;
     font-weight: bold;
@@ -31,6 +34,7 @@
 }
 
 .technology {
+    font-size: large;
     color: limegreen;
     font-weight: bold;
     padding: 5px;
