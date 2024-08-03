@@ -98,7 +98,6 @@ public class MainLayout extends AppLayout {
         for (MenuItemInfo menuItem : createMenuItems()) {
             menuItem.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
             list.add(menuItem);
-
         }
 
         header.add(layout, nav);

@@ -215,14 +215,14 @@ public class TreeViewComponent extends VerticalLayout {
 
         HorizontalLayout hl = new HorizontalLayout();
         hl.setAlignItems(FlexComponent.Alignment.CENTER);
-        hl.setSpacing(true);
+        //hl.setSpacing(true);
 
         VerticalLayout vlLeft = new VerticalLayout();
         VerticalLayout vlRight = new VerticalLayout();
         vlLeft.setAlignItems(Alignment.START);
         vlRight.setAlignItems(Alignment.END);
-        vlLeft.setSpacing(true);
-        vlRight.setSpacing(true);
+//        vlLeft.setSpacing(true);
+//        vlRight.setSpacing(true);
         //vlRight.setWidth("50%");
         //vlRight.setSizeFull();
         //vlLeft.setSizeFull();

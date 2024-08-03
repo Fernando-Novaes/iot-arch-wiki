@@ -118,7 +118,7 @@ public class DataManagerView extends BaseView {
     private GridCrud<Technology> createTechnolgyGridCrud() {
         GridCrud<Technology> gridTechs = new GridCrud<>(Technology.class);
         gridTechs.setSizeFull();
-        gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
+//        gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridTechs.getGrid().getColumnByKey("description").setAutoWidth(true);
         gridTechs.getCrudFormFactory().setVisibleProperties("id","description","architectureSolution", "qualityRequirement", "technology");
         gridTechs.getGrid().setDetailsVisibleOnClick(true);
@@ -166,8 +166,8 @@ public class DataManagerView extends BaseView {
         filter.setPlaceholder(filterText);
         filter.setClearButtonVisible(true);
         filter.setMinWidth(textFieldSize);
-        gridCRUD.getCrudLayout().addFilterComponent(filter);
         filter.addValueChangeListener(e -> gridCRUD.refreshGrid());
+        gridCRUD.getCrudLayout().addFilterComponent(filter);
 
         return filter;
     }
@@ -215,8 +215,11 @@ public class DataManagerView extends BaseView {
                 new ComboBoxProvider<ArchitectureSolution>("Arch", this.architectureSolutionService.findAll()));
 
         // additional components
-        TextField filter = this.createGridTextFilter(gridQualityRequirements,"Filter by Quality Requirement","250px");
-        gridQualityRequirements.setFindAllOperation( () -> this.qualityRequirementService.findAllByName(filter.getValue()));
+//        TextField filter = this.createGridTextFilter(gridQualityRequirements,"Filter by Quality Requirement","250px");
+//        gridQualityRequirements.setFindAllOperation( () -> this.qualityRequirementService.findAllByName(filter.getValue()));
+
+        TextField filterByArch = this.createGridTextFilter(gridQualityRequirements, "Filter by Architecture Solution","400px");
+        gridQualityRequirements.setFindAllOperation( () -> this.qualityRequirementService.findByArchitectureSolution_NameContainingIgnoreCaseOOrderByNameAsc(filterByArch.getValue()));
 
         return gridQualityRequirements;
     }
