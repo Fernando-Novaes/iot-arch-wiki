@@ -19,6 +19,7 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "2.29.3",
     "lit": "3.1.4",
+    "mvn": "^3.5.0",
     "onecolor": "4.1.0",
     "proj4": "2.11.0",
     "react": "18.3.1",
@@ -46,6 +47,7 @@
     "workbox-precaching": "7.1.0"
   },
   "overrides": {
+    "mvn": "$mvn",
     "@vaadin/bundles": "$@vaadin/bundles",
     "@vaadin/polymer-legacy-adapter": "$@vaadin/polymer-legacy-adapter",
     "@vaadin/vaadin-development-mode-detector": "$@vaadin/vaadin-development-mode-detector",
@@ -112,6 +114,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "1aadba10b9a02027be45a7247d12d28907adb981b86984b109ba376152eea308"
+    "hash": "8089df8d706c549737eecc0bee5eed9be4d53b7837e3a302ba88f8838acdf0df"
   }
 }
