@@ -4,6 +4,7 @@ import br.ufrj.cos.components.chart.data.ArchitectureSolutionRecord;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.repository.ArchitectureSolutionRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,5 +41,9 @@ public class ArchitectureSolutionService {
 
     public List<ArchitectureSolution> findByNameContainingIgnoreCase(String name) {
         return this.architectureSolutionRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    public List<ArchitectureSolution> findAllOrderedByName() {
+        return this.architectureSolutionRepository.findAll(Sort.by("name"));
     }
 }

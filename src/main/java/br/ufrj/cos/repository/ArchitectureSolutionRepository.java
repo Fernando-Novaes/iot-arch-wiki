@@ -14,7 +14,7 @@ import java.util.List;
 public interface ArchitectureSolutionRepository extends JpaRepository<ArchitectureSolution, Long> {
 
     @Query(value = "select a from ArchitectureSolution a")
-    List<ArchitectureSolution> searchAll();
+    List<ArchitectureSolution> findAll();
 
     @Query(value = "SELECT new br.ufrj.cos.components.chart.data.ArchitectureSolutionRecord(i.name, COUNT(i), (SELECT COUNT(*) FROM ArchitectureSolution i2)) FROM ArchitectureSolution i GROUP BY i.name")
     List<ArchitectureSolutionRecord> countArchitectureSolutionGroupedByName();

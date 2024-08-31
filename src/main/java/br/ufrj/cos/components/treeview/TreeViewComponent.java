@@ -11,6 +11,8 @@ import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.service.IoTDomainService;
+import br.ufrj.cos.service.TreeViewService;
+import br.ufrj.cos.utils.ColorUtils;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
@@ -32,6 +34,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @UIScope
 @Component
@@ -39,16 +42,16 @@ import java.util.List;
 public class TreeViewComponent extends VerticalLayout {
 
     private final QRCodeComponent qrCodeComponent;
-    private final IoTDomainService ioTDomainService;
     private final DiagramComponent diagramComponent;
+    private final TreeViewService treeViewService;
     @Getter private Boolean loaded = Boolean.FALSE;
     StringBuilder pathString;
 
     @Autowired
-    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent) {
+    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent, TreeViewService treeViewService) {
         this.qrCodeComponent = qrCodeComponent;
-        this.ioTDomainService = ioTDomainService;
         this.diagramComponent = diagramComponent;
+        this.treeViewService = treeViewService;
     }
 
     public void load() {
@@ -80,7 +83,7 @@ public class TreeViewComponent extends VerticalLayout {
                         "});"
         );
 
-        TreeNode<Object> root = ioTDomainService.getTree();
+        TreeNode<Object> root = treeViewService.getTree(TreeViewType.ArchitectureSolution);
         treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
 
         treeGrid.expand(root);
@@ -100,11 +103,6 @@ public class TreeViewComponent extends VerticalLayout {
             return "root";
         });
 
-        // Add a click listener to the TreeGrid nodes
-//        treeGrid.addItemClickListener(event -> {
-//            TreeNode<?> node = event.getItem();
-//
-//        });
 
         // Add styling variant to the TreeGrid for better visibility
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
@@ -173,36 +171,47 @@ public class TreeViewComponent extends VerticalLayout {
         // Create a layout to hold the text and the icon
         HorizontalLayout  layout = new HorizontalLayout ();
         layout.add(new Text(((Technology) node.getData()).getDescription()), button);
-        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+        layout.setAlignItems(Alignment.CENTER);
         layout.setSpacing(true); // Remove spacing between text and icon
 
         return layout;
     }
 
     private DiagramComponent createDiagram(List<String> diagramNames) {
-        List<NodeDiagram> nodes = new ArrayList<>();
-        NodeDiagram dom = NodeDiagram.builder().id("0").label(diagramNames.getFirst()).color("lightblue").tooltip("IoT Domain").build();
-        nodes.add(dom);
-        NodeDiagram arch = NodeDiagram.builder().id("1").label(diagramNames.get(1)).color("white").tooltip("Architecture Solution").build();
-        nodes.add(arch);
-        NodeDiagram qr = NodeDiagram.builder().id("2").label(diagramNames.get(2)).color("yellow").tooltip("Quality Requirement").build();
-        nodes.add(qr);
-        NodeDiagram te = NodeDiagram.builder().id("3").label(diagramNames.get(3)).color("gray").tooltip("Technology").build();
-        nodes.add(te);
-
-        List<EdgeDiagram> edges = new ArrayList<>();
-        EdgeDiagram edge01 = EdgeDiagram.builder().from("0").to("1").build();
-        edges.add(edge01);
-        EdgeDiagram edge02 = EdgeDiagram.builder().from("1").to("2").build();
-        edges.add(edge02);
-        EdgeDiagram edge03 = EdgeDiagram.builder().from("2").to("3").build();
-        edges.add(edge03);
+        List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
+        List<EdgeDiagram> edges = getEdgeDiagrams(nodes.size());
 
         this.diagramComponent.setNodes(nodes);
         this.diagramComponent.setEdges(edges);
         this.diagramComponent.execute();
 
         return this.diagramComponent;
+    }
+
+    private static List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
+        List<EdgeDiagram> edges = new ArrayList<>();
+
+        for (int i = 0; i < edgesCount; i++) {
+            edges.add(EdgeDiagram.builder().from(String.valueOf(i)).to(String.valueOf(i+1)).build());
+        }
+
+        return edges;
+    }
+
+    /**
+     * @param diagramNames List
+     * @return List<NodeDiagram>
+     */
+    private List<NodeDiagram> getNodesToDiagram(List<String> diagramNames) {
+        List<NodeDiagram> nodes = new ArrayList<>();
+
+        diagramNames.forEach(n -> {
+            int index = 0;
+            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(diagramNames.indexOf(n))).label(n).color(ColorUtils.generateRandomColorCode()).tooltip("Not Implemented Yet!").build();
+            nodes.add(dom);
+        });
+
+        return nodes;
     }
 
     private void addDetailsDialog(String paperTitle, String paperLink) {
@@ -214,7 +223,7 @@ public class TreeViewComponent extends VerticalLayout {
         dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
 
         HorizontalLayout hl = new HorizontalLayout();
-        hl.setAlignItems(FlexComponent.Alignment.CENTER);
+        hl.setAlignItems(Alignment.CENTER);
         //hl.setSpacing(true);
 
         VerticalLayout vlLeft = new VerticalLayout();
