@@ -33,4 +33,7 @@ public class ArchitectureSolution {
     public String toString() {
         return this.getName();
     }
+
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
+    private IoTDomain ioTDomain;
 }
