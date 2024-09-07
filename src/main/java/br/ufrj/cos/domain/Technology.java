@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.DialectOverride;
 
 @Entity
 @Data
@@ -24,6 +25,14 @@ public class Technology {
 
     @OneToOne
     private QualityRequirement qualityRequirement;
+
+    public IoTDomain getIoTDomain() {
+        if (this.architectureSolution != null) {
+            return this.architectureSolution.getIoTDomain();
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public String toString() {

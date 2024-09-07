@@ -4,7 +4,6 @@ package br.ufrj.cos.components.treeview;
 import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
-import br.ufrj.cos.components.notification.NotificationDialog;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
@@ -23,7 +22,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
@@ -33,8 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 @UIScope
 @Component
@@ -45,6 +43,7 @@ public class TreeViewComponent extends VerticalLayout {
     private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
     @Getter private Boolean loaded = Boolean.FALSE;
+    private TreeRootSelectionComponent treeRootSelectionComponent;
     StringBuilder pathString;
 
     @Autowired
@@ -67,12 +66,11 @@ public class TreeViewComponent extends VerticalLayout {
             } else if (data instanceof QualityRequirement) {
                 return new Text(((QualityRequirement) data).getName());
             } else if (data instanceof Technology) {
-                //return new Text(((Technology) data).getDescription());
-                List<String> nodeNames = this.createPathToNode(node);
+                String nodeNames = this.createPathToNode(node);
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
-        }).setHeader("IoT Domain -> Architectural Solution -> Quality Requirement -> Technology/Feature");
+        }).setHeader(this.treeRootSelectionComponent);
 
         treeGrid.getElement().executeJs(
                 "this.shadowRoot.querySelectorAll('thead th').forEach(th => {" +
@@ -83,8 +81,29 @@ public class TreeViewComponent extends VerticalLayout {
                         "});"
         );
 
-        TreeNode<Object> root = treeViewService.getTree(TreeViewType.ArchitectureSolution);
+        TreeNode<Object> root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
         treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+
+        // Add ExpandListener
+//        treeGrid.addExpandListener(event -> {
+//            // Get the expanded node
+//            TreeNode<?> expandedNode = event.getItems().stream().findFirst().get();
+//
+//            //if (expandedNode.getChildren().getFirst().getData() instanceof Technology) {
+//                //getting the root node of the Technology node
+////                while (expandedNode.getParent().getData() != null) {
+////                    expandedNode = expandedNode.getParent();
+////                }
+//
+//                // Get all the root nodes
+//                List<TreeNode<?>> rootNodes = List.of(root);
+//
+//                // Collapse all other nodes
+//                for (TreeNode<?> node : rootNodes) {
+//                    collapseAll(treeGrid, node, expandedNode.getParent());
+//                }
+//            //}
+//        });
 
         treeGrid.expand(root);
 
@@ -116,36 +135,52 @@ public class TreeViewComponent extends VerticalLayout {
         this.loaded = Boolean.TRUE;
     }
 
-    private List<String> createPathToNode(TreeNode<?> node) {
+    // Method to collapse all nodes except the expanded one
+    private void collapseAll(TreeGrid<TreeNode<?>> grid, TreeNode<?> node, TreeNode<?> expandedNode) {
+        if ((!node.equals(expandedNode) && (node.getData() != null))) {
+            grid.collapse(node);
+        }
+
+        for (TreeNode<?> child : node.getChildren()) {
+            collapseAll(grid, child, expandedNode);
+        }
+    }
+
+    /***
+     * Create the Path of the referenced Node
+     * @param node Node
+     * @return The name to be splited and used in the Diagram (Description!Type = HealthCare!IoT Domain)
+     */
+    private String createPathToNode(TreeNode<?> node) {
         List<TreeNode<?>> path = getPathToRoot(node);
-        List<String> diagramNames = new ArrayList<>();
+        StringBuilder diagramNames = new StringBuilder();
 
         // Construct the full path string
         this.pathString = new StringBuilder();
         for (int i = path.size() - 1; i >= 0; i--) {
             Object data = path.get(i).getData();
             if (data instanceof IoTDomain) {
-                diagramNames.add(((IoTDomain)data).getName());
-                pathString.append(((IoTDomain) data).getName().toUpperCase() + " >> ");
+                diagramNames.append(((IoTDomain) data).getName()).append("!IoT Domain").append("#");
+                pathString.append(((IoTDomain) data).getName().toUpperCase()).append(" >> ");
             } else if (data instanceof ArchitectureSolution) {
-                diagramNames.add(((ArchitectureSolution)data).getName());
-                pathString.append(((ArchitectureSolution) data).getName().toUpperCase() + " >> ");
+                diagramNames.append(((ArchitectureSolution) data).getName()).append("!Architecture Solution").append("#");
+                pathString.append(((ArchitectureSolution) data).getName().toUpperCase()).append(" >> ");
             } else if (data instanceof QualityRequirement) {
-                diagramNames.add(((QualityRequirement)data).getName());
-                pathString.append(((QualityRequirement) data).getName().toUpperCase() + " >> ");
+                diagramNames.append(((QualityRequirement) data).getName()).append("!Quality Requirement").append("#");
+                pathString.append(((QualityRequirement) data).getName().toUpperCase()).append(" >> ");
             } else if (data instanceof Technology) {
-                diagramNames.add(((Technology)data).getDescription());
+                diagramNames.append(((Technology) data).getDescription()).append("!Technology").append("#");
                 pathString.append(((Technology) data).getDescription().toUpperCase());
             }
         }
 
-        return diagramNames;
+        return diagramNames.toString();
     }
 
     /***
      * Method to create a component for the node with text and icon
      */
-    private HorizontalLayout createNodeWithIcon(TreeGrid<TreeNode<?>>  treeGrid, TreeNode<?> node, List<String> diagramNames) {
+    private HorizontalLayout createNodeWithIcon(TreeGrid<TreeNode<?>>  treeGrid, TreeNode<?> node, String diagramNames) {
         // Create an icon
         Icon icon = VaadinIcon.INFO_CIRCLE.create(); // Use any icon you prefer
         icon.getElement().getStyle().set("cursor", "pointer"); // Change cursor style to pointer for clickable effect
@@ -177,7 +212,12 @@ public class TreeViewComponent extends VerticalLayout {
         return layout;
     }
 
-    private DiagramComponent createDiagram(List<String> diagramNames) {
+    /***
+     * Creates the Diagram of the selected solution on the Tree
+     * @param diagramNames Names of the items of the selected Node
+     * @return DiagramComponent
+     */
+    private DiagramComponent createDiagram(String diagramNames) {
         List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
         List<EdgeDiagram> edges = getEdgeDiagrams(nodes.size());
 
@@ -188,7 +228,7 @@ public class TreeViewComponent extends VerticalLayout {
         return this.diagramComponent;
     }
 
-    private static List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
+    private List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
         List<EdgeDiagram> edges = new ArrayList<>();
 
         for (int i = 0; i < edgesCount; i++) {
@@ -202,12 +242,13 @@ public class TreeViewComponent extends VerticalLayout {
      * @param diagramNames List
      * @return List<NodeDiagram>
      */
-    private List<NodeDiagram> getNodesToDiagram(List<String> diagramNames) {
+    private List<NodeDiagram> getNodesToDiagram(String diagramNames) {
         List<NodeDiagram> nodes = new ArrayList<>();
+        List<String> names = Arrays.asList(diagramNames.split("#"));
 
-        diagramNames.forEach(n -> {
-            int index = 0;
-            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(diagramNames.indexOf(n))).label(n).color(ColorUtils.generateRandomColorCode()).tooltip("Not Implemented Yet!").build();
+        names.forEach(n -> {
+            String[] namesAndTypes = n.split("!");
+            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(names.indexOf(n))).label(namesAndTypes[0]).color(ColorUtils.generateRandomColorCode()).tooltip(namesAndTypes[1]).build();
             nodes.add(dom);
         });
 
@@ -230,12 +271,6 @@ public class TreeViewComponent extends VerticalLayout {
         VerticalLayout vlRight = new VerticalLayout();
         vlLeft.setAlignItems(Alignment.START);
         vlRight.setAlignItems(Alignment.END);
-//        vlLeft.setSpacing(true);
-//        vlRight.setSpacing(true);
-        //vlRight.setWidth("50%");
-        //vlRight.setSizeFull();
-        //vlLeft.setSizeFull();
-        //vlLeft.setHeight("50%");
 
         H4 paperTitleH1 = new H4(paperTitle);
         Anchor link = new Anchor(paperLink, paperLink);
@@ -256,6 +291,7 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     private void selectRow(TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {
+        treeGrid.collapse(treeGrid.getSelectedItems());
         treeGrid.getSelectionModel().select(node);
     }
 
@@ -267,6 +303,10 @@ public class TreeViewComponent extends VerticalLayout {
             current = current.getParent();
         }
         return path;
+    }
+
+    public void addTreeRootSelection(TreeRootSelectionComponent rootSelection) {
+        this.treeRootSelectionComponent = rootSelection;
     }
 
     @Override
