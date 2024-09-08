@@ -22,7 +22,7 @@ public class IoTDomain {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "ioTDomain")
+    @OneToMany(mappedBy = "ioTDomain", fetch = FetchType.EAGER)
     private Set<ArchitectureSolution> archs;
 
     @Override

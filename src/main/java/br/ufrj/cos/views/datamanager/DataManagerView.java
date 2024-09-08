@@ -120,7 +120,7 @@ public class DataManagerView extends BaseView {
         gridTechs.setSizeFull();
 //        gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridTechs.getGrid().getColumnByKey("description").setAutoWidth(true);
-        gridTechs.getCrudFormFactory().setVisibleProperties("id","description","architectureSolution", "qualityRequirement", "technology");
+        gridTechs.getCrudFormFactory().setVisibleProperties("id","description","architectureSolution", "qualityRequirement", "technology", "ioTDomain");
         gridTechs.getGrid().setDetailsVisibleOnClick(true);
         gridTechs.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
         gridTechs.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");

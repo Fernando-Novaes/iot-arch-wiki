@@ -4,7 +4,6 @@ package br.ufrj.cos.components.treeview;
 import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
-import br.ufrj.cos.components.notification.NotificationDialog;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
@@ -23,7 +22,6 @@ import com.vaadin.flow.component.grid.GridVariant;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.treegrid.TreeGrid;
@@ -32,11 +30,9 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 @UIScope
 @Component
@@ -47,6 +43,7 @@ public class TreeViewComponent extends VerticalLayout {
     private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
     @Getter private Boolean loaded = Boolean.FALSE;
+    private TreeRootSelectionComponent treeRootSelectionComponent;
     StringBuilder pathString;
 
     @Autowired
@@ -73,7 +70,7 @@ public class TreeViewComponent extends VerticalLayout {
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
-        }).setHeader("IoT Domain -> Architectural Solution -> Quality Requirement -> Technology/Feature");
+        }).setHeader(this.treeRootSelectionComponent);
 
         treeGrid.getElement().executeJs(
                 "this.shadowRoot.querySelectorAll('thead th').forEach(th => {" +
@@ -84,29 +81,29 @@ public class TreeViewComponent extends VerticalLayout {
                         "});"
         );
 
-        TreeNode<Object> root = treeViewService.getTree(TreeViewType.IoTDomain);
+        TreeNode<Object> root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
         treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
 
         // Add ExpandListener
-        treeGrid.addExpandListener(event -> {
-            // Get the expanded node
-            TreeNode<?> expandedNode = event.getItems().stream().findFirst().get();
-
-            //if (expandedNode.getChildren().getFirst().getData() instanceof Technology) {
-                //getting the root node of the Technology node
-//                while (expandedNode.getParent().getData() != null) {
-//                    expandedNode = expandedNode.getParent();
+//        treeGrid.addExpandListener(event -> {
+//            // Get the expanded node
+//            TreeNode<?> expandedNode = event.getItems().stream().findFirst().get();
+//
+//            //if (expandedNode.getChildren().getFirst().getData() instanceof Technology) {
+//                //getting the root node of the Technology node
+////                while (expandedNode.getParent().getData() != null) {
+////                    expandedNode = expandedNode.getParent();
+////                }
+//
+//                // Get all the root nodes
+//                List<TreeNode<?>> rootNodes = List.of(root);
+//
+//                // Collapse all other nodes
+//                for (TreeNode<?> node : rootNodes) {
+//                    collapseAll(treeGrid, node, expandedNode.getParent());
 //                }
-
-                // Get all the root nodes
-                List<TreeNode<?>> rootNodes = List.of(root);
-
-                // Collapse all other nodes
-                for (TreeNode<?> node : rootNodes) {
-                    collapseAll(treeGrid, node, expandedNode.getParent());
-                }
-            //}
-        });
+//            //}
+//        });
 
         treeGrid.expand(root);
 
@@ -148,7 +145,6 @@ public class TreeViewComponent extends VerticalLayout {
             collapseAll(grid, child, expandedNode);
         }
     }
-
 
     /***
      * Create the Path of the referenced Node
@@ -232,7 +228,7 @@ public class TreeViewComponent extends VerticalLayout {
         return this.diagramComponent;
     }
 
-    private static List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
+    private List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
         List<EdgeDiagram> edges = new ArrayList<>();
 
         for (int i = 0; i < edgesCount; i++) {
@@ -307,6 +303,10 @@ public class TreeViewComponent extends VerticalLayout {
             current = current.getParent();
         }
         return path;
+    }
+
+    public void addTreeRootSelection(TreeRootSelectionComponent rootSelection) {
+        this.treeRootSelectionComponent = rootSelection;
     }
 
     @Override

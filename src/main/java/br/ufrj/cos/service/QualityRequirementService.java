@@ -5,6 +5,7 @@ import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.repository.QualityRequirementRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,10 @@ public class QualityRequirementService {
 
     public List<QualityRequirementRecord> getQualityRequirementCountGroupedByName() {
         return qualityRequirementRepository.countQualityRequirementGroupedByName();
+    }
+
+    public List<QualityRequirement> findAllOrderedByName() {
+        return this.qualityRequirementRepository.findAll(Sort.by("name"));
     }
 
     public List<QualityRequirement> findAll() {
