@@ -1,12 +1,8 @@
 package br.ufrj.cos.service;
 
 import br.ufrj.cos.components.treeview.*;
-import br.ufrj.cos.domain.IoTDomain;
-import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public class TreeViewService {
@@ -17,6 +13,7 @@ public class TreeViewService {
     private final ArchitectureSolutionService architectureSolutionService;
     private final QualityRequirementService qualityRequirementService;
     private final QualityRequirementTreeBuilder qualityRequirementTreeBuilder;
+
     @Autowired
     public TreeViewService(IoTDomainTreeBuilder treeBuilder, ArchitectureSolutionTreeBuilder architectureSolutionTreeBuilder, IoTDomainService ioTDomainService, ArchitectureSolutionService architectureSolutionService, QualityRequirementService qualityRequirementService, QualityRequirementTreeBuilder qualityRequirementTreeBuilder) {
         this.iotDomainTreeBuilder = treeBuilder;
@@ -31,13 +28,11 @@ public class TreeViewService {
 
         return switch (treeViewType) {
             case IoTDomain ->
-                    iotDomainTreeBuilder.setNodeAsRoot(this.ioTDomainService.findAll());
+                    iotDomainTreeBuilder.setNodeAsRoot(this.ioTDomainService.findAllOrderByName());
             case ArchitectureSolution ->
                     architectureSolutionTreeBuilder.setNodeAsRoot(this.architectureSolutionService.findAllOrderedByName());
-            case QualityRequirement ->
+            case QualityRequirement, Technology ->
                     qualityRequirementTreeBuilder.setNodeAsRoot(this.qualityRequirementService.findAllOrderedByName());
-            default ->
-                    null;
         };
 
     }

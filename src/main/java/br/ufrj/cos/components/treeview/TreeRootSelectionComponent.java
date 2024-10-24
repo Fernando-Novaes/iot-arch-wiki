@@ -8,6 +8,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
+import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
@@ -27,10 +28,21 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     private TreeViewType treeViewType;
 
     public TreeRootSelectionComponent() {
+        HorizontalLayout changeContainer = new HorizontalLayout();
+        this.getStyle().setBorderRadius("8px");
+        changeContainer.setSpacing(false);
+        changeContainer.getStyle().setPaddingLeft("1em");
+        changeContainer.add(changeLeft, changeRight);
+
+        this.setSpacing(false);
         this.add(rootSelection, new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT)),
                 leafLevelOne, new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT)), leafLevelTwo, new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT)), leafLevelThree,
-                changeLeft, changeRight);
-        this.treeViewType = TreeViewType.IoTDomain;
+                changeContainer);
+    }
+
+    @PostConstruct
+    private void init() {
+        this.setTreeViewType(TreeViewType.IoTDomain);
         this.styleButtons();
     }
 
@@ -57,8 +69,8 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
             case QualityRequirement -> {
                 rootSelection.getStyle().set("--vaadin-button-background", "yellow");
                 leafLevelOne.getStyle().set("--vaadin-button-background", "green");
-                leafLevelTwo.getStyle().set("--vaadin-button-background", "#ED8312E5");
-                leafLevelThree.getStyle().set("--vaadin-button-background", "white");
+                leafLevelTwo.getStyle().set("--vaadin-button-background", "white");
+                leafLevelThree.getStyle().set("--vaadin-button-background", "#ED8312E5");
 
                 changeLeft.setTooltipText(String.format("Change Root to %s", TreeViewType.ArchitectureSolution.toString()));
                 changeRight.setTooltipText(String.format("Change Root to %s", TreeViewType.Technology.toString()));
@@ -95,7 +107,6 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
 
         changeRight.getStyle().set("cursor", "pointer");
         changeLeft.getStyle().set("cursor", "pointer");
-
     }
 
     public TreeRootSelectionComponent create() {
@@ -106,7 +117,7 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
         this.treeViewType = t;
         rootSelection.setText(treeViewType.toString());
 
-        switch (this.treeViewType) {
+        switch (t) {
             case IoTDomain -> {
                 leafLevelOne.setText(TreeViewType.ArchitectureSolution.toString());
                 leafLevelTwo.setText(TreeViewType.QualityRequirement.toString());
@@ -119,20 +130,13 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
             }
             case QualityRequirement -> {
                 leafLevelOne.setText(TreeViewType.Technology.toString());
-                leafLevelTwo.setText(TreeViewType.IoTDomain.toString());
-                leafLevelThree.setText(TreeViewType.ArchitectureSolution.toString());
+                leafLevelTwo.setText(TreeViewType.ArchitectureSolution.toString());
+                leafLevelThree.setText(TreeViewType.IoTDomain.toString());
             }
             case Technology -> {
                 leafLevelOne.setText(TreeViewType.IoTDomain.toString());
                 leafLevelTwo.setText(TreeViewType.ArchitectureSolution.toString());
                 leafLevelThree.setText(TreeViewType.QualityRequirement.toString());
-            }
-            default -> {
-                treeViewType = TreeViewType.IoTDomain;
-                rootSelection.setText(TreeViewType.IoTDomain.toString());
-                leafLevelOne.setText(TreeViewType.ArchitectureSolution.toString());
-                leafLevelTwo.setText(TreeViewType.QualityRequirement.toString());
-                leafLevelThree.setText(TreeViewType.Technology.toString());
             }
         }
 
@@ -156,4 +160,5 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     public void addChangeRightButtonClickListener(ComponentEventListener<ClickEvent<Button>> clickEvent) {
         this.changeRight.addClickListener(clickEvent);
     }
+
 }

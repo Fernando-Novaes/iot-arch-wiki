@@ -12,6 +12,7 @@
     padding: 5px;
     background-color: #373a3f;
     white-space: pre-wrap;
+    border: 1px;
 }
 
 .architecture-solution {
@@ -89,6 +90,6 @@
     border-radius: 8px;
     text-align: center;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-    font-size: xxx-large;
+    font-size: small;
     color: white;
 }

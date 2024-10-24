@@ -19,6 +19,8 @@ public interface TechnologyRepository extends JpaRepository<Technology, Long> {
     @Query(value = "SELECT new br.ufrj.cos.components.chart.data.TechnologyRecord(i.description, COUNT(i), (SELECT COUNT(*) FROM Technology i2)) FROM Technology i GROUP BY i.description")
     List<TechnologyRecord> countTechnologyGroupedByName();
 
+
+
     List<Technology> findByArchitectureSolutionNameContainingIgnoreCase(String name);
 
 }
