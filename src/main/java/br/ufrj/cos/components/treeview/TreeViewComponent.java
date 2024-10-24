@@ -47,10 +47,11 @@ public class TreeViewComponent extends VerticalLayout {
     StringBuilder pathString;
 
     @Autowired
-    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent, TreeViewService treeViewService) {
+    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent, TreeViewService treeViewService, TreeRootSelectionComponent treeRootSelectionComponent) {
         this.qrCodeComponent = qrCodeComponent;
         this.diagramComponent = diagramComponent;
         this.treeViewService = treeViewService;
+        this.treeRootSelectionComponent = treeRootSelectionComponent;
     }
 
     public void load() {
@@ -70,16 +71,20 @@ public class TreeViewComponent extends VerticalLayout {
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
-        }).setHeader(this.treeRootSelectionComponent);
+        }).setHeader(this.treeRootSelectionComponent.create());
+        //add setheader above
 
-        treeGrid.getElement().executeJs(
-                "this.shadowRoot.querySelectorAll('thead th').forEach(th => {" +
-                        "    th.style.fontSize = '16px';" +
-                        "    th.style.fontWeight = 'bold';" +
-                        "    th.style.color = '#373a3f';" +
-                        "    th.style.border = '2px solid gray';" +
-                        "});"
-        );
+        treeGrid.getStyle().setBorderRadius("8px");
+
+//        treeGrid.getElement().executeJs(
+//                "this.shadowRoot.querySelectorAll('thead th').forEach(th => {" +
+//                        "    th.style.fontSize = '16px';" +
+//                        "    th.style.fontWeight = 'bold';" +
+//                        "    th.style.color = '#373a3f';" +
+//                        "    th.style.border = '2px solid gray';" +
+//                        "    th.style.border-radius = '8px';" +
+//                        "});"
+//        );
 
         TreeNode<Object> root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
         treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
@@ -136,15 +141,15 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     // Method to collapse all nodes except the expanded one
-    private void collapseAll(TreeGrid<TreeNode<?>> grid, TreeNode<?> node, TreeNode<?> expandedNode) {
-        if ((!node.equals(expandedNode) && (node.getData() != null))) {
-            grid.collapse(node);
-        }
-
-        for (TreeNode<?> child : node.getChildren()) {
-            collapseAll(grid, child, expandedNode);
-        }
-    }
+//    private void collapseAll(TreeGrid<TreeNode<?>> grid, TreeNode<?> node, TreeNode<?> expandedNode) {
+//        if ((!node.equals(expandedNode) && (node.getData() != null))) {
+//            grid.collapse(node);
+//        }
+//
+//        for (TreeNode<?> child : node.getChildren()) {
+//            collapseAll(grid, child, expandedNode);
+//        }
+//    }
 
     /***
      * Create the Path of the referenced Node

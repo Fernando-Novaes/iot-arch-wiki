@@ -12,6 +12,7 @@ import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.github.appreciated.apexcharts.ApexCharts;
 import com.github.appreciated.apexcharts.config.builder.LegendBuilder;
+import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -26,9 +27,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-@UIScope
-@Route(value = "", layout = MainLayout.class)
-@RouteAlias(value = "", layout = MainLayout.class)
+@Route(value = "board-view", layout = MainLayout.class)
 @PageTitle("Iot-Arch Wiki - Board")
 public class BoardView extends BaseView {
 
@@ -62,7 +61,7 @@ public class BoardView extends BaseView {
         getContent().getStyle().set("flex-grow", "1");
 
         //Header
-        this.createHeader("Board");
+        this.createHeader("Board of Knowledge");
         //Content
         pageContent = this.createContentLayout();
         getContent().add(pageContent);
@@ -237,5 +236,10 @@ public class BoardView extends BaseView {
         });
 
         return chart.createPieChart(String.format("%s [%s]", chartTitle, recordData.size()));
+    }
+
+    @Override
+    protected void onDetach(DetachEvent detachEvent) {
+        super.onDetach(detachEvent);
     }
 }

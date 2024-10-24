@@ -5,6 +5,7 @@ import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.repository.TechnologyRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,6 +22,10 @@ public class TechnologyService {
 
     public List<TechnologyRecord> getTechnologyCountGroupedByName() {
         return technologyRepository.countTechnologyGroupedByName();
+    }
+
+    public List<Technology> findAllOrderedByDescription() {
+        return this.technologyRepository.findAll(Sort.by("description"));
     }
 
     public Technology saveAndFlush(Technology technology) {

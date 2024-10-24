@@ -1,0 +1,61 @@
+/* Place this in your frontend/themes/[your-theme]/components/slider-panel.css */
+
+.slider-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    padding-bottom: 1em;
+    z-index: 1000;
+    background-color: var(--lumo-base-color);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease-in-out;
+    transform: translateY(calc(100% - 30px)); /* 40px is button height */
+}
+
+.slider-panel.bottom {
+    bottom: 0;
+}
+
+.slider-panel.expanded {
+    transform: translateY(0);
+}
+
+.slider-toggle {
+    position: absolute;
+    top: -40px;
+    left: 90%;
+    transform: translateX(-50%);
+    border-radius: var(--lumo-border-radius-l) var(--lumo-border-radius-l) 0 0 !important;
+    margin: 0 !important;
+    min-width: 120px;
+    background-color: var(--lumo-primary-color) !important;
+    color: var(--lumo-primary-contrast-color) !important;
+}
+
+.slider-content {
+    padding: var(--lumo-space-m);
+    overflow-y: auto;
+    max-height: 80vh; /* Prevents panel from being taller than viewport */
+}
+
+/* Optional: Add some responsive styling */
+@media (max-width: 600px) {
+    .slider-content {
+        padding: var(--lumo-space-s);
+    }
+
+    .slider-toggle {
+        min-width: 100px;
+    }
+}
+
+vaadin-combo-box-overlay {
+    z-index: 1000 !important;
+}
+
+.custom-overlay::part(overlay) {
+    z-index: 1000 !important;
+    background-color: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}

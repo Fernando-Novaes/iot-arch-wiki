@@ -3,6 +3,7 @@ package br.ufrj.cos.views;
 
 import br.ufrj.cos.views.about.AboutViewView;
 import br.ufrj.cos.views.board.BoardView;
+import br.ufrj.cos.views.home.HomeView;
 import br.ufrj.cos.views.iotarch.IoTArchView;
 import br.ufrj.cos.views.qualityrequirement.QualityRequirementView;
 import com.vaadin.flow.component.Component;
@@ -82,7 +83,7 @@ public class MainLayout extends AppLayout {
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
         layout.getStyle().setBoxShadow("0 4px 8px rgba(0, 0, 0, 0.2)");
 
-        H1 appName = new H1("IoT-Arch Wiki");
+        H1 appName = new H1("IoT-Arch Knowledge Base");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
         appName.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
         layout.add(appName);
@@ -106,7 +107,9 @@ public class MainLayout extends AppLayout {
 
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{ //
-                new MenuItemInfo("Board", LineAwesomeIcon.WHMCS.create(), BoardView.class), //
+                new MenuItemInfo("Home", LineAwesomeIcon.HOME_SOLID.create(), HomeView.class),
+
+                new MenuItemInfo("BoK", LineAwesomeIcon.WHMCS.create(), BoardView.class), //
 
                 new MenuItemInfo("IoT-Arch", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class), //
 

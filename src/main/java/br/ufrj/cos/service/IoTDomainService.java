@@ -4,6 +4,7 @@ import br.ufrj.cos.components.chart.data.IoTDomainRecord;
 import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.repository.IoTDomainRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,10 @@ public class IoTDomainService {
 
     public List<IoTDomain> findAll() {
         return ioTDomainRepository.findAll();
+    }
+
+    public List<IoTDomain> findAllOrderByName() {
+        return ioTDomainRepository.findAll(Sort.by("name"));
     }
 
     public IoTDomain saveAndFlush(IoTDomain domain) {

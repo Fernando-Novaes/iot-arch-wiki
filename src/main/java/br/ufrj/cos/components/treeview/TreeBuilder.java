@@ -5,6 +5,7 @@ import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.utils.ClassTypeUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,6 +17,8 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
 
     private TreeNode<Object> getRootTreeNode() {
         root = new TreeNode<>(null); // Create a root node
+        
+
         return root;
     }
 
