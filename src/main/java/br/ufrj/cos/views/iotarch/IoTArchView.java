@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @PageTitle("IoT-Arch Knowledge Base")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
@@ -241,6 +243,7 @@ public class IoTArchView extends BaseView {
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchButton.addClickListener(click -> {
             cancelButton.setVisible(true);
+            this.treeView.setIsFiltering(true);
             this.filterTreeViewDataSource();
             this.treeView.load();
         });
@@ -253,6 +256,7 @@ public class IoTArchView extends BaseView {
             this.currentAction = ActionType.NONE;
             cancelButton.setVisible(false);
             this.loadDataToComboBoxes(ActionType.NONE);
+            this.treeView.setIsFiltering(false);
         });
 
         comboBoxLayout.add(
@@ -362,19 +366,35 @@ public class IoTArchView extends BaseView {
     }
 
     private void filterTreeViewDataSource() {
-        List<IoTDomain> list = new ArrayList<>();
-        ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
-                d -> {
-                    d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).distinct().forEach(a -> {
-                        a.getQrs().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).distinct().forEach(aq -> {
-                            list.add(
-                                    d
-                            );
-                        });
-                    });
-                }
-        );
+        IoTDomain domain = new IoTDomain();
 
+        if (iotDomainCombo.getValue() != null) {
+            domain = ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).findFirst().get();
+        }
+
+        if (architectureCombo.getValue() != null) {
+            domain.setArchs(this.architectureSolutionService.findAllByIoTDomain(domain));
+            domain.setArchs(
+                    domain.getArchs().stream().filter(arch -> arch.getName().equals(architectureCombo.getValue().name())).collect(Collectors.toList()));
+        }
+
+        IoTDomain finalDomain = domain;
+        if(qualityCombo.getValue() != null) {
+
+            domain.getArchs().forEach(arc -> {
+                arc.getQrs().forEach(qr -> {
+                    if (!qr.getName().equals(qualityCombo.getValue().name())) {
+                        finalDomain.getArchs().stream().filter(arc2 -> arc2.getName().equals(arc.getName())).forEach(a -> {
+                            a.getQrs().remove(qr);
+                        });
+                    }
+                });
+            });
+
+        }
+
+        List<IoTDomain> list = new ArrayList<>();
+        list.add(finalDomain);
         this.treeView.setTreeViewData(list);
     }
 

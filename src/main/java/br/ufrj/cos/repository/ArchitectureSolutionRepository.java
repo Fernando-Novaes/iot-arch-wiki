@@ -3,6 +3,7 @@ package br.ufrj.cos.repository;
 
 import br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord;
 import br.ufrj.cos.domain.ArchitectureSolution;
+import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -27,4 +28,6 @@ public interface ArchitectureSolutionRepository extends JpaRepository<Architectu
     List<ArchitectureSolution> findByQualityRequirementId(@Param("id") Long id);
 
     List<ArchitectureSolution> findByNameContainingIgnoreCase(String name);
+
+    List<ArchitectureSolution> findArchitectureSolutionByIoTDomain(IoTDomain domain);
 }

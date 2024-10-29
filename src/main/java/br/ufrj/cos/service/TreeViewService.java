@@ -6,6 +6,7 @@ import br.ufrj.cos.domain.DomainBase;
 import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.QualityRequirement;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,7 +22,7 @@ public class TreeViewService {
     private final QualityRequirementService qualityRequirementService;
     private final QualityRequirementTreeBuilder qualityRequirementTreeBuilder;
 
-    @Getter
+    @Getter @Setter
     private List<? extends DomainBase> treeViewData;
 
     @Autowired
@@ -32,10 +33,6 @@ public class TreeViewService {
         this.architectureSolutionService = architectureSolutionService;
         this.qualityRequirementService = qualityRequirementService;
         this.qualityRequirementTreeBuilder = qualityRequirementTreeBuilder;
-    }
-
-    private void setTreeViewData(List<? extends DomainBase> treeViewData) {
-        this.treeViewData = treeViewData;
     }
 
     public TreeNode<Object> getTree(TreeViewType treeViewType) {

@@ -23,7 +23,7 @@ public class IoTDomain extends DomainBase {
     private String name;
 
     @OneToMany(mappedBy = "ioTDomain", fetch = FetchType.EAGER)
-    private Set<ArchitectureSolution> archs;
+    private List<ArchitectureSolution> archs;
 
     @Override
     public String toString() {

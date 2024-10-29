@@ -47,20 +47,30 @@ public class TreeViewComponent extends VerticalLayout {
     private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
     @Getter private Boolean loaded = Boolean.FALSE;
+    @Getter @Setter
+    private Boolean isFiltering = Boolean.FALSE;
     private TreeRootSelectionComponent treeRootSelectionComponent;
     StringBuilder pathString;
-    @Setter
     @Getter
     private List<? extends DomainBase> treeViewData;
 
     @Autowired
-    public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent, TreeViewService treeViewService, TreeRootSelectionComponent treeRootSelectionComponent) {
+    public TreeViewComponent(QRCodeComponent qrCodeComponent,
+                             IoTDomainService ioTDomainService,
+                             DiagramComponent diagramComponent,
+                             TreeViewService treeViewService,
+                             TreeRootSelectionComponent treeRootSelectionComponent) {
+
         this.qrCodeComponent = qrCodeComponent;
         this.diagramComponent = diagramComponent;
         this.treeViewService = treeViewService;
         this.treeRootSelectionComponent = treeRootSelectionComponent;
     }
 
+    public void setTreeViewData(List<? extends DomainBase> treeViewData) {
+        this.treeViewService.setTreeViewData(treeViewData);
+        this.treeViewData = treeViewData;
+    }
 
     public void load() {
         // Define columns (e.g., displaying IoT Domain names)
@@ -95,13 +105,12 @@ public class TreeViewComponent extends VerticalLayout {
 //        );
 
         TreeNode<Object> root;
-        if (this.getTreeViewData() == null) {
+        if (!this.isFiltering) {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
             this.setTreeViewData(treeViewService.getTreeViewData());
             treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         } else {
             root = treeViewService.getTree(TreeViewType.Filtered);
-            this.setTreeViewData(treeViewService.getTreeViewData());
             treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         }
 

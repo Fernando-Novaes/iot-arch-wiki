@@ -2,6 +2,7 @@ package br.ufrj.cos.service;
 
 import br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord;
 import br.ufrj.cos.domain.ArchitectureSolution;
+import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.repository.ArchitectureSolutionRepository;
 import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,5 +51,9 @@ public class ArchitectureSolutionService {
 
     public List<ArchitectureSolution> findAllOrderedByName() {
         return this.architectureSolutionRepository.findAll(Sort.by("name"));
+    }
+
+    public List<ArchitectureSolution> findAllByIoTDomain(IoTDomain domain) {
+        return this.architectureSolutionRepository.findArchitectureSolutionByIoTDomain(domain);
     }
 }
