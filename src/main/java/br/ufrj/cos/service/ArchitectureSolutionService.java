@@ -1,8 +1,9 @@
 package br.ufrj.cos.service;
 
-import br.ufrj.cos.components.chart.data.ArchitectureSolutionRecord;
+import br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.repository.ArchitectureSolutionRepository;
+import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -19,8 +20,12 @@ public class ArchitectureSolutionService {
         this.architectureSolutionRepository = architectureSolutionRepository;
     }
 
-    public List<ArchitectureSolutionRecord> geArchitectureSolutionCountGroupedByName() {
+    public List<ArchitectureSolutionChartRecord> geArchitectureSolutionCountGroupedByName() {
         return this.architectureSolutionRepository.countArchitectureSolutionGroupedByName();
+    }
+
+    public List<ArchitectureSolutionRecord> findAllArchitectureSolutionGroupedByName() {
+        return this.architectureSolutionRepository.findAllArchitectureSolutionGroupedByName();
     }
 
     public List<ArchitectureSolution> findAll() {

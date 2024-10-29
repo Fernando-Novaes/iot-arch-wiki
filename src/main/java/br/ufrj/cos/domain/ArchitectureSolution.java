@@ -10,8 +10,8 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"qrs", "technologies"})
-public class ArchitectureSolution {
+@EqualsAndHashCode(exclude = {"qrs", "technologies"}, callSuper = false)
+public class ArchitectureSolution extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

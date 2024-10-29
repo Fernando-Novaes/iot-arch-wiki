@@ -1,9 +1,10 @@
 package br.ufrj.cos.service;
 
-import br.ufrj.cos.components.chart.data.QualityRequirementRecord;
+import br.ufrj.cos.components.chart.data.QualityRequirementChartRecord;
 import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.repository.QualityRequirementRepository;
+import br.ufrj.cos.views.record.QualityRequirementRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -23,8 +24,12 @@ public class QualityRequirementService {
         this.qualityRequirementRepository = qualityRequirementRepository;
     }
 
-    public List<QualityRequirementRecord> getQualityRequirementCountGroupedByName() {
+    public List<QualityRequirementChartRecord> getQualityRequirementCountGroupedByName() {
         return qualityRequirementRepository.countQualityRequirementGroupedByName();
+    }
+
+    public List<QualityRequirementRecord> findAllQualityRequirementGroupedByName() {
+        return qualityRequirementRepository.findAllQualityRequirementGroupedByName();
     }
 
     public List<QualityRequirement> findAllOrderedByName() {

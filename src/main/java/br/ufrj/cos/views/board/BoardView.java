@@ -1,12 +1,11 @@
 package br.ufrj.cos.views.board;
 
 import br.ufrj.cos.components.chart.ChartComponent;
-import br.ufrj.cos.components.chart.data.ArchitectureSolutionRecord;
-import br.ufrj.cos.components.chart.data.IoTDomainRecord;
-import br.ufrj.cos.components.chart.data.QualityRequirementRecord;
-import br.ufrj.cos.components.chart.data.TechnologyRecord;
+import br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord;
+import br.ufrj.cos.components.chart.data.IoTDomainChartRecord;
+import br.ufrj.cos.components.chart.data.QualityRequirementChartRecord;
+import br.ufrj.cos.components.chart.data.TechnologyChartRecord;
 import br.ufrj.cos.components.diagram.DiagramComponent;
-import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
@@ -19,13 +18,10 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
-import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 @Route(value = "board-view", layout = MainLayout.class)
 @PageTitle("Iot-Arch Wiki - Board")
@@ -61,7 +57,7 @@ public class BoardView extends BaseView {
         getContent().getStyle().set("flex-grow", "1");
 
         //Header
-        this.createHeader("Board of Knowledge");
+        this.createHeader("Body of Knowledge");
         //Content
         pageContent = this.createContentLayout();
         getContent().add(pageContent);
@@ -179,8 +175,8 @@ public class BoardView extends BaseView {
      * @throws IOException
      */
     private ApexCharts createIoTDomainChart(String chartTitle) {
-        //List<IoTDomainRecord> recordData = this.domainService.getIoTDomainCountGroupedByName();
-        List<IoTDomainRecord> recordData = this.domainService.countIoTDomainByArchitectureSolution();
+        //List<IoTDomainChartRecord> recordData = this.domainService.getIoTDomainCountGroupedByName();
+        List<IoTDomainChartRecord> recordData = this.domainService.countIoTDomainByArchitectureSolution();
 
         this.chartInitialConfig();
         recordData.forEach(d -> {
@@ -196,7 +192,7 @@ public class BoardView extends BaseView {
      * @throws IOException
      */
     private ApexCharts createQualityRequirementChart(String chartTitle) {
-        List<QualityRequirementRecord> recordData = this.qualityReqService.getQualityRequirementCountGroupedByName();
+        List<QualityRequirementChartRecord> recordData = this.qualityReqService.getQualityRequirementCountGroupedByName();
 
         this.chartInitialConfig();
         recordData.forEach(d -> {
@@ -212,7 +208,7 @@ public class BoardView extends BaseView {
      * @throws IOException
      */
     private ApexCharts createArchitectureSolutionChart(String chartTitle) {
-        List<ArchitectureSolutionRecord> recordData = this.architectureSolutionService.geArchitectureSolutionCountGroupedByName();
+        List<ArchitectureSolutionChartRecord> recordData = this.architectureSolutionService.geArchitectureSolutionCountGroupedByName();
 
         this.chartInitialConfig();
         recordData.forEach(d -> {
@@ -228,7 +224,7 @@ public class BoardView extends BaseView {
      * @throws IOException
      */
     private ApexCharts createTechnologyChart(String chartTitle) {
-        List<TechnologyRecord> recordData = this.technologyService.getTechnologyCountGroupedByName();
+        List<TechnologyChartRecord> recordData = this.technologyService.getTechnologyCountGroupedByName();
 
         this.chartInitialConfig();
         recordData.forEach(d -> {

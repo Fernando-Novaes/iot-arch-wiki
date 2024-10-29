@@ -18,7 +18,7 @@ public class AboutViewView extends Composite<VerticalLayout> {
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
 
-        this.createAppNameBox("IoT-Arch Wiki");
+        this.createAppNameBox("IoT-Arch Body of Knowledge");
     }
 
     private void createAppNameBox(String text) {

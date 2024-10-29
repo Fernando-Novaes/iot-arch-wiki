@@ -5,10 +5,7 @@ import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
-import br.ufrj.cos.domain.ArchitectureSolution;
-import br.ufrj.cos.domain.IoTDomain;
-import br.ufrj.cos.domain.QualityRequirement;
-import br.ufrj.cos.domain.Technology;
+import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
 import br.ufrj.cos.utils.ColorUtils;
@@ -16,6 +13,7 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -24,15 +22,21 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
+import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
+import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @UIScope
 @Component
@@ -45,6 +49,9 @@ public class TreeViewComponent extends VerticalLayout {
     @Getter private Boolean loaded = Boolean.FALSE;
     private TreeRootSelectionComponent treeRootSelectionComponent;
     StringBuilder pathString;
+    @Setter
+    @Getter
+    private List<? extends DomainBase> treeViewData;
 
     @Autowired
     public TreeViewComponent(QRCodeComponent qrCodeComponent, IoTDomainService ioTDomainService, DiagramComponent diagramComponent, TreeViewService treeViewService, TreeRootSelectionComponent treeRootSelectionComponent) {
@@ -53,6 +60,7 @@ public class TreeViewComponent extends VerticalLayout {
         this.treeViewService = treeViewService;
         this.treeRootSelectionComponent = treeRootSelectionComponent;
     }
+
 
     public void load() {
         // Define columns (e.g., displaying IoT Domain names)
@@ -86,8 +94,16 @@ public class TreeViewComponent extends VerticalLayout {
 //                        "});"
 //        );
 
-        TreeNode<Object> root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
-        treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+        TreeNode<Object> root;
+        if (this.getTreeViewData() == null) {
+            root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
+            this.setTreeViewData(treeViewService.getTreeViewData());
+            treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+        } else {
+            root = treeViewService.getTree(TreeViewType.Filtered);
+            this.setTreeViewData(treeViewService.getTreeViewData());
+            treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+        }
 
         // Add ExpandListener
 //        treeGrid.addExpandListener(event -> {

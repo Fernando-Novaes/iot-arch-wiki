@@ -13,8 +13,8 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = "archs")
-public class IoTDomain {
+@EqualsAndHashCode(exclude = "archs", callSuper = false)
+public class IoTDomain extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

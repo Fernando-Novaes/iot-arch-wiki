@@ -1,9 +1,9 @@
 package br.ufrj.cos.service;
 
-import br.ufrj.cos.components.chart.data.TechnologyRecord;
-import br.ufrj.cos.domain.QualityRequirement;
+import br.ufrj.cos.components.chart.data.TechnologyChartRecord;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.repository.TechnologyRepository;
+import br.ufrj.cos.views.record.TechnologyRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -20,8 +20,12 @@ public class TechnologyService {
         this.technologyRepository = technologyRepository;
     }
 
-    public List<TechnologyRecord> getTechnologyCountGroupedByName() {
+    public List<TechnologyChartRecord> getTechnologyCountGroupedByName() {
         return technologyRepository.countTechnologyGroupedByName();
+    }
+
+    public List<TechnologyRecord> findAllTechnologyGroupedByName() {
+        return technologyRepository.findAllTechnologyGroupedByName();
     }
 
     public List<Technology> findAllOrderedByDescription() {

@@ -11,8 +11,8 @@ import org.hibernate.annotations.DialectOverride;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode
-public class Technology {
+@EqualsAndHashCode(callSuper = false)
+public class Technology extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

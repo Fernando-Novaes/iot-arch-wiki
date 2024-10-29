@@ -11,8 +11,8 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = {"architectureSolution", "technology"})
-public class QualityRequirement {
+@EqualsAndHashCode(exclude = {"architectureSolution", "technology"}, callSuper = false)
+public class QualityRequirement extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

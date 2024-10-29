@@ -4,16 +4,17 @@ import br.ufrj.cos.components.sliderpanel.SliderPanel;
 import br.ufrj.cos.components.treeview.TreeRootSelectionComponent;
 import br.ufrj.cos.components.treeview.TreeViewComponent;
 import br.ufrj.cos.components.treeview.TreeViewType;
-import br.ufrj.cos.domain.ArchitectureSolution;
-import br.ufrj.cos.domain.IoTDomain;
-import br.ufrj.cos.domain.QualityRequirement;
-import br.ufrj.cos.domain.Technology;
+import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.ArchitectureSolutionService;
 import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.QualityRequirementService;
 import br.ufrj.cos.service.TechnologyService;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
+import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
+import br.ufrj.cos.views.record.IoTDomainRecord;
+import br.ufrj.cos.views.record.QualityRequirementRecord;
+import br.ufrj.cos.views.record.TechnologyRecord;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -25,7 +26,11 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-@PageTitle("IoT-Arch Wiki - Tree")
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+@PageTitle("IoT-Arch Knowledge Base")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
 public class IoTArchView extends BaseView {
 
@@ -38,6 +43,25 @@ public class IoTArchView extends BaseView {
     private final ArchitectureSolutionService architectureSolutionService;
     private final QualityRequirementService qualityRequirementService;
     private final TechnologyService technologyService;
+
+    private enum ActionType {
+        NONE, IOTDOMAIN, ARCHITECTURESOLUTION, QUALITYREQUIREMENT, TECHNOLOGY
+    }
+    private ActionType currentAction  = ActionType.NONE;
+
+    ComboBox<IoTDomainRecord> iotDomainCombo;
+    ComboBox<ArchitectureSolutionRecord> architectureCombo;
+    ComboBox<QualityRequirementRecord> qualityCombo;
+    ComboBox<TechnologyRecord> technologiesCombo;
+    List<? extends DomainBase> treeViewDataSource;
+    HorizontalLayout comboBoxLayout = new HorizontalLayout();
+    Button searchButton = new Button("Search");
+    Button cancelButton = new Button("Cancel");
+
+    List<IoTDomainRecord> domains;
+    List<ArchitectureSolutionRecord> archs;
+    List<QualityRequirementRecord> qrs;
+    List<TechnologyRecord> techs;
 
     @Autowired
     public IoTArchView(TreeViewComponent treeView, TreeRootSelectionComponent treeRootSelection, SliderPanel sliderPanel,
@@ -56,13 +80,13 @@ public class IoTArchView extends BaseView {
         this.treeRootSelection.addChangeLeftButtonClickListener(l -> { this.changeRootLeft(this.treeRootSelection.getTreeViewType()); });
         this.treeRootSelection.addChangeRightButtonClickListener(r -> { this.changeRootRight(this.treeRootSelection.getTreeViewType()); });
 
-        this.createHeader("IoT-Arch Knowledge Base");
-        getContent().add(treeView);
         this.treeView.addTreeRootSelection(this.treeRootSelection);
-        //this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
         this.treeView.load();
+        this.treeViewDataSource = this.treeView.getTreeViewData();
 
-        this.createSearchSliderPanel();
+        this.createHeader("IoT-Arch Knowledge Base");
+        getContent().add(this.createSearchDiv(), treeView);
+        this.loadDataToComboBoxes(ActionType.NONE);
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
@@ -82,18 +106,21 @@ public class IoTArchView extends BaseView {
                 this.treeRootSelection.setTreeViewType(TreeViewType.QualityRequirement);
                 this.treeView.load();
                 getContent().add(treeView);
+                //this.prepareComboBoxLayout(TreeViewType.QualityRequirement);
                 return;
             }
             case ArchitectureSolution: {
                 this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
                 this.treeView.load();
                 getContent().add(treeView);
+                //this.prepareComboBoxLayout(TreeViewType.IoTDomain);
                 return;
             }
             case QualityRequirement, Technology: {
                 this.treeRootSelection.setTreeViewType(TreeViewType.ArchitectureSolution);
                 this.treeView.load();
                 getContent().add(treeView);
+                //this.prepareComboBoxLayout(TreeViewType.ArchitectureSolution);
                 return;
             }
         }
@@ -108,30 +135,32 @@ public class IoTArchView extends BaseView {
             getContent().remove(this.treeView);
         } catch (Exception e) {}
 
-
         switch (type) {
             case IoTDomain: {
                 this.treeRootSelection.setTreeViewType(TreeViewType.ArchitectureSolution);
                 this.treeView.load();
                 getContent().add(treeView);
+                //this.prepareComboBoxLayout(TreeViewType.ArchitectureSolution);
                 return;
             }
             case ArchitectureSolution: {
                 this.treeRootSelection.setTreeViewType(TreeViewType.QualityRequirement);
                 this.treeView.load();
                 getContent().add(treeView);
+                //this.prepareComboBoxLayout(TreeViewType.QualityRequirement);
                 return;
             }
             case QualityRequirement, Technology: {
                 this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
                 this.treeView.load();
                 getContent().add(treeView);
+                //this.prepareComboBoxLayout(TreeViewType.IoTDomain);
                 return;
             }
         }
     }
 
-    private Div createSearchBox() {
+    private Div createSearchDiv() {
         // Main container for vertical centering
         Div centerContainer = new Div();
         centerContainer.getStyle()
@@ -153,7 +182,7 @@ public class IoTArchView extends BaseView {
                 .set("border-radius", "12px")
                 //.set("padding", "2em")
                 //.set("margin", "0 auto")
-                .set("width", "95%") // Increased width
+                .set("width", "100%") // Increased width
                 .set("max-width", "1800px") // Increased max-width
                 .set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
 
@@ -166,35 +195,23 @@ public class IoTArchView extends BaseView {
                 .set("text-align", "center");
 
         // Create ComboBoxes with consistent styling - narrower width for inline layout
-        ComboBox<IoTDomain> iotDomainCombo = new ComboBox<>("IoT Domain");
-        this.setStyleForComboBox(iotDomainCombo);
-        iotDomainCombo.setItems(this.ioTDomainService.findAllOrderByName());
+        this.iotDomainCombo = new ComboBox<>("IoT Domain");
+        this.prepareComboBox(iotDomainCombo, ActionType.IOTDOMAIN);
+        //iotDomainCombo.setItems(this.ioTDomainService.findAllOrderByName());
 
-        ComboBox<ArchitectureSolution> architectureCombo = new ComboBox<>("Architecture Solution");
-        this.setStyleForComboBox(architectureCombo);
-        architectureCombo.setItems(this.architectureSolutionService.findAllOrderedByName());
+        this.architectureCombo = new ComboBox<>("Architecture Solution");
+        this.prepareComboBox(architectureCombo, ActionType.ARCHITECTURESOLUTION);
+        //architectureCombo.setItems(this.architectureSolutionService.findAllOrderedByName());
 
-        ComboBox<QualityRequirement> qualityCombo = new ComboBox<>("Quality Requirement");
-        this.setStyleForComboBox(qualityCombo);
-        qualityCombo.setItems(this.qualityRequirementService.findAllOrderedByName());
+        this.qualityCombo = new ComboBox<>("Quality Requirement");
+        this.prepareComboBox(qualityCombo, ActionType.QUALITYREQUIREMENT);
+        //qualityCombo.setItems(this.qualityRequirementService.findAllOrderedByName());
 
-        ComboBox<Technology> technologiesCombo = new ComboBox<>("Technologies");
-        this.setStyleForComboBox(technologiesCombo);
-        technologiesCombo.setItems(this.technologyService.findAllOrderedByDescription());
+        this.technologiesCombo = new ComboBox<>("Technologies");
+        this.prepareComboBox(technologiesCombo, ActionType.TECHNOLOGY);
+        //technologiesCombo.setItems(this.technologyService.findAllOrderedByDescription());
 
-        // Create search button
-        Button searchButton = new Button("Search");
-        searchButton.setIcon(VaadinIcon.SEARCH.create());
-        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-        // Single horizontal layout for all combo boxes
-        HorizontalLayout comboBoxLayout = new HorizontalLayout(
-                iotDomainCombo,
-                architectureCombo,
-                qualityCombo,
-                technologiesCombo,
-                searchButton
-        );
+        this.prepareComboBoxLayout(TreeViewType.IoTDomain);
 
         // Configure the horizontal layout
         comboBoxLayout.setSpacing(true);
@@ -211,7 +228,6 @@ public class IoTArchView extends BaseView {
 
         // Add components to main layout
         mainLayout.add(
-                searchTitle,
                 comboBoxLayout
         );
 
@@ -219,14 +235,48 @@ public class IoTArchView extends BaseView {
         return centerContainer;
     }
 
+    private void prepareComboBoxLayout(TreeViewType treeViewType) {
+        // Create search button
+        searchButton.setIcon(VaadinIcon.SEARCH.create());
+        searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        searchButton.addClickListener(click -> {
+            cancelButton.setVisible(true);
+            this.filterTreeViewDataSource();
+            this.treeView.load();
+        });
+
+        // Create cancel button
+        cancelButton.setIcon(VaadinIcon.CLOSE_CIRCLE_O.create());
+        cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
+        cancelButton.setVisible(false);
+        cancelButton.addClickListener(click -> {
+            this.currentAction = ActionType.NONE;
+            cancelButton.setVisible(false);
+            this.loadDataToComboBoxes(ActionType.NONE);
+        });
+
+        comboBoxLayout.add(
+                this.iotDomainCombo,
+                this.architectureCombo,
+                this.qualityCombo,
+                this.technologiesCombo,
+                searchButton,
+                cancelButton
+        );
+    }
+
     /***
      * Sets the styles and the config for exhibition list
      * @param comboBox
      */
-    private void setStyleForComboBox(ComboBox comboBox) {
-        comboBox.setPlaceholder("Select " + comboBox.getLabel());
+    private void prepareComboBox(ComboBox comboBox, ActionType actionType) {
+        comboBox.clear();
+
+        comboBox.setPlaceholder("All " + comboBox.getLabel());
         comboBox.setWidth("300px");
-        comboBox.setClearButtonVisible(true);
+        comboBox.setClearButtonVisible(false);
+        comboBox.setLabel(null);
+
         comboBox.getStyle()
                 .set("--lumo-contrast-10pct", "rgba(255, 255, 255, 0.1)")
                 .set("--lumo-body-text-color", "#ffffff")
@@ -246,16 +296,99 @@ public class IoTArchView extends BaseView {
 
         // Set overlay theme to ensure proper rendering
         comboBox.getElement().getThemeList().add("custom-overlay");
+
+        // Setting the action when a value is changed in a combobox
+        // This will make the changes on the others comboboxes
+        comboBox.addValueChangeListener(listener -> {
+            this.currentAction = actionType;
+            this.loadDataToComboBoxes(this.currentAction);
+            cancelButton.setVisible(true);
+        });
+    }
+
+    private void loadDataToComboBoxes(ActionType actionType) {
+
+        if (actionType == ActionType.NONE) {
+            List<IoTDomainRecord> list = new ArrayList<>();
+            ((List<IoTDomain>)this.treeViewDataSource).stream().forEach(
+                    d -> {
+                        list.add(new IoTDomainRecord(d.getName()));
+                    }
+            );
+
+            list.sort(Comparator.comparing(IoTDomainRecord::name));
+            this.iotDomainCombo.setItems(list);
+        } else if (actionType == ActionType.IOTDOMAIN) {
+            List<ArchitectureSolutionRecord> list = new ArrayList<>();
+            ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
+                    d -> {
+                        d.getArchs().stream().distinct().forEach(a -> {
+                            list.add(new ArchitectureSolutionRecord(a.getName()));
+                        });
+                    }
+            );
+
+            list.sort(Comparator.comparing(ArchitectureSolutionRecord::name));
+            this.architectureCombo.setItems(list.stream().distinct().toList());
+        } else if (actionType == ActionType.ARCHITECTURESOLUTION) {
+            List<QualityRequirementRecord> list = new ArrayList<>();
+            ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
+                    d -> {
+                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).distinct().forEach(a -> {
+                            a.getQrs().stream().distinct().forEach(aq -> {
+                                list.add(new QualityRequirementRecord(aq.getName()));
+                            });
+                        });
+                    }
+            );
+
+            list.sort(Comparator.comparing(QualityRequirementRecord::name));
+            this.qualityCombo.setItems(list.stream().distinct().toList());
+        } else if (actionType == ActionType.QUALITYREQUIREMENT) {
+            List<TechnologyRecord> list = new ArrayList<>();
+            ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
+                    d -> {
+                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).distinct().forEach(a -> {
+                            a.getQrs().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).distinct().forEach(aq -> {
+                                list.add(new TechnologyRecord(aq.getTechnology().getDescription()));
+                            });
+                        });
+                    }
+            );
+
+            list.sort(Comparator.comparing(TechnologyRecord::description));
+            this.technologiesCombo.setItems(list.stream().distinct().toList());
+        }
+    }
+
+    private void filterTreeViewDataSource() {
+        List<IoTDomain> list = new ArrayList<>();
+        ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
+                d -> {
+                    d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).distinct().forEach(a -> {
+                        a.getQrs().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).distinct().forEach(aq -> {
+                            list.add(
+                                    d
+                            );
+                        });
+                    });
+                }
+        );
+
+        this.treeView.setTreeViewData(list);
     }
 
     /***
      * Creates the search panel at the bottom of the page
      */
-    private void createSearchSliderPanel() {
-        this.sliderPanel.setButtonTexts("Hide Search Panel", "Show Search Panel");
-        this.sliderPanel.setHeight("40%");
-        this.sliderPanel.setContent(this.createSearchBox());
+//    private void createSearchSliderPanel() {
+//        this.sliderPanel.setButtonTexts("Hide Search Panel", "Show Search Panel");
+//        this.sliderPanel.setHeight("40%");
+//        this.sliderPanel.setContent(this.createSearchBox());
+//        this.updateComboBoxesData();
+//
+//        getContent().add(this.sliderPanel);
+//    }
 
-        getContent().add(this.sliderPanel);
-    }
+
 }
