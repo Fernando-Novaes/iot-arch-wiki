@@ -242,10 +242,15 @@ public class IoTArchView extends BaseView {
         searchButton.setIcon(VaadinIcon.SEARCH.create());
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchButton.addClickListener(click -> {
+            try {
+                getContent().remove(this.treeView);
+            } catch (Exception e) {}
+
             cancelButton.setVisible(true);
             this.treeView.setIsFiltering(true);
             this.filterTreeViewDataSource();
             this.treeView.load();
+            getContent().add(treeView);
         });
 
         // Create cancel button
@@ -253,10 +258,16 @@ public class IoTArchView extends BaseView {
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelButton.setVisible(false);
         cancelButton.addClickListener(click -> {
+            try {
+                getContent().remove(this.treeView);
+            } catch (Exception e) {}
+
             this.currentAction = ActionType.NONE;
             cancelButton.setVisible(false);
             this.loadDataToComboBoxes(ActionType.NONE);
             this.treeView.setIsFiltering(false);
+            this.treeView.load();
+            getContent().add(treeView);
         });
 
         comboBoxLayout.add(
@@ -303,7 +314,7 @@ public class IoTArchView extends BaseView {
 
         // Setting the action when a value is changed in a combobox
         // This will make the changes on the others comboboxes
-        comboBox.addValueChangeListener(listener -> {
+        comboBox.addAttachListener(listener -> {
             this.currentAction = actionType;
             this.loadDataToComboBoxes(this.currentAction);
             cancelButton.setVisible(true);
@@ -313,15 +324,13 @@ public class IoTArchView extends BaseView {
     private void loadDataToComboBoxes(ActionType actionType) {
 
         if (actionType == ActionType.NONE) {
-            List<IoTDomainRecord> list = new ArrayList<>();
-            ((List<IoTDomain>)this.treeViewDataSource).stream().forEach(
-                    d -> {
-                        list.add(new IoTDomainRecord(d.getName()));
-                    }
-            );
+            List<IoTDomainRecord> list = this.ioTDomainService.findAllIoTDomainGroupedByName();
 
             list.sort(Comparator.comparing(IoTDomainRecord::name));
             this.iotDomainCombo.setItems(list);
+            this.architectureCombo.clear();
+            this.technologiesCombo.clear();
+            this.qualityCombo.clear();
         } else if (actionType == ActionType.IOTDOMAIN) {
             List<ArchitectureSolutionRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
@@ -363,6 +372,10 @@ public class IoTArchView extends BaseView {
             list.sort(Comparator.comparing(TechnologyRecord::description));
             this.technologiesCombo.setItems(list.stream().distinct().toList());
         }
+    }
+
+    private void clearAllComboBoxes() {
+
     }
 
     private void filterTreeViewDataSource() {
