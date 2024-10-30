@@ -78,12 +78,18 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
 
     private TreeNode<IoTDomain> buildTreeIoTDomain(IoTDomain domain) {
         TreeNode<IoTDomain> domainNode = new TreeNode<>(domain);
-
+        Erro aqui!!!!!!
         for (ArchitectureSolution solution : domain.getArchs()) {
-            TreeNode<ArchitectureSolution> solutionNode = new TreeNode<>(solution);
-            domainNode.addChild(solutionNode);
+            if (root.getChildren().stream().anyMatch(r -> ((ArchitectureSolution) r.getData()).getName().equals(solution.getName()))) {
+                TreeNode<ArchitectureSolution> rootAux = (TreeNode<ArchitectureSolution>) root.getChildren().stream().filter(
+                        treeNode -> ((ArchitectureSolution) treeNode.getData()).getName().equals(solution.getName())).findFirst().get();
 
-            buildTreeQualityRequirement(solution, solutionNode);
+                buildTreeQualityRequirement(solution, rootAux);
+            } else {
+                TreeNode<ArchitectureSolution> solutionNode = new TreeNode<>(solution);
+                domainNode.addChild(solutionNode);
+                buildTreeQualityRequirement(solution, solutionNode);
+            }
         }
 
         return domainNode;

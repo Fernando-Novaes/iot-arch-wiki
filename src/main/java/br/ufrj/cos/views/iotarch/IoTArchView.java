@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @PageTitle("IoT-Arch Knowledge Base")
@@ -213,7 +212,7 @@ public class IoTArchView extends BaseView {
         this.prepareComboBox(technologiesCombo, ActionType.TECHNOLOGY);
         //technologiesCombo.setItems(this.technologyService.findAllOrderedByDescription());
 
-        this.prepareComboBoxLayout(TreeViewType.IoTDomain);
+        this.prepareComboBoxLayout();
 
         // Configure the horizontal layout
         comboBoxLayout.setSpacing(true);
@@ -237,7 +236,7 @@ public class IoTArchView extends BaseView {
         return centerContainer;
     }
 
-    private void prepareComboBoxLayout(TreeViewType treeViewType) {
+    private void prepareComboBoxLayout() {
         // Create search button
         searchButton.setIcon(VaadinIcon.SEARCH.create());
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -263,11 +262,11 @@ public class IoTArchView extends BaseView {
             } catch (Exception e) {}
 
             this.currentAction = ActionType.NONE;
-            cancelButton.setVisible(false);
-            this.loadDataToComboBoxes(ActionType.NONE);
             this.treeView.setIsFiltering(false);
             this.treeView.load();
-            getContent().add(treeView);
+            getContent().add(this.treeView);
+            this.loadDataToComboBoxes(ActionType.NONE);
+            cancelButton.setVisible(false);
         });
 
         comboBoxLayout.add(
@@ -314,7 +313,7 @@ public class IoTArchView extends BaseView {
 
         // Setting the action when a value is changed in a combobox
         // This will make the changes on the others comboboxes
-        comboBox.addAttachListener(listener -> {
+        comboBox.addValueChangeListener(listener -> {
             this.currentAction = actionType;
             this.loadDataToComboBoxes(this.currentAction);
             cancelButton.setVisible(true);
@@ -324,14 +323,19 @@ public class IoTArchView extends BaseView {
     private void loadDataToComboBoxes(ActionType actionType) {
 
         if (actionType == ActionType.NONE) {
-            List<IoTDomainRecord> list = this.ioTDomainService.findAllIoTDomainGroupedByName();
+            List<IoTDomainRecord> list = new ArrayList<>();
+            ((List<IoTDomain>)this.treeViewDataSource).stream().forEach(
+                    d -> {
+                        list.add(new IoTDomainRecord(d.getName()));
+                    }
+            );
 
             list.sort(Comparator.comparing(IoTDomainRecord::name));
             this.iotDomainCombo.setItems(list);
-            this.architectureCombo.clear();
-            this.technologiesCombo.clear();
-            this.qualityCombo.clear();
-        } else if (actionType == ActionType.IOTDOMAIN) {
+            this.architectureCombo.setItems(new ArrayList<>());
+            this.technologiesCombo.setItems(new ArrayList<>());
+            this.qualityCombo.setItems(new ArrayList<>());
+        } else if (actionType == ActionType.IOTDOMAIN && iotDomainCombo.getValue() != null) {
             List<ArchitectureSolutionRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
@@ -343,12 +347,12 @@ public class IoTArchView extends BaseView {
 
             list.sort(Comparator.comparing(ArchitectureSolutionRecord::name));
             this.architectureCombo.setItems(list.stream().distinct().toList());
-        } else if (actionType == ActionType.ARCHITECTURESOLUTION) {
+        } else if (actionType == ActionType.ARCHITECTURESOLUTION && iotDomainCombo.getValue() != null) {
             List<QualityRequirementRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).distinct().forEach(a -> {
-                            a.getQrs().stream().distinct().forEach(aq -> {
+                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
+                            a.getQrs().forEach(aq -> {
                                 list.add(new QualityRequirementRecord(aq.getName()));
                             });
                         });
@@ -357,12 +361,12 @@ public class IoTArchView extends BaseView {
 
             list.sort(Comparator.comparing(QualityRequirementRecord::name));
             this.qualityCombo.setItems(list.stream().distinct().toList());
-        } else if (actionType == ActionType.QUALITYREQUIREMENT) {
+        } else if (actionType == ActionType.QUALITYREQUIREMENT && iotDomainCombo.getValue() != null) {
             List<TechnologyRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).distinct().forEach(a -> {
-                            a.getQrs().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).distinct().forEach(aq -> {
+                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
+                            a.getQrs().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).forEach(aq -> {
                                 list.add(new TechnologyRecord(aq.getTechnology().getDescription()));
                             });
                         });
@@ -372,10 +376,6 @@ public class IoTArchView extends BaseView {
             list.sort(Comparator.comparing(TechnologyRecord::description));
             this.technologiesCombo.setItems(list.stream().distinct().toList());
         }
-    }
-
-    private void clearAllComboBoxes() {
-
     }
 
     private void filterTreeViewDataSource() {
@@ -393,7 +393,7 @@ public class IoTArchView extends BaseView {
 
         IoTDomain finalDomain = domain;
         if(qualityCombo.getValue() != null) {
-
+            
             domain.getArchs().forEach(arc -> {
                 arc.getQrs().forEach(qr -> {
                     if (!qr.getName().equals(qualityCombo.getValue().name())) {
