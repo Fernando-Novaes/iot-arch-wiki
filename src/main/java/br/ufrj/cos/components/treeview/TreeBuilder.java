@@ -5,9 +5,11 @@ import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.utils.ClassTypeUtils;
+import br.ufrj.cos.views.record.IoTDomainRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Comparator;
 import java.util.List;
 
 @Component
@@ -78,10 +80,13 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
 
     private TreeNode<IoTDomain> buildTreeIoTDomain(IoTDomain domain) {
         TreeNode<IoTDomain> domainNode = new TreeNode<>(domain);
-        Erro aqui!!!!!!
-        for (ArchitectureSolution solution : domain.getArchs()) {
-            if (root.getChildren().stream().anyMatch(r -> ((ArchitectureSolution) r.getData()).getName().equals(solution.getName()))) {
-                TreeNode<ArchitectureSolution> rootAux = (TreeNode<ArchitectureSolution>) root.getChildren().stream().filter(
+
+        List<ArchitectureSolution> archsSorted = domain.getArchs();
+        archsSorted.sort(Comparator.comparing(ArchitectureSolution::getName));
+
+        for (ArchitectureSolution solution : archsSorted) {
+            if (domainNode.getChildren().stream().anyMatch(arc -> ((ArchitectureSolution)arc.getData()).getName().equals(solution.getName()))) {
+                TreeNode<ArchitectureSolution> rootAux = (TreeNode<ArchitectureSolution>) domainNode.getChildren().stream().filter(
                         treeNode -> ((ArchitectureSolution) treeNode.getData()).getName().equals(solution.getName())).findFirst().get();
 
                 buildTreeQualityRequirement(solution, rootAux);

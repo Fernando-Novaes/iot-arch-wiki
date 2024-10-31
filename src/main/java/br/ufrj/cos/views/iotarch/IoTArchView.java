@@ -324,14 +324,14 @@ public class IoTArchView extends BaseView {
 
         if (actionType == ActionType.NONE) {
             List<IoTDomainRecord> list = new ArrayList<>();
-            ((List<IoTDomain>)this.treeViewDataSource).stream().forEach(
-                    d -> {
-                        list.add(new IoTDomainRecord(d.getName()));
-                    }
-            );
+//            ((List<IoTDomain>)this.treeViewDataSource).stream().forEach(
+//                    d -> {
+//                        list.add(new IoTDomainRecord(d.getName()));
+//                    }
+//            );
 
             list.sort(Comparator.comparing(IoTDomainRecord::name));
-            this.iotDomainCombo.setItems(list);
+            this.iotDomainCombo.setItems(this.ioTDomainService.findAllIoTDomainGroupedByName());
             this.architectureCombo.setItems(new ArrayList<>());
             this.technologiesCombo.setItems(new ArrayList<>());
             this.qualityCombo.setItems(new ArrayList<>());
