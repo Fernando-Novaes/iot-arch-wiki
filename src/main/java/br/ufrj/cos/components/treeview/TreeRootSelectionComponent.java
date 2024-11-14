@@ -47,8 +47,13 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     }
 
     private void styleButtons() {
+        rootSelection.getStyle().set("--vaadin-button-font-weight", "bold");
+        leafLevelOne.getStyle().set("--vaadin-button-font-weight", "bold");
+        leafLevelTwo.getStyle().set("--vaadin-button-font-weight", "bold");
+        leafLevelThree.getStyle().set("--vaadin-button-font-weight", "bold");
+
         switch (this.treeViewType) {
-            case IoTDomain -> {
+            case IoTDomain, IoTDomain_Filtered -> {
                 rootSelection.getStyle().set("--vaadin-button-background", "#ED8312E5");
                 leafLevelOne.getStyle().set("--vaadin-button-background", "white");
                 leafLevelTwo.getStyle().set("--vaadin-button-background", "yellow");
@@ -57,7 +62,7 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
                 changeLeft.setTooltipText(String.format("Change Root to %s", TreeViewType.Technology.toString()));
                 changeRight.setTooltipText(String.format("Change Root to %s", TreeViewType.ArchitectureSolution.toString()));
             }
-            case ArchitectureSolution -> {
+            case ArchitectureSolution, ArchitectureSolution_Filtered -> {
                 rootSelection.getStyle().set("--vaadin-button-background", "white");
                 leafLevelOne.getStyle().set("--vaadin-button-background", "yellow");
                 leafLevelTwo.getStyle().set("--vaadin-button-background", "green");
@@ -66,7 +71,7 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
                 changeLeft.setTooltipText(String.format("Change Root to %s", TreeViewType.IoTDomain.toString()));
                 changeRight.setTooltipText(String.format("Change Root to %s", TreeViewType.QualityRequirement.toString()));
             }
-            case QualityRequirement -> {
+            case QualityRequirement, QualityRequirement_Filtered -> {
                 rootSelection.getStyle().set("--vaadin-button-background", "yellow");
                 leafLevelOne.getStyle().set("--vaadin-button-background", "green");
                 leafLevelTwo.getStyle().set("--vaadin-button-background", "white");
@@ -75,7 +80,7 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
                 changeLeft.setTooltipText(String.format("Change Root to %s", TreeViewType.ArchitectureSolution.toString()));
                 changeRight.setTooltipText(String.format("Change Root to %s", TreeViewType.Technology.toString()));
             }
-            case Technology -> {
+            case Technology, Technology_Filtered -> {
                 rootSelection.getStyle().set("--vaadin-button-background", "green");
                 leafLevelOne.getStyle().set("--vaadin-button-background", "#ED8312E5");
                 leafLevelTwo.getStyle().set("--vaadin-button-background", "white");
@@ -118,25 +123,25 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
         rootSelection.setText(treeViewType.toString());
 
         switch (t) {
-            case IoTDomain -> {
-                leafLevelOne.setText(TreeViewType.ArchitectureSolution.toString());
-                leafLevelTwo.setText(TreeViewType.QualityRequirement.toString());
-                leafLevelThree.setText(TreeViewType.Technology.toString());
+            case IoTDomain, IoTDomain_Filtered -> {
+                leafLevelOne.setText("Architecture Solution");
+                leafLevelTwo.setText("Quality Requirement");
+                leafLevelThree.setText("Technology");
             }
-            case ArchitectureSolution -> {
-                leafLevelOne.setText(TreeViewType.QualityRequirement.toString());
-                leafLevelTwo.setText(TreeViewType.Technology.toString());
-                leafLevelThree.setText(TreeViewType.IoTDomain.toString());
+            case ArchitectureSolution, ArchitectureSolution_Filtered -> {
+                leafLevelOne.setText("Quality Requirement");
+                leafLevelTwo.setText("Technology");
+                leafLevelThree.setText("IoT Domain");
             }
-            case QualityRequirement -> {
-                leafLevelOne.setText(TreeViewType.Technology.toString());
-                leafLevelTwo.setText(TreeViewType.ArchitectureSolution.toString());
-                leafLevelThree.setText(TreeViewType.IoTDomain.toString());
+            case QualityRequirement, QualityRequirement_Filtered -> {
+                leafLevelOne.setText("Technology");
+                leafLevelTwo.setText("Architecture Solution");
+                leafLevelThree.setText("IoT Domain");
             }
-            case Technology -> {
-                leafLevelOne.setText(TreeViewType.IoTDomain.toString());
-                leafLevelTwo.setText(TreeViewType.ArchitectureSolution.toString());
-                leafLevelThree.setText(TreeViewType.QualityRequirement.toString());
+            case Technology, Technology_Filtered -> {
+                leafLevelOne.setText("IoT Domain");
+                leafLevelTwo.setText("Architecture Solution");
+                leafLevelThree.setText("Quality Requirement");
             }
         }
 

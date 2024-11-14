@@ -27,7 +27,7 @@ public class QualityRequirementView extends BaseView {
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
 
-        this.createHeader("Quality Requirement");
+        this.createHeader("Quality Requirement (ISO/IEC 25010:2023)");
 
         this.pageContent = this.createContentLayout();
         this.createTabs();

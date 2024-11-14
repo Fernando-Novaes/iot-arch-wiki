@@ -13,7 +13,6 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
@@ -22,10 +21,7 @@ import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.component.treegrid.TreeGrid;
-import com.vaadin.flow.data.provider.hierarchy.TreeDataProvider;
-import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,8 +31,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @UIScope
 @Component
@@ -72,6 +66,14 @@ public class TreeViewComponent extends VerticalLayout {
         this.treeViewData = treeViewData;
     }
 
+    private Button addBoxToTreeViewNode(String text, String className) {
+        Button btn = new Button();
+        btn.setText(text);
+        btn.addClassName("button-base");
+        btn.addClassName(className);
+        return btn;
+    }
+
     public void load() {
         // Define columns (e.g., displaying IoT Domain names)
         TreeGrid<TreeNode<?>> treeGrid = new TreeGrid<>();
@@ -79,11 +81,11 @@ public class TreeViewComponent extends VerticalLayout {
         treeGrid.addComponentHierarchyColumn(node -> {
             Object data = node.getData();
             if (data instanceof IoTDomain) {
-                return new Text(((IoTDomain) data).getName());
+                return addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
             } else if (data instanceof ArchitectureSolution) {
-                return new Text(((ArchitectureSolution) data).getName());
+                return addBoxToTreeViewNode(((ArchitectureSolution) data).getName(), "architecture-solution");
             } else if (data instanceof QualityRequirement) {
-                return new Text(((QualityRequirement) data).getName());
+                return addBoxToTreeViewNode(((QualityRequirement) data).getName(), "quality-requirement");
             } else if (data instanceof Technology) {
                 String nodeNames = this.createPathToNode(node);
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
@@ -110,7 +112,7 @@ public class TreeViewComponent extends VerticalLayout {
             this.setTreeViewData(treeViewService.getTreeViewData());
             treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         } else {
-            root = treeViewService.getTree(TreeViewType.Filtered);
+            root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
             treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         }
 
@@ -140,14 +142,24 @@ public class TreeViewComponent extends VerticalLayout {
         treeGrid.setClassNameGenerator(node -> {
             Object data = node.getData();
 
+            // Get the text content
+            String text = ""; // You'll need to get this from your node data
             if (data instanceof IoTDomain) {
-                return "iot-domain";
+                IoTDomain domain = (IoTDomain) data;
+                text = domain.getName(); // or whatever field contains the text
+                return "treeView-cell";
             } else if (data instanceof ArchitectureSolution) {
-                return "architecture-solution";
+                ArchitectureSolution solution = (ArchitectureSolution) data;
+                text = solution.getName();
+                return "treeView-cell";
             } else if (data instanceof QualityRequirement) {
-                return "quality-requirement";
+                QualityRequirement req = (QualityRequirement) data;
+                text = req.getName();
+                return "treeView-cell";
             } else if (data instanceof Technology) {
-                return "technology";
+                Technology tech = (Technology) data;
+                text = tech.getDescription();
+                return "treeView-cell";
             }
             return "root";
         });
@@ -235,7 +247,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         // Create a layout to hold the text and the icon
         HorizontalLayout  layout = new HorizontalLayout ();
-        layout.add(new Text(((Technology) node.getData()).getDescription()), button);
+        layout.add(addBoxToTreeViewNode(((Technology) node.getData()).getDescription(), "technology"), button);
         layout.setAlignItems(Alignment.CENTER);
         layout.setSpacing(true); // Remove spacing between text and icon
 

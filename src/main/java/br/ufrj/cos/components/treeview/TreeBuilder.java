@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
+
+import static java.util.stream.Collectors.toList;
 
 @Component
 public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTreeBuilder, QualityRequirementTreeBuilder {
@@ -19,7 +22,6 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
 
     private TreeNode<Object> getRootTreeNode() {
         root = new TreeNode<>(null); // Create a root node
-        
 
         return root;
     }
@@ -28,11 +30,13 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         root = this.getRootTreeNode();
 
        if (list.getFirst() instanceof IoTDomain) {
+           ((List<IoTDomain>)list).sort(Comparator.comparing(IoTDomain::getName));
             for (IoTDomain domain : (List<IoTDomain>) list) {
                 root.addChild(buildTreeIoTDomain(domain));
             }
         } else if (list.getFirst() instanceof ArchitectureSolution) {
-            for (ArchitectureSolution arch : (List<ArchitectureSolution>) list) {
+           ((List<ArchitectureSolution>)list).sort(Comparator.comparing(ArchitectureSolution::getName));
+           for (ArchitectureSolution arch : (List<ArchitectureSolution>) list) {
                 if (root.getChildren().stream().anyMatch(r -> ((ArchitectureSolution) r.getData()).getName().equals(arch.getName()))) {
                     TreeNode<ArchitectureSolution> rootAux = (TreeNode<ArchitectureSolution>) root.getChildren().stream().filter(treeNode -> ((ArchitectureSolution) treeNode.getData()).getName().equals(arch.getName())).findFirst().get();
                     buildTreeQualityRequirement(arch, rootAux);
@@ -49,7 +53,8 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                 }
             }
         } else if (list.getFirst() instanceof QualityRequirement) {
-           for (QualityRequirement qr : (List<QualityRequirement>) list) {
+           List<QualityRequirement> listOrdered = ((List<QualityRequirement>)list).stream().sorted((o1,o2) -> o1.getName().compareTo(o2.getName())).toList();
+           for (QualityRequirement qr : (List<QualityRequirement>) listOrdered) {
                if (root.getChildren().stream().anyMatch(qrAux -> ((QualityRequirement) qrAux.getData()).getName().equals(qr.getName()))) {
                    TreeNode<QualityRequirement> rootAux =
                            (TreeNode<QualityRequirement>) root.getChildren().stream().filter(treeNode -> ((QualityRequirement) treeNode.getData()).getName().equals(qr.getName())).findFirst().get();
@@ -125,7 +130,9 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
     }
 
     private void buildTreeQualityRequirement(ArchitectureSolution arch, TreeNode<ArchitectureSolution> archNode) {
-        for (QualityRequirement qr : arch.getQrs()) {
+        List<QualityRequirement> list = new java.util.ArrayList<>(arch.getQrs().stream().toList());
+        list.sort(Comparator.comparing(QualityRequirement::getName));
+        for (QualityRequirement qr : list) {
             if (archNode.getChildren().stream().anyMatch(q -> ((QualityRequirement) q.getData()).getName().equals(qr.getName()))) {
                 TreeNode<QualityRequirement> qrNodeAux = (TreeNode<QualityRequirement>) archNode.getChildren().stream().filter(treeNode -> ((QualityRequirement) treeNode.getData()).getName().equals(qr.getName())).findFirst().get();
                 buildTreeTechnology(qr.getTechnology(), qrNodeAux);

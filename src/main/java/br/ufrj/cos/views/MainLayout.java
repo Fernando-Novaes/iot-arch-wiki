@@ -106,18 +106,14 @@ public class MainLayout extends AppLayout {
     }
 
     private MenuItemInfo[] createMenuItems() {
-        return new MenuItemInfo[]{ //
+        return new MenuItemInfo[]{
                 new MenuItemInfo("Home", LineAwesomeIcon.HOME_SOLID.create(), HomeView.class),
-
-                new MenuItemInfo("BoK", LineAwesomeIcon.WHMCS.create(), BoardView.class), //
-
-                new MenuItemInfo("IoT-Arch", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class), //
-
-                new MenuItemInfo("Quality Requirement", LineAwesomeIcon.BOOK_OPEN_SOLID.create(),
-                        QualityRequirementView.class), //
-
-                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class), //
-
+                new MenuItemInfo("BoK", LineAwesomeIcon.WHMCS.create(), BoardView.class),
+                new MenuItemInfo("IoT-Arch", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class),
+                new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
+                new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
+                new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class),
+                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class)
         };
     }
 

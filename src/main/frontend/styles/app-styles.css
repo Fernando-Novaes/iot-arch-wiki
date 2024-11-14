@@ -5,43 +5,39 @@
     white-space: pre-wrap;
 }
 
+/* Base styles */
+.button-base {
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    'cursor: pointer;
+    display: inline-block;
+    font-weight: bold;
+    color: black;
+}
+
+/* IoT Domain button style */
 .iot-domain {
-    color: #ED8312E5;
-    font-weight: bold;
-    font-size: large;
-    padding: 5px;
-    background-color: #373a3f;
-    white-space: pre-wrap;
-    border: 1px;
+    background-color: #ED8312E5;
 }
 
+/* Architecture solution button style */
 .architecture-solution {
-    font-size: large;
-    color: white;
-    font-weight: bold;
-    padding: 5px;
-    background-color: #373a3f;
-    white-space: pre-wrap;;
+    background-color: #ffffff;
 }
 
+/* Quality requirement button style */
 .quality-requirement {
-    font-size: large;
-    color: goldenrod;
-    font-style: normal;
-    font-weight: bold;
-    padding: 5px;
-    background-color: #373a3f;
-    white-space: pre-wrap;
+    background-color: yellow;
 }
 
+/* Technology button style */
 .technology {
-    font-size: large;
-    color: limegreen;
-    font-weight: bold;
-    padding: 5px;
-    background-color: #373a3f;
-    white-space: pre-wrap;
-    word-break: break-word;
+    background-color: green;
+}
+
+.treeView-cell {
+    background-color: #373b40;
 }
 
 .custom-summary {
@@ -92,4 +88,18 @@
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
     font-size: small;
     color: white;
+}
+
+:host([expanded]) [part="toggle"]::before {
+    content: "−"; /* Minus sign for collapse */
+}
+
+:host(:not([expanded])) [part="toggle"]::before {
+    content: "+"; /* Plus sign for expand */
+}
+
+[part="toggle"]::before {
+    font-size: 1.5em; /* Adjust size as needed */
+    color: #007bff;   /* Adjust color as needed */
+    font-weight: bold;
 }

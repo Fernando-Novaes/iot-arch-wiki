@@ -82,6 +82,7 @@ public class IoTArchView extends BaseView {
         this.treeRootSelection.addChangeRightButtonClickListener(r -> { this.changeRootRight(this.treeRootSelection.getTreeViewType()); });
 
         this.treeView.addTreeRootSelection(this.treeRootSelection);
+        this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
         this.treeView.load();
         this.treeViewDataSource = this.treeView.getTreeViewData();
 
@@ -124,6 +125,27 @@ public class IoTArchView extends BaseView {
                 //this.prepareComboBoxLayout(TreeViewType.ArchitectureSolution);
                 return;
             }
+            case IoTDomain_Filtered: {
+                this.treeRootSelection.setTreeViewType(TreeViewType.ArchitectureSolution_Filtered);
+                this.treeView.load();
+                getContent().add(treeView);
+
+                return;
+            }
+            case ArchitectureSolution_Filtered: {
+                this.treeRootSelection.setTreeViewType(TreeViewType.QualityRequirement_Filtered);
+                this.treeView.load();
+                getContent().add(treeView);
+
+                return;
+            }
+            case QualityRequirement_Filtered: {
+                this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);
+                this.treeView.load();
+                getContent().add(treeView);
+
+                return;
+            }
         }
     }
 
@@ -156,6 +178,28 @@ public class IoTArchView extends BaseView {
                 this.treeView.load();
                 getContent().add(treeView);
                 //this.prepareComboBoxLayout(TreeViewType.IoTDomain);
+                return;
+            }
+
+            case IoTDomain_Filtered: {
+                this.treeRootSelection.setTreeViewType(TreeViewType.ArchitectureSolution_Filtered);
+                this.treeView.load();
+                getContent().add(treeView);
+
+                return;
+            }
+            case ArchitectureSolution_Filtered: {
+                this.treeRootSelection.setTreeViewType(TreeViewType.QualityRequirement_Filtered);
+                this.treeView.load();
+                getContent().add(treeView);
+
+                return;
+            }
+            case QualityRequirement_Filtered: {
+                this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);
+                this.treeView.load();
+                getContent().add(treeView);
+
                 return;
             }
         }
@@ -241,15 +285,21 @@ public class IoTArchView extends BaseView {
         searchButton.setIcon(VaadinIcon.SEARCH.create());
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         searchButton.addClickListener(click -> {
-            try {
-                getContent().remove(this.treeView);
-            } catch (Exception e) {}
+            if (this.iotDomainCombo.getValue() != null) {
+                try {
+                    getContent().remove(this.treeView);
+                } catch (Exception e) {
+                }
 
-            cancelButton.setVisible(true);
-            this.treeView.setIsFiltering(true);
-            this.filterTreeViewDataSource();
-            this.treeView.load();
-            getContent().add(treeView);
+                cancelButton.setVisible(true);
+                this.treeView.setIsFiltering(true);
+                this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);
+                this.filterTreeViewDataSource();
+                this.treeView.load();
+                getContent().add(treeView);
+
+                this.lockSearchPanel(true);
+            }
         });
 
         // Create cancel button
@@ -263,10 +313,13 @@ public class IoTArchView extends BaseView {
 
             this.currentAction = ActionType.NONE;
             this.treeView.setIsFiltering(false);
+            this.treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
             this.treeView.load();
             getContent().add(this.treeView);
             this.loadDataToComboBoxes(ActionType.NONE);
             cancelButton.setVisible(false);
+
+            this.lockSearchPanel(false);
         });
 
         comboBoxLayout.add(
@@ -318,6 +371,18 @@ public class IoTArchView extends BaseView {
             this.loadDataToComboBoxes(this.currentAction);
             cancelButton.setVisible(true);
         });
+    }
+
+    /***
+     * Lock or unlock search panel after actions
+     * @param lock Boolean
+     */
+    private void lockSearchPanel(boolean lock) {
+        iotDomainCombo.setEnabled(!lock);
+        architectureCombo.setEnabled(!lock);
+        qualityCombo.setEnabled(!lock);
+        technologiesCombo.setEnabled(!lock);
+        searchButton.setEnabled(!lock);
     }
 
     private void loadDataToComboBoxes(ActionType actionType) {

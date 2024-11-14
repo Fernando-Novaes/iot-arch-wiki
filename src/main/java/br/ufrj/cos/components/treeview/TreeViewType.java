@@ -6,6 +6,12 @@ public enum TreeViewType {
         ArchitectureSolution("Architecture Solution"),
         QualityRequirement("Quality Requirement"),
         Technology("Technology"),
+
+        IoTDomain_Filtered("IoT Domain Filtered"),
+        ArchitectureSolution_Filtered("Architecture Solution Filtered"),
+        QualityRequirement_Filtered("Quality Requirement Filtered"),
+        Technology_Filtered("Technology Filtered"),
+
         Filtered("Filtered");
 
         private final String displayName;
