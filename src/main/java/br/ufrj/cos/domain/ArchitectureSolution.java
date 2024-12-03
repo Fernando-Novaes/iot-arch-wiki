@@ -19,8 +19,8 @@ public class ArchitectureSolution extends DomainBase {
     @Column(nullable = false)
     private String name;
 
-    @OneToOne
-    @JoinColumn(name = "paper_reference_id", nullable = true)
+    @OneToOne(optional = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "paper_reference_id", unique = false)
     private PaperReference paperReference;
 
     @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

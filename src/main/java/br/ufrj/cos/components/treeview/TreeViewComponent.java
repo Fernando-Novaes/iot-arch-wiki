@@ -8,7 +8,6 @@ import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
-import br.ufrj.cos.utils.ColorUtils;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
@@ -191,32 +190,32 @@ public class TreeViewComponent extends VerticalLayout {
     /***
      * Create the Path of the referenced Node
      * @param node Node
-     * @return The name to be splited and used in the Diagram (Description!Type = HealthCare!IoT Domain)
+     * @return The name to be split and used in the Diagram (Description!Type = HealthCare!IoT Domain)
      */
     private String createPathToNode(TreeNode<?> node) {
         List<TreeNode<?>> path = getPathToRoot(node);
-        StringBuilder diagramNames = new StringBuilder();
+        StringBuilder diagramlabels = new StringBuilder();
 
         // Construct the full path string
         this.pathString = new StringBuilder();
         for (int i = path.size() - 1; i >= 0; i--) {
             Object data = path.get(i).getData();
-            if (data instanceof IoTDomain) {
-                diagramNames.append(((IoTDomain) data).getName()).append("!IoT Domain").append("#");
-                pathString.append(((IoTDomain) data).getName().toUpperCase()).append(" >> ");
-            } else if (data instanceof ArchitectureSolution) {
-                diagramNames.append(((ArchitectureSolution) data).getName()).append("!Architecture Solution").append("#");
-                pathString.append(((ArchitectureSolution) data).getName().toUpperCase()).append(" >> ");
-            } else if (data instanceof QualityRequirement) {
-                diagramNames.append(((QualityRequirement) data).getName()).append("!Quality Requirement").append("#");
-                pathString.append(((QualityRequirement) data).getName().toUpperCase()).append(" >> ");
-            } else if (data instanceof Technology) {
-                diagramNames.append(((Technology) data).getDescription()).append("!Technology").append("#");
-                pathString.append(((Technology) data).getDescription().toUpperCase());
+
+         if (data instanceof Technology) {
+                // Append to diagram names
+                diagramlabels.append(((Technology) data).getArchitectureSolution().getIoTDomain().getName()).append("!").append("IoT Domain").append("#");
+                diagramlabels.append(((Technology) data).getArchitectureSolution().getName()).append("!").append("Architecture Solution").append("#");
+                diagramlabels.append(((Technology) data).getQualityRequirement().getName()).append("!").append("Quality Requirement").append("#");
+                diagramlabels.append(((Technology) data).getDescription()).append("!").append("Technology").append("#");
+
+                pathString.append(((Technology) data).getArchitectureSolution().getIoTDomain().getName()).append(" >> ");
+                pathString.append(((Technology) data).getArchitectureSolution().getName()).append(" >> ");
+                pathString.append(((Technology) data).getQualityRequirement().getName()).append(" >> ");
+                pathString.append(((Technology) data).getDescription());
             }
         }
 
-        return diagramNames.toString();
+        return diagramlabels.toString();
     }
 
     /***
@@ -226,6 +225,7 @@ public class TreeViewComponent extends VerticalLayout {
         // Create an icon
         Icon icon = VaadinIcon.INFO_CIRCLE.create(); // Use any icon you prefer
         icon.getElement().getStyle().set("cursor", "pointer"); // Change cursor style to pointer for clickable effect
+        icon.setSize("24px");
 
         // Create a button to handle the click event
         Button button = new Button(icon);
@@ -242,14 +242,14 @@ public class TreeViewComponent extends VerticalLayout {
 
         this.createDiagram(diagramNames);
 
-        button.getStyle().set("min-width", "15px"); // Set the button size
-        button.getStyle().set("height", "25px"); // Set the button size
+        button.getStyle().set("min-width", "25px"); // Set the button size
+        button.getStyle().set("height", "35px"); // Set the button size
 
         // Create a layout to hold the text and the icon
         HorizontalLayout  layout = new HorizontalLayout ();
         layout.add(addBoxToTreeViewNode(((Technology) node.getData()).getDescription(), "technology"), button);
         layout.setAlignItems(Alignment.CENTER);
-        layout.setSpacing(true); // Remove spacing between text and icon
+        //layout.setSpacing(true); // Remove spacing between text and icon
 
         return layout;
     }
@@ -268,6 +268,19 @@ public class TreeViewComponent extends VerticalLayout {
         this.diagramComponent.execute();
 
         return this.diagramComponent;
+    }
+
+    /***
+     * Set the background color of the node accordingly the pattern
+     */
+    private String setDiagramNodesBackStyle(String domain) {
+        switch (domain) {
+            case "IoT Domain": return "#ED8312E5";
+            case "Architecture Solution": return "#ffffff";
+            case "Quality Requirement": return "yellow";
+            case "Technology": return "green";
+            default: return "#ED8312E5";
+        }
     }
 
     private List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
@@ -290,7 +303,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         names.forEach(n -> {
             String[] namesAndTypes = n.split("!");
-            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(names.indexOf(n))).label(namesAndTypes[0]).color(ColorUtils.generateRandomColorCode()).tooltip(namesAndTypes[1]).build();
+            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(names.indexOf(n))).label(namesAndTypes[0]).color(this.setDiagramNodesBackStyle(namesAndTypes[1])).tooltip(namesAndTypes[1]).build();
             nodes.add(dom);
         });
 
@@ -309,22 +322,26 @@ public class TreeViewComponent extends VerticalLayout {
         hl.setAlignItems(Alignment.CENTER);
         //hl.setSpacing(true);
 
-        VerticalLayout vlLeft = new VerticalLayout();
-        VerticalLayout vlRight = new VerticalLayout();
-        vlLeft.setAlignItems(Alignment.START);
-        vlRight.setAlignItems(Alignment.END);
+        VerticalLayout vl = new VerticalLayout();
+        vl.setAlignItems(Alignment.CENTER);
 
-        H4 paperTitleH1 = new H4(paperTitle);
+        H2 paperTitleH2 = new H2(paperTitle);
+        paperTitleH2.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
         Anchor link = new Anchor(paperLink, paperLink);
         link.setTarget("_blank"); // Opens the link in a new tab
 
         Div divDiagram = new Div();
         divDiagram.setId("diagram");
+        divDiagram.setWidthFull();
 
-        vlLeft.add(paperTitleH1, link, divDiagram, new Text(this.pathString.toString()));
-        vlRight.add(this.qrCodeComponent.generateQRCode(paperLink, 100, 100));
+        vl.add(paperTitleH2, link, this.qrCodeComponent.generateQRCode(paperLink, 100, 100), divDiagram, new Text(this.pathString.toString()));
 
-        dialog.add(vlLeft, vlRight, this.diagramComponent);
+        dialog.add(vl, this.diagramComponent);
+
+        Button closeXButton = new Button(new Icon("lumo", "cross"),
+                (e) -> dialog.close());
+        closeXButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        dialog.getHeader().add(closeXButton);
 
         Button close = new Button("Close", (e) -> dialog.close());
         close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
@@ -342,8 +359,14 @@ public class TreeViewComponent extends VerticalLayout {
         TreeNode<?> current = node;
         while (current != null) {
             path.add(current);
-            current = current.getParent();
+
+            if (current.getParent().getData() != null) {
+                current = current.getParent();
+            } else {
+                current = null;
+            }
         }
+
         return path;
     }
 

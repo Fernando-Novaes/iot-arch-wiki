@@ -1,6 +1,7 @@
 package br.ufrj.cos.service;
 
 import br.ufrj.cos.components.chart.data.IoTDomainChartRecord;
+import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.IoTDomain;
 import br.ufrj.cos.repository.IoTDomainRepository;
 import br.ufrj.cos.views.record.IoTDomainRecord;
@@ -22,6 +23,10 @@ public class IoTDomainService {
 
     public List<IoTDomainChartRecord> getIoTDomainCountGroupedByName() {
         return ioTDomainRepository.countIoTDomainsGroupedByName();
+    }
+
+    public List<IoTDomain> findByNameContainingIgnoreCase(String name) {
+        return this.ioTDomainRepository.findByNameContainingIgnoreCase(name);
     }
 
     public List<IoTDomainRecord> findAllIoTDomainGroupedByName() {
@@ -46,5 +51,9 @@ public class IoTDomainService {
 
     public List<IoTDomainChartRecord> countIoTDomainByArchitectureSolution() {
         return this.ioTDomainRepository.countIoTDomainByArchitectureSolution();
+    }
+
+    public void delete(IoTDomain domain) {
+        ioTDomainRepository.delete(domain);
     }
 }

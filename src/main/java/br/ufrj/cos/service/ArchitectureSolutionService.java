@@ -56,4 +56,8 @@ public class ArchitectureSolutionService {
     public List<ArchitectureSolution> findAllByIoTDomain(IoTDomain domain) {
         return this.architectureSolutionRepository.findArchitectureSolutionByIoTDomain(domain);
     }
+
+    public void delete(ArchitectureSolution architectureSolution) {
+        this.architectureSolutionRepository.delete(architectureSolution);
+    }
 }

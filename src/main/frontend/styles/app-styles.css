@@ -14,6 +14,7 @@
     display: inline-block;
     font-weight: bold;
     color: black;
+    height: 22px;
 }
 
 /* IoT Domain button style */
@@ -51,7 +52,7 @@
 }
 
 #diagram {
-    width: 50vw;
+    width: 20vw;
     height: 30vh;
     border: 1px solid #373a3f;
     background-color: #373a3f;
@@ -90,16 +91,23 @@
     color: white;
 }
 
-:host([expanded]) [part="toggle"]::before {
-    content: "−"; /* Minus sign for collapse */
+/* Style for collapsed state (plus icon) */
+vaadin-grid-tree-toggle[aria-expanded="false"]::before {
+    content: "+" !important;
 }
 
-:host(:not([expanded])) [part="toggle"]::before {
-    content: "+"; /* Plus sign for expand */
+/* Style for expanded state (minus icon) */
+vaadin-grid-tree-toggle[aria-expanded="true"]::before {
+    content: "-" !important;
 }
 
-[part="toggle"]::before {
-    font-size: 1.5em; /* Adjust size as needed */
-    color: #007bff;   /* Adjust color as needed */
+/* Optional: Adjust the styling of the toggle button */
+vaadin-grid-tree-toggle::before {
+    font-family: monospace;
+    font-size: 20px;
     font-weight: bold;
+    line-height: 1;
+    width: 16px;
+    height: 16px;
+    text-align: center;
 }

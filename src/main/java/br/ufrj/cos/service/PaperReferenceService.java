@@ -32,4 +32,12 @@ public class PaperReferenceService {
     public List<PaperReference> findByPaperReferenceTitle(String title) {
         return paperReferenceRepository.findByPaperTitleContainingIgnoreCase(title);
     }
+
+    public void delete(PaperReference paper) {
+        this.paperReferenceRepository.delete(paper);
+    }
+
+    public List<PaperReference> finAllOrderByPaperReferenceTitle() {
+        return this.paperReferenceRepository.findAllOrderByPaperTitleAsc();
+    }
 }

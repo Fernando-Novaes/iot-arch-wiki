@@ -23,7 +23,7 @@ public class QualityRequirement extends DomainBase {
     @OneToOne(mappedBy = "qualityRequirement")
     private Technology technology;
 
-    @ManyToOne
+    @ManyToOne(optional = true, fetch = FetchType.EAGER)
     private ArchitectureSolution architectureSolution;
 
     @Override

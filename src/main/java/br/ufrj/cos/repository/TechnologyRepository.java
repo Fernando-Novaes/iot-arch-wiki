@@ -24,4 +24,6 @@ public interface TechnologyRepository extends JpaRepository<Technology, Long> {
 
     List<Technology> findByArchitectureSolutionNameContainingIgnoreCase(String name);
 
+    List<Technology> findByDescriptionContainingIgnoreCase(String description);
+
 }
