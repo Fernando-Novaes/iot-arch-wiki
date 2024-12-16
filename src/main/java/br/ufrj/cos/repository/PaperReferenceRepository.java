@@ -17,4 +17,6 @@ public interface PaperReferenceRepository extends JpaRepository<PaperReference, 
 
     @Query(value = "select p from PaperReference as p order by p.paperTitle")
     List<PaperReference> findAllOrderByPaperTitleAsc();
+
+    List<PaperReference> findDistinctByPublishYear(int publishYear);
 }

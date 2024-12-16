@@ -60,4 +60,14 @@ public class GridCRUDUtils {
         gridCRUD.getGrid().setColumnOrder(columns);
     }
 
+    /***
+     * Refreshes all data after CRUD operations
+     */
+    public static void refreshAllData(GridCrud<?>... gridCRUD) {
+        Arrays.stream(gridCRUD).forEach(grid -> {
+            grid.getGrid().getDataProvider().refreshAll();
+            grid.refreshGrid();
+        });
+    }
+
 }

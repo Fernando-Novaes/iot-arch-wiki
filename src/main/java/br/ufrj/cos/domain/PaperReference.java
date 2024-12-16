@@ -27,6 +27,9 @@ public class PaperReference extends DomainBase {
     @Column
     private String paperLink;
 
+    @Column(nullable = true)
+    private Integer publishYear;
+
     @Override
     public String toString() {
         return this.paperTitle;

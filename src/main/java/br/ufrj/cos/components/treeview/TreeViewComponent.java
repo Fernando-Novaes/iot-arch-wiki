@@ -109,10 +109,11 @@ public class TreeViewComponent extends VerticalLayout {
         if (!this.isFiltering) {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
             this.setTreeViewData(treeViewService.getTreeViewData());
-            treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+
+            if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         } else {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
-            treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+            if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         }
 
         // Add ExpandListener

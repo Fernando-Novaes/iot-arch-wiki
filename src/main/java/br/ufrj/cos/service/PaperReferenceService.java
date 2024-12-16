@@ -40,4 +40,8 @@ public class PaperReferenceService {
     public List<PaperReference> finAllOrderByPaperReferenceTitle() {
         return this.paperReferenceRepository.findAllOrderByPaperTitleAsc();
     }
+
+    public List<PaperReference> findAllByPublishYear(int publishYear) {
+        return this.paperReferenceRepository.findDistinctByPublishYear(publishYear);
+    }
 }

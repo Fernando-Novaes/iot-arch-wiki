@@ -20,7 +20,7 @@ public class QualityRequirement extends DomainBase {
     @Column(nullable = false)
     private String name;
 
-    @OneToOne(mappedBy = "qualityRequirement")
+    @OneToOne(mappedBy = "qualityRequirement", cascade = CascadeType.ALL)
     private Technology technology;
 
     @ManyToOne(optional = true, fetch = FetchType.EAGER)

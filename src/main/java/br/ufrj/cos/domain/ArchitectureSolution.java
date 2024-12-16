@@ -19,14 +19,17 @@ public class ArchitectureSolution extends DomainBase {
     @Column(nullable = false)
     private String name;
 
+    @Column(nullable = true, columnDefinition = "CLOB")
+    private String description;
+
     @OneToOne(optional = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "paper_reference_id", unique = false)
+    @JoinColumn(name = "paper_reference_id", unique = false, nullable = true)
     private PaperReference paperReference;
 
-    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "architectureSolution", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<QualityRequirement> qrs;
 
-    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "architectureSolution", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private Set<Technology> technologies;
 
     @Override

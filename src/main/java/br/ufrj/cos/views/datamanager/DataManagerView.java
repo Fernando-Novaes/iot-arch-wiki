@@ -6,35 +6,21 @@ import br.ufrj.cos.utils.GridCRUDUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
-import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.dialog.Dialog;
-import com.vaadin.flow.component.grid.Grid;
-import com.vaadin.flow.component.grid.HeaderRow;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.theme.Theme;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
 import org.vaadin.crudui.crud.impl.GridCrud;
 import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @PageTitle("IoT-Arch - Data Manager")
@@ -46,6 +32,8 @@ public class DataManagerView extends BaseView {
     private final QualityRequirementService qualityRequirementService;
     private final PaperReferenceService paperReferenceService;
     private final TechnologyService technologyService;
+
+    private final KnowledegeDataMananger knowledgeDataMananger;
 
     GridCrud<IoTDomain> gridDomains;
     GridCrud<ArchitectureSolution> gridArchs;
@@ -60,15 +48,17 @@ public class DataManagerView extends BaseView {
     ComboBox<QualityRequirement> qualityRequirementRegisterCombo = new ComboBox<>();
     ComboBox<Technology> technologyRegisterCombo = new ComboBox<>();
 
-    ArchitectureSolution archRegister = new ArchitectureSolution();
+    ArchitectureSolution architectureSolution = new ArchitectureSolution();
 
     @Autowired
-    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService) {
+    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService, KnowledegeDataMananger knowledgeDataMananger) {
         this.domainService = domainService;
         this.architectureSolutionService = architectureSolutionService;
         this.qualityRequirementService = qualityRequirementService;
         this.paperReferenceService = paperReferenceService;
         this.technologyService = technologyService;
+        this.knowledgeDataMananger = knowledgeDataMananger;
+        this.knowledgeDataMananger.setArchitectureSolution(this.architectureSolution);
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
@@ -120,7 +110,7 @@ public class DataManagerView extends BaseView {
                     selectedContent = gridPapers;
                     break;
                 case 5:
-                    selectedContent = this.createRegisterCrud();
+                    selectedContent = this.knowledgeDataMananger.createRegisterCrud();
                     break;
             }
             contentContainer.add(selectedContent);
@@ -139,7 +129,7 @@ public class DataManagerView extends BaseView {
         Tab qrs = new Tab(new Span("Quality Requirements"), this.createBadge(String.valueOf(this.qualityRequirementService.findAll().size())));
         Tab techs = new Tab(new Span("Technologies"), this.createBadge(String.valueOf(this.technologyService.findAll().size())));
         Tab papers = new Tab(new Span("References"), this.createBadge(String.valueOf(this.paperReferenceService.findAll().size())));
-        Tab registers = new Tab(new Span("Registers"), this.createBadge(String.valueOf(this.architectureSolutionService.findAll().stream().distinct().toList().size())));
+        Tab registers = new Tab(new Span("Knowledge"), this.createBadge(String.valueOf(this.architectureSolutionService.findAll().stream().distinct().toList().size())));
 
         Tabs tabs = new Tabs(domains, archs, qrs, techs, papers, registers);
 
@@ -168,8 +158,7 @@ public class DataManagerView extends BaseView {
         gridTechs.getGrid().getColumnByKey("description").setAutoWidth(true);
         gridTechs.getCrudFormFactory().setVisibleProperties("architectureSolution", "qualityRequirement", "description");
         gridTechs.getGrid().setDetailsVisibleOnClick(true);
-        gridTechs.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
-        gridTechs.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
+        gridTechs.getCrudFormFactory().setVisibleProperties("description", "remark");
         gridTechs.setAddOperation(tech -> {
             this.technologyService.saveAndFlush(tech);
             this.refreshAllData();
@@ -178,7 +167,7 @@ public class DataManagerView extends BaseView {
         });
         gridTechs.setUpdateOperation(this.technologyService::saveAndUpdate);
 
-        GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "qualityRequirement", "architectureSolution", "ioTDomain");
+        GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "remark", "qualityRequirement", "architectureSolution", "ioTDomain");
 
         ComboBox<ArchitectureSolution> comboBoxArch = new ComboBox<ArchitectureSolution>("Archs", this.architectureSolutionService.findAllOrderedByName());
         ComboBox<QualityRequirement> comboBoxQR = new ComboBox<QualityRequirement>("Archs", Collections.emptyList());
@@ -216,8 +205,7 @@ public class DataManagerView extends BaseView {
         gridPapers.setSizeFull();
         gridPapers.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridPapers.getGrid().getColumnByKey("paperTitle").setAutoWidth(true);
-        gridPapers.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
-        gridPapers.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
+        gridPapers.getCrudFormFactory().setVisibleProperties("paperTitle", "paperDoi", "paperLink");
         gridPapers.setAddOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
@@ -257,12 +245,11 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.setSizeFull();
         gridQualityRequirements.getGrid().setDetailsVisibleOnClick(true);
         gridQualityRequirements.getCrudFormFactory().setVisibleProperties("name", "architectureSolution");
-        gridQualityRequirements.getCrudFormFactory().setDisabledProperties(CrudOperation.ADD, "id");
-        gridQualityRequirements.getCrudFormFactory().setDisabledProperties(CrudOperation.UPDATE, "id");
+        gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name");
+        gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name");
         gridQualityRequirements.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridQualityRequirements.getGrid().getColumnByKey("name").setAutoWidth(true);
         gridQualityRequirements.getGrid().getColumnByKey("technology").setAutoWidth(true);
-        gridQualityRequirements.getGrid().getColumnByKey("architectureSolution").setAutoWidth(true);
 
         GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "technology", "architectureSolution");
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAllOrderedByName);
@@ -316,7 +303,7 @@ public class DataManagerView extends BaseView {
             List<QualityRequirement> qrs = this.qualityRequirementService.findAllOrderedByName();
             if (!filterByArch.getValue().isEmpty()) {
                 qrs = qrs.stream()
-                        .filter(q -> q.getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))
+                        .filter(q -> q.getTechnology().getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))
                         .collect(Collectors.toList());
             }
             if (filterByQR.getValue() != null) {
@@ -374,21 +361,21 @@ public class DataManagerView extends BaseView {
         gridArchs.getCrudFormFactory().setVisibleProperties("id", "name", "paperReference");
         gridArchs.getGrid().removeColumnByKey("qrs");
         gridArchs.getGrid().removeColumnByKey("technologies");
-        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name", "paperReference", "ioTDomain");
-        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name", "paperReference", "ioTDomain");
+        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name", "description");
+        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name", "description");
 
-        ComboBox<String> comboBoxArch = new ComboBox<>("Name", this.architectureSolutionService.findAllOrderedByName().stream().map(ArchitectureSolution::getName).collect(Collectors.toList()));
-        comboBoxArch.setAllowCustomValue(true);
-        comboBoxArch.addCustomValueSetListener(event -> {
-            try {
-                String customValue = event.getDetail();
-                // Process custom value
-                comboBoxArch.setValue(customValue);
-            } catch (Exception e) {
-                Notification.show("Error: " + e.getMessage());
-            }
-        });
-        gridArchs.getCrudFormFactory().setFieldProvider("name", qr -> comboBoxArch);
+//        ComboBox<String> comboBoxArch = new ComboBox<>("Name", this.architectureSolutionService.findAllOrderedByName().stream().map(ArchitectureSolution::getName).collect(Collectors.toList()));
+//        comboBoxArch.setAllowCustomValue(true);
+//        comboBoxArch.addCustomValueSetListener(event -> {
+//            try {
+//                String customValue = event.getDetail();
+//                // Process custom value
+//                comboBoxArch.setValue(customValue);
+//            } catch (Exception e) {
+//                Notification.show("Error: " + e.getMessage());
+//            }
+//        });
+//        gridArchs.getCrudFormFactory().setFieldProvider("name", qr -> comboBoxArch);
 
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
                 new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
@@ -472,206 +459,5 @@ public class DataManagerView extends BaseView {
         });
 
         return gridDomains;
-    }
-
-    /***
-     * Creates the Grid to correlates all data
-     * Arch Solution -> Iot Domain -> Paper Reference and more
-     *
-     * @return GridCrud
-     */
-    private VerticalLayout createRegisterCrud() {
-
-        VerticalLayout vl = new VerticalLayout();
-        vl.setSizeFull();
-        vl.setSpacing(true);
-
-        ComboBox<ArchitectureSolution> comboBoxArch = new ComboBox<>("Architecture", this.architectureSolutionService.findAllOrderedByName());
-        comboBoxArch.setWidth("60%");
-
-        ComboBox<IoTDomain> comboBoxDomain = new ComboBox<>("IoT Domain", this.domainService.findAllOrderByName());
-        comboBoxDomain.setWidth("60%");
-        comboBoxDomain.setEnabled(false);
-        ComboBox<PaperReference> comboPaper = new ComboBox<>("Paper Reference", this.paperReferenceService.finAllOrderByPaperReferenceTitle());
-        comboPaper.setWidth("60%");
-        comboPaper.setEnabled(false);
-        comboBoxArch.setPlaceholder("Select the Architecture");
-
-        Grid<QualityRequirement> qualityRequirementGrid = new Grid<>(QualityRequirement.class);
-        qualityRequirementGrid.setWidthFull();
-        qualityRequirementGrid.getColumnByKey("id").setVisible(false);
-        qualityRequirementGrid.getColumnByKey("architectureSolution").setVisible(false);
-        qualityRequirementGrid.getColumnByKey("name").setVisible(false);
-        qualityRequirementGrid.getColumnByKey("technology").setVisible(false);
-
-        // Column for QualityRequirement name
-        qualityRequirementGrid.addColumn(QualityRequirement::getName)
-                .setHeader("Quality Requirement")
-                .setSortable(true);
-
-        // Column for associated Technologies
-        qualityRequirementGrid.addColumn(qr ->
-                        qr.getTechnology() != null
-                                ? qr.getTechnology()
-                                : "No Technology")
-                .setHeader("Technologies")
-                .setSortable(true);
-
-        HorizontalLayout buttons = new HorizontalLayout();
-        buttons.setVisible(false);
-        buttons.setSpacing(true);
-        buttons.setAlignItems(FlexComponent.Alignment.END);
-        buttons.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
-        buttons.setWidthFull();
-
-        //Save button
-        Button saveBtn = new Button("Save");
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.addClickListener(save -> {
-            this.archRegister.setIoTDomain(comboBoxDomain.getValue());
-            this.archRegister.setPaperReference(comboPaper.getValue());
-            this.architectureSolutionService.saveAndUpdate(this.archRegister);
-
-            Notification.show("Architecture saved.");
-        });
-
-        //Cancel buttonm
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
-        cancelBtn.addClickListener(click -> {
-            this.prepareRegisterForm(null, comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
-        });
-
-        comboBoxArch.addValueChangeListener(arc -> {
-            this.archRegister = arc.getValue();
-            this.prepareRegisterForm(arc.getValue(), comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
-        });
-
-        // Add a delete button column
-        qualityRequirementGrid.addComponentColumn(qr -> {
-            Button deleteButton = new Button("", event -> {
-                // Confirm the deletion
-                ConfirmDialog confirmDialog = new ConfirmDialog();
-                confirmDialog.setHeader("Confirm Deletion");
-                confirmDialog.setText(String.format("Are you sure you want to delete this Quality Requirement [%s]?", qr.getName()));
-                confirmDialog.setCancelable(true);
-                confirmDialog.setConfirmText("Delete");
-                confirmDialog.addConfirmListener(confirmEvent -> {
-                    // Perform deletion logic
-                    this.deleteQualityRequirement(qr);
-                    qualityRequirementGrid.setItems(this.archRegister.getQrs());
-                });
-
-                confirmDialog.open();
-            });
-            deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-            deleteButton.setTooltipText(String.format("Delete %s", qr.getName()));
-
-            return deleteButton;
-        }).setHeader("Actions").setKey("actions");
-
-        // Add a header row with a button in the header
-        HeaderRow headerRow = qualityRequirementGrid.prependHeaderRow();
-
-        // Create a button
-        Button addButton = new Button("Add Requirement and Technology", event -> {
-            this.openAddQRAndTech(qualityRequirementGrid).open();
-        });
-
-        // Customize button style
-        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-
-        // Add the button to the header of the QualityRequirement column
-        headerRow.getCell(qualityRequirementGrid.getColumnByKey("actions")).setComponent(addButton);
-        headerRow.getCell(qualityRequirementGrid.getColumnByKey("actions")).getComponent().getStyle().setAlignItems(Style.AlignItems.END);
-
-        buttons.add(saveBtn, cancelBtn);
-
-        vl.add(comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
-
-        return vl;
-    }
-
-    /***
-     * Method to set enabled or disabled the elements of the form
-     *
-     * @param architectureSolution
-     * @param iotDomainComboBox
-     * @param paperReferenceComboBox
-     * @param qualityRequirementGrid
-     */
-    private void prepareRegisterForm(ArchitectureSolution architectureSolution, ComboBox comboBoxArch, ComboBox iotDomainComboBox, ComboBox paperReferenceComboBox, Grid qualityRequirementGrid, HorizontalLayout buttons) {
-        iotDomainComboBox.setEnabled(architectureSolution != null);
-        paperReferenceComboBox.setEnabled(architectureSolution != null);
-
-        if (architectureSolution != null) {
-            iotDomainComboBox.setValue(architectureSolution.getIoTDomain());
-            paperReferenceComboBox.setValue(architectureSolution.getPaperReference());
-            qualityRequirementGrid.setItems(architectureSolution.getQrs());
-            buttons.setVisible(true);
-        } else {
-            comboBoxArch.setItems(this.architectureSolutionService.findAllOrderedByName());
-            iotDomainComboBox.setItems(this.domainService.findAllOrderByName());
-            paperReferenceComboBox.setItems(this.paperReferenceService.finAllOrderByPaperReferenceTitle());
-            qualityRequirementGrid.setItems(new ArrayList<>());
-            buttons.setVisible(false);
-            this.archRegister = new ArchitectureSolution();
-        }
-    }
-
-    /***
-     * Deleting logically quality requirement
-     *
-     * @param qr
-     * @return
-     */
-    private void deleteQualityRequirement(QualityRequirement qr) {
-        this.archRegister.getQrs().stream().filter(q -> q.getId().equals(qr.getId())).findAny().ifPresent(q -> {
-            this.archRegister.getQrs().remove(q);
-        });
-
-        Notification.show("Quality Requirement and Technology Deleted.");
-    }
-
-    /***
-     * Creates the dialog window to add quality requirement and technology
-     *
-     * @return Dialog
-     */
-    private Dialog openAddQRAndTech(Grid<QualityRequirement> qualityRequirementGrid) {
-        Dialog dialog = new Dialog();
-
-        dialog.setHeaderTitle("Add");
-
-        VerticalLayout dialogLayout = new VerticalLayout();
-
-        ComboBox<QualityRequirement> qualityRequirementComboDialog = new ComboBox<>("Select Quality Requirement", this.qualityRequirementService.findAllOrderedByName());
-        ComboBox<Technology> technologyComboDialog = new ComboBox<>("Select Technology", this.technologyService.findAllOrderedByDescription());
-
-        dialogLayout.add(qualityRequirementComboDialog, technologyComboDialog);
-
-        dialog.add(dialogLayout);
-
-        Button saveButton = new Button("Save");
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveButton.addClickListener(s -> {
-            QualityRequirement qualityRequirement = qualityRequirementComboDialog.getValue();
-            Technology technology = technologyComboDialog.getValue();
-
-            qualityRequirement.setTechnology(technology);
-            this.archRegister.getQrs().add(qualityRequirement);
-            qualityRequirementGrid.setItems(this.archRegister.getQrs());
-            dialog.close();
-            Notification.show("Quality Requirement added.");
-        });
-
-        Button cancelButton = new Button("Cancel", e -> dialog.close());
-        cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
-
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
-
-        return dialog;
     }
 }

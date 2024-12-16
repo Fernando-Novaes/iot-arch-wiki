@@ -20,10 +20,13 @@ public class Technology extends DomainBase {
     @Column(nullable = false, columnDefinition = "CLOB")
     private String description;
 
-    @ManyToOne
+    @Column(nullable = true, columnDefinition = "CLOB")
+    private String remark;
+
+    @ManyToOne(fetch = FetchType.EAGER)
     private ArchitectureSolution architectureSolution;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
     private QualityRequirement qualityRequirement;
 
     public IoTDomain getIoTDomain() {

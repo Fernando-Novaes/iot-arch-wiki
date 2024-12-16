@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @PageTitle("IoT-Arch Knowledge Base")
@@ -46,16 +47,22 @@ public class IoTArchView extends BaseView {
     private final TechnologyService technologyService;
 
     private enum ActionType {
-        NONE, IOTDOMAIN, ARCHITECTURESOLUTION, QUALITYREQUIREMENT, TECHNOLOGY
+        NONE, IOTDOMAIN, ARCHITECTURESOLUTION, QUALITYREQUIREMENT, TECHNOLOGY, PUBLISHYEAR
     }
     private ActionType currentAction  = ActionType.NONE;
 
+    //All search comboBoxes
     ComboBox<IoTDomainRecord> iotDomainCombo;
     ComboBox<ArchitectureSolutionRecord> architectureCombo;
     ComboBox<QualityRequirementRecord> qualityCombo;
     ComboBox<TechnologyRecord> technologiesCombo;
+    ComboBox<Integer> publishYearCombo;
+
+
     List<? extends DomainBase> treeViewDataSource;
     HorizontalLayout comboBoxLayout = new HorizontalLayout();
+
+    //Search and cancel buttons
     Button searchButton = new Button("Search");
     Button cancelButton = new Button("Cancel");
 
@@ -240,21 +247,24 @@ public class IoTArchView extends BaseView {
                 .set("text-align", "center");
 
         // Create ComboBoxes with consistent styling - narrower width for inline layout
-        this.iotDomainCombo = new ComboBox<>("IoT Domain");
+        this.iotDomainCombo = new ComboBox<>("IoT Domains");
         this.prepareComboBox(iotDomainCombo, ActionType.IOTDOMAIN);
         //iotDomainCombo.setItems(this.ioTDomainService.findAllOrderByName());
 
-        this.architectureCombo = new ComboBox<>("Architecture Solution");
+        this.architectureCombo = new ComboBox<>("Architecture Solutions");
         this.prepareComboBox(architectureCombo, ActionType.ARCHITECTURESOLUTION);
         //architectureCombo.setItems(this.architectureSolutionService.findAllOrderedByName());
 
-        this.qualityCombo = new ComboBox<>("Quality Requirement");
+        this.qualityCombo = new ComboBox<>("Quality Requirements");
         this.prepareComboBox(qualityCombo, ActionType.QUALITYREQUIREMENT);
         //qualityCombo.setItems(this.qualityRequirementService.findAllOrderedByName());
 
         this.technologiesCombo = new ComboBox<>("Technologies");
         this.prepareComboBox(technologiesCombo, ActionType.TECHNOLOGY);
         //technologiesCombo.setItems(this.technologyService.findAllOrderedByDescription());
+
+        this.publishYearCombo = new ComboBox<>("Published Year");
+        this.prepareComboBox(publishYearCombo, ActionType.PUBLISHYEAR);
 
         this.prepareComboBoxLayout();
 
@@ -327,6 +337,7 @@ public class IoTArchView extends BaseView {
                 this.architectureCombo,
                 this.qualityCombo,
                 this.technologiesCombo,
+                this.publishYearCombo,
                 searchButton,
                 cancelButton
         );
@@ -472,7 +483,22 @@ public class IoTArchView extends BaseView {
         }
 
         List<IoTDomain> list = new ArrayList<>();
+        List<IoTDomain> listAux = list;
         list.add(finalDomain);
+
+        //Search by publishDate
+        if (publishYearCombo.getValue() != null) {
+            list = listAux.stream().filter(x -> {
+                x.getArchs().stream().filter(a -> {
+                    if (!Objects.equals(a.getPaperReference().getPublishYear(), publishYearCombo.getValue())) {
+                        listAux.remove(x);
+                    }
+                    return true;
+                }).toList();
+                return true;
+            }).toList();
+        }
+
         this.treeView.setTreeViewData(list);
     }
 

@@ -27,58 +27,61 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
     }
 
     public TreeNode<Object> setNodeAsRoot(List<?> list) {
-        root = this.getRootTreeNode();
+        if (!list.isEmpty()) {
 
-       if (list.getFirst() instanceof IoTDomain) {
-           ((List<IoTDomain>)list).sort(Comparator.comparing(IoTDomain::getName));
-            for (IoTDomain domain : (List<IoTDomain>) list) {
-                root.addChild(buildTreeIoTDomain(domain));
-            }
-        } else if (list.getFirst() instanceof ArchitectureSolution) {
-           ((List<ArchitectureSolution>)list).sort(Comparator.comparing(ArchitectureSolution::getName));
-           for (ArchitectureSolution arch : (List<ArchitectureSolution>) list) {
-                if (root.getChildren().stream().anyMatch(r -> ((ArchitectureSolution) r.getData()).getName().equals(arch.getName()))) {
-                    TreeNode<ArchitectureSolution> rootAux = (TreeNode<ArchitectureSolution>) root.getChildren().stream().filter(treeNode -> ((ArchitectureSolution) treeNode.getData()).getName().equals(arch.getName())).findFirst().get();
-                    buildTreeQualityRequirement(arch, rootAux);
+            root = this.getRootTreeNode();
 
-                    rootAux.getChildren().forEach(qr -> {
-                        qr.getChildren().forEach(tech -> {
-                            if (tech.getChildren().isEmpty()) {
-                                tech.addChild(new TreeNode<>(((Technology) tech.getData()).getArchitectureSolution().getIoTDomain()));
-                            }
+            if (list.getFirst() instanceof IoTDomain) {
+                ((List<IoTDomain>) list).sort(Comparator.comparing(IoTDomain::getName));
+                for (IoTDomain domain : (List<IoTDomain>) list) {
+                    root.addChild(buildTreeIoTDomain(domain));
+                }
+            } else if (list.getFirst() instanceof ArchitectureSolution) {
+                ((List<ArchitectureSolution>) list).sort(Comparator.comparing(ArchitectureSolution::getName));
+                for (ArchitectureSolution arch : (List<ArchitectureSolution>) list) {
+                    if (root.getChildren().stream().anyMatch(r -> ((ArchitectureSolution) r.getData()).getName().equals(arch.getName()))) {
+                        TreeNode<ArchitectureSolution> rootAux = (TreeNode<ArchitectureSolution>) root.getChildren().stream().filter(treeNode -> ((ArchitectureSolution) treeNode.getData()).getName().equals(arch.getName())).findFirst().get();
+                        buildTreeQualityRequirement(arch, rootAux);
+
+                        rootAux.getChildren().forEach(qr -> {
+                            qr.getChildren().forEach(tech -> {
+                                if (tech.getChildren().isEmpty()) {
+                                    tech.addChild(new TreeNode<>(((Technology) tech.getData()).getArchitectureSolution().getIoTDomain()));
+                                }
+                            });
                         });
-                    });
-                } else {
-                    root.addChild(buildTreeArchitectureSolution(arch));
+                    } else {
+                        root.addChild(buildTreeArchitectureSolution(arch));
+                    }
+                }
+            } else if (list.getFirst() instanceof QualityRequirement) {
+                List<QualityRequirement> listOrdered = ((List<QualityRequirement>) list).stream().sorted((o1, o2) -> o1.getName().compareTo(o2.getName())).toList();
+                for (QualityRequirement qr : (List<QualityRequirement>) listOrdered) {
+                    if (root.getChildren().stream().anyMatch(qrAux -> ((QualityRequirement) qrAux.getData()).getName().equals(qr.getName()))) {
+                        TreeNode<QualityRequirement> rootAux =
+                                (TreeNode<QualityRequirement>) root.getChildren().stream().filter(treeNode -> ((QualityRequirement) treeNode.getData()).getName().equals(qr.getName())).findFirst().get();
+
+                        TreeNode<Technology> treeNodeTech = new TreeNode<>(qr.getTechnology());
+                        TreeNode<ArchitectureSolution> treeNodeArch = new TreeNode<>(qr.getArchitectureSolution());
+                        TreeNode<IoTDomain> treeNodeDomain = new TreeNode<>(qr.getArchitectureSolution().getIoTDomain());
+                        treeNodeArch.addChild(treeNodeDomain);
+                        treeNodeTech.addChild(treeNodeArch);
+                        rootAux.addChild(treeNodeTech);
+                    } else {
+                        TreeNode<QualityRequirement> treeNodeQr = new TreeNode<>(qr);
+                        TreeNode<Technology> treeNodeTech = new TreeNode<>(qr.getTechnology());
+                        TreeNode<ArchitectureSolution> treeNodeArch = new TreeNode<>(qr.getArchitectureSolution());
+                        TreeNode<IoTDomain> treeNodeDomain = new TreeNode<>(qr.getArchitectureSolution().getIoTDomain());
+                        treeNodeArch.addChild(treeNodeDomain);
+                        treeNodeTech.addChild(treeNodeArch);
+                        treeNodeQr.addChild(treeNodeTech);
+
+                        root.addChild(treeNodeQr);
+
+                    }
                 }
             }
-        } else if (list.getFirst() instanceof QualityRequirement) {
-           List<QualityRequirement> listOrdered = ((List<QualityRequirement>)list).stream().sorted((o1,o2) -> o1.getName().compareTo(o2.getName())).toList();
-           for (QualityRequirement qr : (List<QualityRequirement>) listOrdered) {
-               if (root.getChildren().stream().anyMatch(qrAux -> ((QualityRequirement) qrAux.getData()).getName().equals(qr.getName()))) {
-                   TreeNode<QualityRequirement> rootAux =
-                           (TreeNode<QualityRequirement>) root.getChildren().stream().filter(treeNode -> ((QualityRequirement) treeNode.getData()).getName().equals(qr.getName())).findFirst().get();
-
-                   TreeNode<Technology> treeNodeTech = new TreeNode<>(qr.getTechnology());
-                   TreeNode<ArchitectureSolution> treeNodeArch = new TreeNode<>(qr.getArchitectureSolution());
-                   TreeNode<IoTDomain> treeNodeDomain = new TreeNode<>(qr.getArchitectureSolution().getIoTDomain());
-                   treeNodeArch.addChild(treeNodeDomain);
-                   treeNodeTech.addChild(treeNodeArch);
-                   rootAux.addChild(treeNodeTech);
-               } else {
-                   TreeNode<QualityRequirement> treeNodeQr = new TreeNode<>(qr);
-                   TreeNode<Technology> treeNodeTech = new TreeNode<>(qr.getTechnology());
-                   TreeNode<ArchitectureSolution> treeNodeArch = new TreeNode<>(qr.getArchitectureSolution());
-                   TreeNode<IoTDomain> treeNodeDomain = new TreeNode<>(qr.getArchitectureSolution().getIoTDomain());
-                   treeNodeArch.addChild(treeNodeDomain);
-                   treeNodeTech.addChild(treeNodeArch);
-                   treeNodeQr.addChild(treeNodeTech);
-
-                   root.addChild(treeNodeQr);
-
-               }
-           }
-       }
+        }
 
         return root;
     }
