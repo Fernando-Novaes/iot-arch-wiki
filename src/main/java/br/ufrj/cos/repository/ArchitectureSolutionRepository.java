@@ -15,19 +15,19 @@ import java.util.List;
 @Repository
 public interface ArchitectureSolutionRepository extends JpaRepository<ArchitectureSolution, Long> {
 
-    @Query(value = "select a from ArchitectureSolution a")
+    @Query("SELECT a FROM ArchitectureSolution a")
     List<ArchitectureSolution> findAll();
 
-    @Query(value = "SELECT new br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord(i.name, COUNT(i), (SELECT COUNT(*) FROM ArchitectureSolution i2)) FROM ArchitectureSolution i GROUP BY i.name")
+    @Query("SELECT new br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord(a.name, COUNT(a), (SELECT COUNT(b) FROM ArchitectureSolution b)) FROM ArchitectureSolution a GROUP BY a.name")
     List<ArchitectureSolutionChartRecord> countArchitectureSolutionGroupedByName();
 
-    @Query(value = "SELECT new br.ufrj.cos.views.record.ArchitectureSolutionRecord(i.name) FROM ArchitectureSolution i GROUP BY i.name")
+    @Query("SELECT new br.ufrj.cos.views.record.ArchitectureSolutionRecord(a.name) FROM ArchitectureSolution a GROUP BY a.name")
     List<ArchitectureSolutionRecord> findAllArchitectureSolutionGroupedByName();
 
-    @Query("select a from ArchitectureSolution a join a.qrs q where q.id = :id")
+    @Query("SELECT a FROM ArchitectureSolution a JOIN a.qualityRequirementTechnologies q WHERE q.qualityRequirement.id = :id")
     List<ArchitectureSolution> findByQualityRequirementId(@Param("id") Long id);
 
     List<ArchitectureSolution> findByNameContainingIgnoreCase(String name);
 
-    List<ArchitectureSolution> findArchitectureSolutionByIoTDomain(IoTDomain domain);
+    List<ArchitectureSolution> findArchitectureSolutionByIotDomain(IoTDomain domain);
 }

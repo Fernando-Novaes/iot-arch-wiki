@@ -63,12 +63,12 @@ public class TreeViewService {
             }
 
             case ArchitectureSolution_Filtered -> {
-                List<ArchitectureSolution> list = ((List<IoTDomain>) this.getTreeViewData()).getFirst().getArchs();
+                List<ArchitectureSolution> list = ((List<IoTDomain>) this.getTreeViewData()).getFirst().getArchitectureSolutions();
                 yield architectureSolutionTreeBuilder.setNodeAsRoot(list);
             }
 
             case QualityRequirement_Filtered, Technology_Filtered -> {
-                List<QualityRequirement> list = ((List<IoTDomain>) this.getTreeViewData()).getFirst().getArchs().getFirst().getQrs().stream().toList();
+                List<QualityRequirement> list = ((List<IoTDomain>) this.getTreeViewData()).getFirst().getArchitectureSolutions().getFirst().getQualityRequirements().stream().toList();
                 yield qualityRequirementTreeBuilder.setNodeAsRoot(list);
             }
 

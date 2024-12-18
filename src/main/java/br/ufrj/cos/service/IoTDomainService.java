@@ -13,7 +13,6 @@ import java.util.List;
 
 @Service
 public class IoTDomainService {
-
     private final IoTDomainRepository ioTDomainRepository;
 
     @Autowired
@@ -26,7 +25,7 @@ public class IoTDomainService {
     }
 
     public List<IoTDomain> findByNameContainingIgnoreCase(String name) {
-        return this.ioTDomainRepository.findByNameContainingIgnoreCase(name);
+        return ioTDomainRepository.findByNameContainingIgnoreCase(name);
     }
 
     public List<IoTDomainRecord> findAllIoTDomainGroupedByName() {
@@ -45,12 +44,12 @@ public class IoTDomainService {
         return ioTDomainRepository.saveAndFlush(domain);
     }
 
-    public IoTDomain saveAndUpdate(IoTDomain domain) {
-        return ioTDomainRepository.saveAndFlush(domain);
+    public IoTDomain saveOrUpdate(IoTDomain domain) {
+        return ioTDomainRepository.save(domain);
     }
 
     public List<IoTDomainChartRecord> countIoTDomainByArchitectureSolution() {
-        return this.ioTDomainRepository.countIoTDomainByArchitectureSolution();
+        return ioTDomainRepository.countIoTDomainByArchitectureSolution();
     }
 
     public void delete(IoTDomain domain) {

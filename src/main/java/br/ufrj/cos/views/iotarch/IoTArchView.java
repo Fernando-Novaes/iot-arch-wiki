@@ -5,10 +5,7 @@ import br.ufrj.cos.components.treeview.TreeRootSelectionComponent;
 import br.ufrj.cos.components.treeview.TreeViewComponent;
 import br.ufrj.cos.components.treeview.TreeViewType;
 import br.ufrj.cos.domain.*;
-import br.ufrj.cos.service.ArchitectureSolutionService;
-import br.ufrj.cos.service.IoTDomainService;
-import br.ufrj.cos.service.QualityRequirementService;
-import br.ufrj.cos.service.TechnologyService;
+import br.ufrj.cos.service.*;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
@@ -26,10 +23,7 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @PageTitle("IoT-Arch Knowledge Base")
@@ -45,6 +39,7 @@ public class IoTArchView extends BaseView {
     private final ArchitectureSolutionService architectureSolutionService;
     private final QualityRequirementService qualityRequirementService;
     private final TechnologyService technologyService;
+    private final PaperReferenceService paperReferenceService;
 
     private enum ActionType {
         NONE, IOTDOMAIN, ARCHITECTURESOLUTION, QUALITYREQUIREMENT, TECHNOLOGY, PUBLISHYEAR
@@ -76,7 +71,7 @@ public class IoTArchView extends BaseView {
                        IoTDomainService ioTDomainService,
                        ArchitectureSolutionService architectureSolutionService,
                        QualityRequirementService qualityRequirementService,
-                       TechnologyService technologyService) {
+                       TechnologyService technologyService, PaperReferenceService paperReferenceService) {
         this.treeView = treeView;
         this.treeRootSelection = treeRootSelection;
         this.sliderPanel = sliderPanel;
@@ -84,6 +79,7 @@ public class IoTArchView extends BaseView {
         this.architectureSolutionService = architectureSolutionService;
         this.qualityRequirementService = qualityRequirementService;
         this.technologyService = technologyService;
+        this.paperReferenceService = paperReferenceService;
 
         this.treeRootSelection.addChangeLeftButtonClickListener(l -> { this.changeRootLeft(this.treeRootSelection.getTreeViewType()); });
         this.treeRootSelection.addChangeRightButtonClickListener(r -> { this.changeRootRight(this.treeRootSelection.getTreeViewType()); });
@@ -400,12 +396,6 @@ public class IoTArchView extends BaseView {
 
         if (actionType == ActionType.NONE) {
             List<IoTDomainRecord> list = new ArrayList<>();
-//            ((List<IoTDomain>)this.treeViewDataSource).stream().forEach(
-//                    d -> {
-//                        list.add(new IoTDomainRecord(d.getName()));
-//                    }
-//            );
-
             list.sort(Comparator.comparing(IoTDomainRecord::name));
             this.iotDomainCombo.setItems(this.ioTDomainService.findAllIoTDomainGroupedByName());
             this.architectureCombo.setItems(new ArrayList<>());
@@ -415,7 +405,7 @@ public class IoTArchView extends BaseView {
             List<ArchitectureSolutionRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchs().stream().distinct().forEach(a -> {
+                        d.getArchitectureSolutions().stream().distinct().forEach(a -> {
                             list.add(new ArchitectureSolutionRecord(a.getName()));
                         });
                     }
@@ -427,8 +417,8 @@ public class IoTArchView extends BaseView {
             List<QualityRequirementRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
-                            a.getQrs().forEach(aq -> {
+                        d.getArchitectureSolutions().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
+                            a.getQualityRequirements().forEach(aq -> {
                                 list.add(new QualityRequirementRecord(aq.getName()));
                             });
                         });
@@ -441,9 +431,11 @@ public class IoTArchView extends BaseView {
             List<TechnologyRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchs().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
-                            a.getQrs().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).forEach(aq -> {
-                                list.add(new TechnologyRecord(aq.getTechnology().getDescription()));
+                        d.getArchitectureSolutions().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
+                            a.getQualityRequirements().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).forEach(aq -> {
+                                aq.getTechnologies().forEach(tech -> {
+                                    list.add(new TechnologyRecord(tech.getDescription()));
+                                });
                             });
                         });
                     }
@@ -452,6 +444,14 @@ public class IoTArchView extends BaseView {
             list.sort(Comparator.comparing(TechnologyRecord::description));
             this.technologiesCombo.setItems(list.stream().distinct().toList());
         }
+
+        List<Integer> publishYears = new ArrayList<>();
+        this.paperReferenceService.findAll().forEach(paper -> {
+            if (!publishYears.contains(paper.getPublishYear())) {
+                publishYears.add(paper.getPublishYear());
+            }
+        });
+        this.publishYearCombo.setItems(publishYears.stream().sorted().distinct().toList());
     }
 
     private void filterTreeViewDataSource() {
@@ -462,19 +462,19 @@ public class IoTArchView extends BaseView {
         }
 
         if (architectureCombo.getValue() != null) {
-            domain.setArchs(this.architectureSolutionService.findAllByIoTDomain(domain));
-            domain.setArchs(
-                    domain.getArchs().stream().filter(arch -> arch.getName().equals(architectureCombo.getValue().name())).collect(Collectors.toList()));
+            domain.setArchitectureSolutions(this.architectureSolutionService.findAllByIoTDomain(domain));
+            domain.setArchitectureSolutions(
+                    domain.getArchitectureSolutions().stream().filter(arch -> arch.getName().equals(architectureCombo.getValue().name())).toList());
         }
 
         IoTDomain finalDomain = domain;
         if(qualityCombo.getValue() != null) {
             
-            domain.getArchs().forEach(arc -> {
-                arc.getQrs().forEach(qr -> {
+            domain.getArchitectureSolutions().forEach(arc -> {
+                arc.getQualityRequirements().forEach(qr -> {
                     if (!qr.getName().equals(qualityCombo.getValue().name())) {
-                        finalDomain.getArchs().stream().filter(arc2 -> arc2.getName().equals(arc.getName())).forEach(a -> {
-                            a.getQrs().remove(qr);
+                        finalDomain.getArchitectureSolutions().stream().filter(arc2 -> arc2.getName().equals(arc.getName())).forEach(a -> {
+                            a.getQualityRequirements().remove(qr);
                         });
                     }
                 });
@@ -489,7 +489,7 @@ public class IoTArchView extends BaseView {
         //Search by publishDate
         if (publishYearCombo.getValue() != null) {
             list = listAux.stream().filter(x -> {
-                x.getArchs().stream().filter(a -> {
+                x.getArchitectureSolutions().stream().filter(a -> {
                     if (!Objects.equals(a.getPaperReference().getPublishYear(), publishYearCombo.getValue())) {
                         listAux.remove(x);
                     }

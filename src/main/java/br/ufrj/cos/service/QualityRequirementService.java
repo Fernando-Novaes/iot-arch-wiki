@@ -74,6 +74,6 @@ public class QualityRequirementService {
     }
 
     public List<QualityRequirement> findByArchitectureSolution_NameContainingIgnoreCaseOOrderByNameAsc(String name){
-        return this.qualityRequirementRepository.findByArchitectureSolution_NameContainingIgnoreCaseOrderByNameAsc(name);
+        return this.qualityRequirementRepository.findByArchitectureSolutionQualityRequirementTechnologies_ArchitectureSolution_NameContainingIgnoreCaseOrderByNameAsc(name);
     }
 }

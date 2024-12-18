@@ -13,20 +13,22 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(exclude = "archs", callSuper = false)
+@EqualsAndHashCode(callSuper = false)
 public class IoTDomain extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "ioTDomain", fetch = FetchType.EAGER)
-    private List<ArchitectureSolution> archs;
+    private String description;
+
+    // ArchitectureSolution Relationship (One-to-Many)
+    @OneToMany(mappedBy = "iotDomain", fetch = FetchType.EAGER)
+    private List<ArchitectureSolution> architectureSolutions;
 
     @Override
     public String toString() {
-        return name;
+        return this.name;
     }
 }

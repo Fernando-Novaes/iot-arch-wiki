@@ -30,7 +30,7 @@ public class PaperReferenceService {
     }
 
     public List<PaperReference> findByPaperReferenceTitle(String title) {
-        return paperReferenceRepository.findByPaperTitleContainingIgnoreCase(title);
+        return paperReferenceRepository.findByTitleContainingIgnoreCase(title);
     }
 
     public void delete(PaperReference paper) {

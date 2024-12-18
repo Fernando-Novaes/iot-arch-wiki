@@ -18,8 +18,9 @@ public interface IoTDomainRepository extends JpaRepository<IoTDomain, Long> {
     @Query(value = "SELECT new br.ufrj.cos.views.record.IoTDomainRecord(i.name) FROM IoTDomain i GROUP BY i.name")
     List<IoTDomainRecord> findAllIoTDomainsGroupedByName();
 
-    @Query("SELECT new br.ufrj.cos.components.chart.data.IoTDomainChartRecord(d.name, COUNT(d), (SELECT COUNT(*) FROM IoTDomain i2)) FROM IoTDomain d JOIN d.archs a GROUP BY d")
+    @Query("SELECT new br.ufrj.cos.components.chart.data.IoTDomainChartRecord(d.name, COUNT(d), (SELECT COUNT(i2) FROM IoTDomain i2)) FROM IoTDomain d JOIN d.architectureSolutions a GROUP BY d.name")
     List<IoTDomainChartRecord> countIoTDomainByArchitectureSolution();
+
 
     List<IoTDomain> findByNameContainingIgnoreCase(String name);
 }

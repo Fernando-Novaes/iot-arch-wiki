@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.DialectOverride;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Data
@@ -17,28 +19,44 @@ public class Technology extends DomainBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, columnDefinition = "CLOB")
     private String description;
 
-    @Column(nullable = true, columnDefinition = "CLOB")
     private String remark;
 
-    @ManyToOne(fetch = FetchType.EAGER)
-    private ArchitectureSolution architectureSolution;
+    // One-to-Many relationship with ArchitectureSolutionQualityRequirementTechnology
+    @OneToMany(mappedBy = "technology", fetch = FetchType.EAGER)
+    private List<ArchitectureSolutionQualityRequirementTechnology> architectureSolutionQualityRequirementTechnologies;
 
-    @OneToOne(fetch = FetchType.EAGER)
-    private QualityRequirement qualityRequirement;
+    /***
+     * Get all QualityRequirements of this Technology
+     *
+     * @return List<QualityRequirement>
+     */
+    public List<QualityRequirement> getQualityRequirements() {
+        List<QualityRequirement> qualityRequirements = new ArrayList<>();
+        this.architectureSolutionQualityRequirementTechnologies.forEach(qualityRequirement -> {
+            qualityRequirements.add(qualityRequirement.getQualityRequirement());
+        });
 
-    public IoTDomain getIoTDomain() {
-        if (this.architectureSolution != null) {
-            return this.architectureSolution.getIoTDomain();
-        } else {
-            return null;
-        }
+        return qualityRequirements;
+    }
+
+    /***
+     * Get all ArchitectureSolutions of this Technology
+     *
+     * @return List<ArchitectureSolution>
+     */
+    public List<ArchitectureSolution> getArchitectureSolutions() {
+        List<ArchitectureSolution> architectureSolutions = new ArrayList<>();
+        this.architectureSolutionQualityRequirementTechnologies.forEach(arch -> {
+            architectureSolutions.add(arch.getArchitectureSolution());
+        });
+
+        return architectureSolutions;
     }
 
     @Override
     public String toString() {
-        return getDescription();
+        return description;
     }
 }

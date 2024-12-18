@@ -54,7 +54,7 @@ class KnowledegeDataMananger {
      *
      * @return GridCrud
      */
-    public VerticalLayout createRegisterCrud() {
+    public VerticalLayout createKnowledgeCrud() {
 
         VerticalLayout vl = new VerticalLayout();
         vl.setSizeFull();
@@ -71,25 +71,25 @@ class KnowledegeDataMananger {
         comboPaper.setEnabled(false);
         comboBoxArch.setPlaceholder("Select the Architecture");
 
-        Grid<QualityRequirement> qualityRequirementGrid = new Grid<>(QualityRequirement.class);
+        Grid<ArchitectureSolutionQualityRequirementTechnology> qualityRequirementGrid = new Grid<>(ArchitectureSolutionQualityRequirementTechnology.class);
         qualityRequirementGrid.setWidthFull();
         qualityRequirementGrid.getColumnByKey("id").setVisible(false);
-        qualityRequirementGrid.getColumnByKey("architectureSolution").setVisible(false);
-        qualityRequirementGrid.getColumnByKey("name").setVisible(false);
-        qualityRequirementGrid.getColumnByKey("technology").setVisible(false);
+        //qualityRequirementGrid.getColumnByKey("architectureSolution").setVisible(false);
+        //qualityRequirementGrid.getColumnByKey("qualityRequirement").setVisible(false);
+        //qualityRequirementGrid.getColumnByKey("technology").setVisible(false);
 
         // Column for QualityRequirement name
-        qualityRequirementGrid.addColumn(QualityRequirement::getName)
-                .setHeader("Quality Requirement")
-                .setSortable(true);
-
-        // Column for associated Technologies
-        qualityRequirementGrid.addColumn(qr ->
-                        qr.getTechnology() != null
-                                ? qr.getTechnology()
-                                : "No Technology")
-                .setHeader("Technologies")
-                .setSortable(true);
+//        qualityRequirementGrid.addColumn(ArchitectureSolutionQualityRequirementTechnology::getQualityRequirement)
+//                .setHeader("Quality Requirement")
+//                .setSortable(true);
+//
+//        // Column for associated Technologies
+//        qualityRequirementGrid.addColumn(qr ->
+//                        qr.getTechnology() != null
+//                                ? qr.getTechnology()
+//                                : "No Technology")
+//                .setHeader("Technologies")
+//                .setSortable(true);
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setVisible(false);
@@ -102,7 +102,7 @@ class KnowledegeDataMananger {
         Button saveBtn = new Button("Save");
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveBtn.addClickListener(save -> {
-            this.architectureSolution.setIoTDomain(comboBoxDomain.getValue());
+            this.architectureSolution.setIotDomain(comboBoxDomain.getValue());
             this.architectureSolution.setPaperReference(comboPaper.getValue());
             this.architectureSolutionService.saveAndUpdate(this.architectureSolution);
 
@@ -113,34 +113,35 @@ class KnowledegeDataMananger {
         Button cancelBtn = new Button("Cancel");
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelBtn.addClickListener(click -> {
-            this.prepareRegisterForm(null, comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
+            this.architectureSolution = null;
+            this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
         });
 
         comboBoxArch.addValueChangeListener(arc -> {
             this.architectureSolution = arc.getValue();
-            this.prepareRegisterForm(arc.getValue(), comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
+            this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, buttons);
         });
 
         // Add a delete button column
-        qualityRequirementGrid.addComponentColumn(qr -> {
+        qualityRequirementGrid.addComponentColumn(knowledge -> {
             Button deleteButton = new Button("", event -> {
                 // Confirm the deletion
                 ConfirmDialog confirmDialog = new ConfirmDialog();
                 confirmDialog.setHeader("Confirm Deletion");
-                confirmDialog.setText(String.format("Are you sure you want to delete this Quality Requirement [%s]?", qr.getName()));
+                confirmDialog.setText(String.format("Are you sure you want to delete this Quality Requirement [%s] and Technology [%s]?", knowledge.getQualityRequirement(), knowledge.getTechnology()));
                 confirmDialog.setCancelable(true);
                 confirmDialog.setConfirmText("Delete");
                 confirmDialog.addConfirmListener(confirmEvent -> {
                     // Perform deletion logic
-                    this.deleteQualityRequirement(qr);
-                    qualityRequirementGrid.setItems(this.architectureSolution.getQrs());
+                    this.deleteQualityRequirement(knowledge);
+                    qualityRequirementGrid.setItems(this.architectureSolution.getQualityRequirementTechnologies());
                 });
 
                 confirmDialog.open();
             });
             deleteButton.setIcon(new Icon(VaadinIcon.TRASH));
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
-            deleteButton.setTooltipText(String.format("Delete %s", qr.getName()));
+            deleteButton.setTooltipText(String.format("Delete %s - %s", knowledge.getQualityRequirement(), knowledge.getTechnology()));
 
             return deleteButton;
         }).setHeader("Actions").setKey("actions");
@@ -170,19 +171,18 @@ class KnowledegeDataMananger {
     /***
      * Method to set enabled or disabled the elements of the form
      *
-     * @param architectureSolution
      * @param iotDomainComboBox
      * @param paperReferenceComboBox
      * @param qualityRequirementGrid
      */
-    private void prepareRegisterForm(ArchitectureSolution architectureSolution, ComboBox comboBoxArch, ComboBox iotDomainComboBox, ComboBox paperReferenceComboBox, Grid qualityRequirementGrid, HorizontalLayout buttons) {
+    private void prepareRegisterForm(ComboBox comboBoxArch, ComboBox iotDomainComboBox, ComboBox paperReferenceComboBox, Grid qualityRequirementGrid, HorizontalLayout buttons) {
         iotDomainComboBox.setEnabled(architectureSolution != null);
         paperReferenceComboBox.setEnabled(architectureSolution != null);
 
-        if (architectureSolution != null) {
-            iotDomainComboBox.setValue(architectureSolution.getIoTDomain());
-            paperReferenceComboBox.setValue(architectureSolution.getPaperReference());
-            qualityRequirementGrid.setItems(architectureSolution.getQrs());
+        if (this.architectureSolution != null) {
+            iotDomainComboBox.setValue(this.architectureSolution.getIotDomain());
+            paperReferenceComboBox.setValue(this.architectureSolution.getPaperReference());
+            qualityRequirementGrid.setItems(this.architectureSolution.getQualityRequirementTechnologies());
             buttons.setVisible(true);
         } else {
             comboBoxArch.setItems(this.architectureSolutionService.findAllOrderedByName());
@@ -195,17 +195,14 @@ class KnowledegeDataMananger {
     }
 
     /***
-     * Deleting logically quality requirement
+     * Deleting logically ArchitectureSolutionQualityRequirementTechnology
      *
-     * @param qr
+     * @param
      * @return
      */
-    private void deleteQualityRequirement(QualityRequirement qr) {
-        this.architectureSolution.getQrs().stream().filter(q -> q.getId().equals(qr.getId())).findAny().ifPresent(q -> {
-            q.getTechnology().setArchitectureSolution(null);
-            q.setTechnology(null);
-            q.setArchitectureSolution(null);
-            this.architectureSolution.getQrs().remove(q);
+    private void deleteQualityRequirement(ArchitectureSolutionQualityRequirementTechnology asqrt) {
+        this.architectureSolution.getQualityRequirementTechnologies().stream().filter(q -> q.getId().equals(asqrt.getId())).findAny().ifPresent(q -> {
+            this.architectureSolution.getQualityRequirementTechnologies().remove(q);
         });
 
         Notification.show("Quality Requirement and Technology Deleted.");
@@ -216,7 +213,7 @@ class KnowledegeDataMananger {
      *
      * @return Dialog
      */
-    private Dialog openAddQRAndTech(Grid<QualityRequirement> qualityRequirementGrid) {
+    private Dialog openAddQRAndTech(Grid<ArchitectureSolutionQualityRequirementTechnology> qualityRequirementGrid) {
         Dialog dialog = new Dialog();
 
         dialog.setHeaderTitle("Add");
@@ -227,28 +224,23 @@ class KnowledegeDataMananger {
         ComboBox<Technology> technologyComboDialog = new ComboBox<>("Select Technology", this.technologyService.findAllOrderedByDescription());
 
         dialogLayout.add(qualityRequirementComboDialog, technologyComboDialog);
-
         dialog.add(dialogLayout);
 
         Button saveButton = new Button("Save");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(s -> {
             QualityRequirement qualityRequirement = qualityRequirementComboDialog.getValue();
-            qualityRequirement.setArchitectureSolution(this.architectureSolution);
-
             Technology technology = technologyComboDialog.getValue();
-            technology.setArchitectureSolution(this.architectureSolution);
-            technology.setQualityRequirement(qualityRequirement);
 
-            this.architectureSolution.getTechnologies().add(technology);
+            ArchitectureSolutionQualityRequirementTechnology asqrt = new ArchitectureSolutionQualityRequirementTechnology();
+            asqrt.setQualityRequirement(qualityRequirement);
+            asqrt.setTechnology(technology);
+            asqrt.setArchitectureSolution(this.architectureSolution);
 
-            technology = this.technologyService.saveAndFlush(technology);
+            this.architectureSolution.getQualityRequirementTechnologies().add(asqrt);
 
-            qualityRequirement.setTechnology(technology);
-            qualityRequirement.getTechnology().setArchitectureSolution(this.architectureSolution);
-
-            this.architectureSolution.getQrs().add(qualityRequirement);
-            qualityRequirementGrid.setItems(this.architectureSolution.getQrs());
+            qualityRequirementGrid.setItems(this.architectureSolution.getQualityRequirementTechnologies());
+            qualityRequirementGrid.getDataProvider().refreshAll();
 
             dialog.close();
             Notification.show("Quality Requirement added.");

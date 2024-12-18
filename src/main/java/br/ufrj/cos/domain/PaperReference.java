@@ -12,26 +12,26 @@ import java.util.Collection;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
 public class PaperReference extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String paperTitle;
+    private String title;
 
-    @Column
-    private String paperDoi;
+    private String doi;
 
-    @Column
-    private String paperLink;
+    private String link;
 
-    @Column(nullable = true)
-    private Integer publishYear;
+    private int publishYear;
+
+    // ArchitectureSolution Relationship (One-to-One)
+    @OneToOne(mappedBy = "paperReference", fetch = FetchType.EAGER)
+    private ArchitectureSolution architectureSolution;
 
     @Override
     public String toString() {
-        return this.paperTitle;
+        return title;
     }
 }

@@ -110,7 +110,7 @@ public class DataManagerView extends BaseView {
                     selectedContent = gridPapers;
                     break;
                 case 5:
-                    selectedContent = this.knowledgeDataMananger.createRegisterCrud();
+                    selectedContent = this.knowledgeDataMananger.createKnowledgeCrud();
                     break;
             }
             contentContainer.add(selectedContent);
@@ -167,7 +167,7 @@ public class DataManagerView extends BaseView {
         });
         gridTechs.setUpdateOperation(this.technologyService::saveAndUpdate);
 
-        GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "remark", "qualityRequirement", "architectureSolution", "ioTDomain");
+        GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "remark", "architectureSolutionQualityRequirementTechnologies", "architectureSolutions", "qualityRequirements");
 
         ComboBox<ArchitectureSolution> comboBoxArch = new ComboBox<ArchitectureSolution>("Archs", this.architectureSolutionService.findAllOrderedByName());
         ComboBox<QualityRequirement> comboBoxQR = new ComboBox<QualityRequirement>("Archs", Collections.emptyList());
@@ -204,8 +204,8 @@ public class DataManagerView extends BaseView {
         GridCrud<PaperReference> gridPapers = new GridCrud<>(PaperReference.class);
         gridPapers.setSizeFull();
         gridPapers.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
-        gridPapers.getGrid().getColumnByKey("paperTitle").setAutoWidth(true);
-        gridPapers.getCrudFormFactory().setVisibleProperties("paperTitle", "paperDoi", "paperLink");
+        gridPapers.getGrid().getColumnByKey("title").setAutoWidth(true);
+        gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link");
         gridPapers.setAddOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
@@ -249,9 +249,9 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name");
         gridQualityRequirements.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridQualityRequirements.getGrid().getColumnByKey("name").setAutoWidth(true);
-        gridQualityRequirements.getGrid().getColumnByKey("technology").setAutoWidth(true);
+        //gridQualityRequirements.getGrid().getColumnByKey("technology").setAutoWidth(true);
 
-        GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "technology", "architectureSolution");
+        GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "architectureSolutionQualityRequirementTechnologies", "architectureSolutions", "technologies");
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAllOrderedByName);
 
         gridQualityRequirements.setAddOperation(
@@ -303,17 +303,13 @@ public class DataManagerView extends BaseView {
             List<QualityRequirement> qrs = this.qualityRequirementService.findAllOrderedByName();
             if (!filterByArch.getValue().isEmpty()) {
                 qrs = qrs.stream()
-                        .filter(q -> q.getTechnology().getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))
-                        .collect(Collectors.toList());
+                        .filter(q -> q.getArchitectureSolutionQualityRequirementTechnologies().stream().anyMatch(arch -> arch.getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))).toList();
             }
             if (filterByQR.getValue() != null) {
-                qrs = qrs.stream()
-                        .filter(q -> q.getName().toLowerCase().contains(filterByQR.getValue().getName().toLowerCase()))
-                        .collect(Collectors.toList());
+                qrs = qrs.stream().filter(q -> q.getArchitectureSolutionQualityRequirementTechnologies().stream().anyMatch(arch -> arch.getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))).toList();
             }
             return qrs;
         });
-
 
         return gridQualityRequirements;
     }
@@ -323,7 +319,7 @@ public class DataManagerView extends BaseView {
         gridArchs.setSizeFull();
         gridArchs.getGrid().getColumnByKey("id").setWidth("60px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
-        gridArchs.getGrid().getColumnByKey("ioTDomain").setAutoWidth(true);
+        gridArchs.getGrid().getColumnByKey("iotDomain").setAutoWidth(true);
         gridArchs.getGrid().getColumnByKey("paperReference").setAutoWidth(true);
         gridArchs.setDeleteOperation(
                 arch -> {
@@ -359,27 +355,13 @@ public class DataManagerView extends BaseView {
                     }
                 });
         gridArchs.getCrudFormFactory().setVisibleProperties("id", "name", "paperReference");
-        gridArchs.getGrid().removeColumnByKey("qrs");
-        gridArchs.getGrid().removeColumnByKey("technologies");
+        //gridArchs.getGrid().removeColumnByKey("qrs");
+        //gridArchs.getGrid().removeColumnByKey("technologies");
         gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name", "description");
         gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name", "description");
-
-//        ComboBox<String> comboBoxArch = new ComboBox<>("Name", this.architectureSolutionService.findAllOrderedByName().stream().map(ArchitectureSolution::getName).collect(Collectors.toList()));
-//        comboBoxArch.setAllowCustomValue(true);
-//        comboBoxArch.addCustomValueSetListener(event -> {
-//            try {
-//                String customValue = event.getDetail();
-//                // Process custom value
-//                comboBoxArch.setValue(customValue);
-//            } catch (Exception e) {
-//                Notification.show("Error: " + e.getMessage());
-//            }
-//        });
-//        gridArchs.getCrudFormFactory().setFieldProvider("name", qr -> comboBoxArch);
-
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
                 new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
-        gridArchs.getCrudFormFactory().setFieldProvider("ioTDomain",
+        gridArchs.getCrudFormFactory().setFieldProvider("iotDomain",
                 new ComboBoxProvider<IoTDomain>("IoT Domain", this.domainService.findAllOrderByName().stream().toList()));
 
         // Create the filter components
@@ -397,7 +379,7 @@ public class DataManagerView extends BaseView {
             }
             if (filterByDomain.getValue() != null) {
                 solutions = solutions.stream()
-                        .filter(s -> s.getIoTDomain().equals(filterByDomain.getValue()))
+                        .filter(s -> s.getIotDomain().equals(filterByDomain.getValue()))
                         .collect(Collectors.toList());
             }
             return solutions;
@@ -410,7 +392,7 @@ public class DataManagerView extends BaseView {
         GridCrud<IoTDomain> gridDomains = new GridCrud<>(IoTDomain.class);
         gridDomains.setSizeFull();
         gridDomains.getCrudFormFactory().setVisibleProperties("id", "name");
-        gridDomains.getGrid().removeColumnByKey("archs");
+        gridDomains.getGrid().removeColumnByKey("architectureSolutions");
         gridDomains.setShowNotifications(true);
         gridDomains.setSavedMessage("IoT Domain Saved");
         gridDomains.setDeletedMessage("IoT Domain Deleted");
@@ -426,7 +408,7 @@ public class DataManagerView extends BaseView {
         gridDomains.setFindAllOperation(this.domainService::findAllOrderByName);
         gridDomains.setUpdateOperation(
                 domain -> {
-                    this.domainService.saveAndUpdate(domain);
+                    this.domainService.saveOrUpdate(domain);
                     this.refreshAllData();
 
                     return domain;

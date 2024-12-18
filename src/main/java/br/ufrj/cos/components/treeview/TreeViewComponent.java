@@ -79,6 +79,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         treeGrid.addComponentHierarchyColumn(node -> {
             Object data = node.getData();
+
             if (data instanceof IoTDomain) {
                 return addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
             } else if (data instanceof ArchitectureSolution) {
@@ -86,7 +87,12 @@ public class TreeViewComponent extends VerticalLayout {
             } else if (data instanceof QualityRequirement) {
                 return addBoxToTreeViewNode(((QualityRequirement) data).getName(), "quality-requirement");
             } else if (data instanceof Technology) {
-                String nodeNames = this.createPathToNode(node);
+                String nodeNames = null;
+                try {
+                    nodeNames = this.createPathToNode(node);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
@@ -188,12 +194,7 @@ public class TreeViewComponent extends VerticalLayout {
 //        }
 //    }
 
-    /***
-     * Create the Path of the referenced Node
-     * @param node Node
-     * @return The name to be split and used in the Diagram (Description!Type = HealthCare!IoT Domain)
-     */
-    private String createPathToNode(TreeNode<?> node) {
+    private String createPathToNode(TreeNode<?> node) throws Exception {
         List<TreeNode<?>> path = getPathToRoot(node);
         StringBuilder diagramlabels = new StringBuilder();
 
@@ -202,17 +203,29 @@ public class TreeViewComponent extends VerticalLayout {
         for (int i = path.size() - 1; i >= 0; i--) {
             Object data = path.get(i).getData();
 
-         if (data instanceof Technology) {
-                // Append to diagram names
-                diagramlabels.append(((Technology) data).getArchitectureSolution().getIoTDomain().getName()).append("!").append("IoT Domain").append("#");
-                diagramlabels.append(((Technology) data).getArchitectureSolution().getName()).append("!").append("Architecture Solution").append("#");
-                diagramlabels.append(((Technology) data).getQualityRequirement().getName()).append("!").append("Quality Requirement").append("#");
-                diagramlabels.append(((Technology) data).getDescription()).append("!").append("Technology").append("#");
+            if (data instanceof Technology) {
+                Technology technology = (Technology) data;
 
-                pathString.append(((Technology) data).getArchitectureSolution().getIoTDomain().getName()).append(" >> ");
-                pathString.append(((Technology) data).getArchitectureSolution().getName()).append(" >> ");
-                pathString.append(((Technology) data).getQualityRequirement().getName()).append(" >> ");
-                pathString.append(((Technology) data).getDescription());
+                // Find the specific association that links this technology
+                ArchitectureSolutionQualityRequirementTechnology association =
+                        technology.getArchitectureSolutionQualityRequirementTechnologies().stream()
+                                .findFirst()
+                                .orElseThrow(() -> new Exception("No associated ArchitectureSolution found"));
+
+                ArchitectureSolution architectureSolution = association.getArchitectureSolution();
+                QualityRequirement qualityRequirement = association.getQualityRequirement();
+                IoTDomain iotDomain = architectureSolution.getIotDomain();
+
+                // Append to diagram names
+                diagramlabels.append(iotDomain.getName()).append("!").append("IoT Domain").append("#");
+                diagramlabels.append(architectureSolution.getName()).append("!").append("Architecture Solution").append("#");
+                diagramlabels.append(qualityRequirement.getName()).append("!").append("Quality Requirement").append("#");
+                diagramlabels.append(technology.getDescription()).append("!").append("Technology").append("#");
+
+                pathString.append(iotDomain.getName()).append(" >> ");
+                pathString.append(architectureSolution.getName()).append(" >> ");
+                pathString.append(qualityRequirement.getName()).append(" >> ");
+                pathString.append(technology.getDescription());
             }
         }
 
@@ -236,9 +249,14 @@ public class TreeViewComponent extends VerticalLayout {
             // Action when the icon is clicked
             //Notification.show("Icon clicked for: " + tech.getDescription());
 
+            // Find the specific association that links this technology
+            ArchitectureSolutionQualityRequirementTechnology association =
+                    ((Technology) node.getData()).getArchitectureSolutionQualityRequirementTechnologies().stream()
+                            .findFirst().get();
+
             addDetailsDialog(
-                    ((Technology) node.getData()).getArchitectureSolution().getPaperReference().getPaperTitle(),
-                    ((Technology) node.getData()).getArchitectureSolution().getPaperReference().getPaperLink());
+                    association.getArchitectureSolution().getPaperReference().getTitle(),
+                    association.getArchitectureSolution().getPaperReference().getLink());
         });
 
         this.createDiagram(diagramNames);
