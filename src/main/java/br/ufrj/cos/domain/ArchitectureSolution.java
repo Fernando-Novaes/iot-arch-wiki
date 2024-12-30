@@ -5,65 +5,53 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
+@EqualsAndHashCode(callSuper = false, exclude = "paperReference")
 public class ArchitectureSolution extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
-
     private String description;
 
-    // iotDomain Relationship (Many-to-One)
-    @ManyToOne(optional = true, fetch = FetchType.EAGER)
-    @JoinColumn(name = "iot_domain_id", nullable = true)
-    private IoTDomain iotDomain;
+    @ManyToOne(optional = false, fetch = FetchType.EAGER)
+    @JoinColumn(name = "architecture_id", nullable = false)
+    private Architecture architecture;
 
-    // QualityRequirement and Technology Combination Relationship
-    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<ArchitectureSolutionQualityRequirementTechnology> qualityRequirementTechnologies;
-
-    // PaperReference Relationship (One-to-One)
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = true)
-    @JoinColumn(name = "paper_reference_id", unique = true)
+    @OneToOne
     private PaperReference paperReference;
 
-    /***
-     * Get all QualityRequirements of this ArchitectureSolution
-     *
-     * @return List<QualityRequirement>
-     */
-    public List<QualityRequirement> getQualityRequirements() {
-        List<QualityRequirement> qualityRequirements = new ArrayList<>();
-        this.qualityRequirementTechnologies.forEach(qualityRequirement -> {
-            qualityRequirements.add(qualityRequirement.getQualityRequirement());
-        });
+    @ManyToOne
+    private IoTDomain ioTDomain;
 
-        return qualityRequirements;
+    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    private List<QualityRequirementTechnology> qualityRequirementTechnologies;
+
+    public List<QualityRequirement> getQualityRequirements() {
+        return qualityRequirementTechnologies.stream()
+                .map(QualityRequirementTechnology::getQualityRequirement)
+                .distinct()
+                .toList();
     }
 
-    /***
-     * Get all Technologies of this ArchitectureSolution
-     *
-     * @return List<Technology>
-     */
     public List<Technology> getTechnologies() {
-        List<Technology> technologies = new ArrayList<>();
-        this.qualityRequirementTechnologies.forEach(technology -> {
-            technologies.add(technology.getTechnology());
-        });
-
-        return technologies;
+        return qualityRequirementTechnologies.stream()
+                .map(QualityRequirementTechnology::getTechnology)
+                .distinct()
+                .toList();
     }
 
     @Override
     public String toString() {
-        return name;
+        if (this.getArchitecture() != null) {
+            return this.architecture.getName();
+        } else {
+            return "No Architecture associated.";
+        }
     }
 }

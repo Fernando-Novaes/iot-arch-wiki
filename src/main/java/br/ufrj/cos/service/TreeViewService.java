@@ -45,7 +45,7 @@ public class TreeViewService {
 
             case ArchitectureSolution -> {
                 List<ArchitectureSolution> list = this.architectureSolutionService.findAll();
-                list.sort(Comparator.comparing(ArchitectureSolution::getName));
+                list.sort(Comparator.comparing(architectureSolution -> architectureSolution.getArchitecture().getName()));
                 this.setTreeViewData(list);
                 yield architectureSolutionTreeBuilder.setNodeAsRoot(list);
             }

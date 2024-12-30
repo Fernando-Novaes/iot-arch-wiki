@@ -12,6 +12,7 @@ import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import br.ufrj.cos.views.record.IoTDomainRecord;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
 import br.ufrj.cos.views.record.TechnologyRecord;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -92,6 +93,8 @@ public class IoTArchView extends BaseView {
         this.createHeader("IoT-Arch Knowledge Base");
         getContent().add(this.createSearchDiv(), treeView);
         this.loadDataToComboBoxes(ActionType.NONE);
+
+        this.createDetailSliderPanel();
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
@@ -406,7 +409,7 @@ public class IoTArchView extends BaseView {
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
                         d.getArchitectureSolutions().stream().distinct().forEach(a -> {
-                            list.add(new ArchitectureSolutionRecord(a.getName()));
+                            list.add(new ArchitectureSolutionRecord(a.getArchitecture().getName()));
                         });
                     }
             );
@@ -417,7 +420,7 @@ public class IoTArchView extends BaseView {
             List<QualityRequirementRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchitectureSolutions().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
+                        d.getArchitectureSolutions().stream().filter(a -> a.getArchitecture().getName().equals(architectureCombo.getValue().name())).forEach(a -> {
                             a.getQualityRequirements().forEach(aq -> {
                                 list.add(new QualityRequirementRecord(aq.getName()));
                             });
@@ -431,7 +434,7 @@ public class IoTArchView extends BaseView {
             List<TechnologyRecord> list = new ArrayList<>();
             ((List<IoTDomain>)this.treeViewDataSource).stream().filter(d -> d.getName().equals(this.iotDomainCombo.getValue().name())).forEach(
                     d -> {
-                        d.getArchitectureSolutions().stream().filter(a -> a.getName().equals(architectureCombo.getValue().name())).forEach(a -> {
+                        d.getArchitectureSolutions().stream().filter(a -> a.getArchitecture().getName().equals(architectureCombo.getValue().name())).forEach(a -> {
                             a.getQualityRequirements().stream().filter(qr -> qr.getName().equals(qualityCombo.getValue().name())).forEach(aq -> {
                                 aq.getTechnologies().forEach(tech -> {
                                     list.add(new TechnologyRecord(tech.getDescription()));
@@ -464,7 +467,7 @@ public class IoTArchView extends BaseView {
         if (architectureCombo.getValue() != null) {
             domain.setArchitectureSolutions(this.architectureSolutionService.findAllByIoTDomain(domain));
             domain.setArchitectureSolutions(
-                    domain.getArchitectureSolutions().stream().filter(arch -> arch.getName().equals(architectureCombo.getValue().name())).toList());
+                    domain.getArchitectureSolutions().stream().filter(arch -> arch.getArchitecture().getName().equals(architectureCombo.getValue().name())).toList());
         }
 
         IoTDomain finalDomain = domain;
@@ -473,7 +476,7 @@ public class IoTArchView extends BaseView {
             domain.getArchitectureSolutions().forEach(arc -> {
                 arc.getQualityRequirements().forEach(qr -> {
                     if (!qr.getName().equals(qualityCombo.getValue().name())) {
-                        finalDomain.getArchitectureSolutions().stream().filter(arc2 -> arc2.getName().equals(arc.getName())).forEach(a -> {
+                        finalDomain.getArchitectureSolutions().stream().filter(arc2 -> arc2.getArchitecture().getName().equals(arc.getArchitecture().getName())).forEach(a -> {
                             a.getQualityRequirements().remove(qr);
                         });
                     }
@@ -502,17 +505,15 @@ public class IoTArchView extends BaseView {
         this.treeView.setTreeViewData(list);
     }
 
+
     /***
      * Creates the search panel at the bottom of the page
      */
-//    private void createSearchSliderPanel() {
-//        this.sliderPanel.setButtonTexts("Hide Search Panel", "Show Search Panel");
-//        this.sliderPanel.setHeight("40%");
-//        this.sliderPanel.setContent(this.createSearchBox());
-//        this.updateComboBoxesData();
-//
-//        getContent().add(this.sliderPanel);
-//    }
+    private void createDetailSliderPanel() {
+        this.sliderPanel.setContent(new Text("Side Panel..."));
+        this.sliderPanel.setButtonTexts("Hide Details", "Show Details");
+        this.sliderPanel.setExpanded(false);
 
-
+        getContent().add(this.sliderPanel);
+    }
 }

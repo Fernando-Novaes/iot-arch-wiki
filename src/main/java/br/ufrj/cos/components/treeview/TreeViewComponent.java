@@ -83,7 +83,7 @@ public class TreeViewComponent extends VerticalLayout {
             if (data instanceof IoTDomain) {
                 return addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
             } else if (data instanceof ArchitectureSolution) {
-                return addBoxToTreeViewNode(((ArchitectureSolution) data).getName(), "architecture-solution");
+                return addBoxToTreeViewNode(((ArchitectureSolution) data).getArchitecture().getName(), "architecture-solution");
             } else if (data instanceof QualityRequirement) {
                 return addBoxToTreeViewNode(((QualityRequirement) data).getName(), "quality-requirement");
             } else if (data instanceof Technology) {
@@ -101,16 +101,6 @@ public class TreeViewComponent extends VerticalLayout {
 
         treeGrid.getStyle().setBorderRadius("8px");
 
-//        treeGrid.getElement().executeJs(
-//                "this.shadowRoot.querySelectorAll('thead th').forEach(th => {" +
-//                        "    th.style.fontSize = '16px';" +
-//                        "    th.style.fontWeight = 'bold';" +
-//                        "    th.style.color = '#373a3f';" +
-//                        "    th.style.border = '2px solid gray';" +
-//                        "    th.style.border-radius = '8px';" +
-//                        "});"
-//        );
-
         TreeNode<Object> root;
         if (!this.isFiltering) {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
@@ -121,27 +111,6 @@ public class TreeViewComponent extends VerticalLayout {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
             if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         }
-
-        // Add ExpandListener
-//        treeGrid.addExpandListener(event -> {
-//            // Get the expanded node
-//            TreeNode<?> expandedNode = event.getItems().stream().findFirst().get();
-//
-//            //if (expandedNode.getChildren().getFirst().getData() instanceof Technology) {
-//                //getting the root node of the Technology node
-////                while (expandedNode.getParent().getData() != null) {
-////                    expandedNode = expandedNode.getParent();
-////                }
-//
-//                // Get all the root nodes
-//                List<TreeNode<?>> rootNodes = List.of(root);
-//
-//                // Collapse all other nodes
-//                for (TreeNode<?> node : rootNodes) {
-//                    collapseAll(treeGrid, node, expandedNode.getParent());
-//                }
-//            //}
-//        });
 
         treeGrid.expand(root);
 
@@ -156,7 +125,7 @@ public class TreeViewComponent extends VerticalLayout {
                 return "treeView-cell";
             } else if (data instanceof ArchitectureSolution) {
                 ArchitectureSolution solution = (ArchitectureSolution) data;
-                text = solution.getName();
+                text = solution.getArchitecture().getName();
                 return "treeView-cell";
             } else if (data instanceof QualityRequirement) {
                 QualityRequirement req = (QualityRequirement) data;
@@ -183,17 +152,6 @@ public class TreeViewComponent extends VerticalLayout {
         this.loaded = Boolean.TRUE;
     }
 
-    // Method to collapse all nodes except the expanded one
-//    private void collapseAll(TreeGrid<TreeNode<?>> grid, TreeNode<?> node, TreeNode<?> expandedNode) {
-//        if ((!node.equals(expandedNode) && (node.getData() != null))) {
-//            grid.collapse(node);
-//        }
-//
-//        for (TreeNode<?> child : node.getChildren()) {
-//            collapseAll(grid, child, expandedNode);
-//        }
-//    }
-
     private String createPathToNode(TreeNode<?> node) throws Exception {
         List<TreeNode<?>> path = getPathToRoot(node);
         StringBuilder diagramlabels = new StringBuilder();
@@ -207,23 +165,23 @@ public class TreeViewComponent extends VerticalLayout {
                 Technology technology = (Technology) data;
 
                 // Find the specific association that links this technology
-                ArchitectureSolutionQualityRequirementTechnology association =
-                        technology.getArchitectureSolutionQualityRequirementTechnologies().stream()
+                QualityRequirementTechnology association =
+                        technology.getAssociations().stream()
                                 .findFirst()
                                 .orElseThrow(() -> new Exception("No associated ArchitectureSolution found"));
 
                 ArchitectureSolution architectureSolution = association.getArchitectureSolution();
                 QualityRequirement qualityRequirement = association.getQualityRequirement();
-                IoTDomain iotDomain = architectureSolution.getIotDomain();
+                IoTDomain iotDomain = architectureSolution.getIoTDomain();
 
                 // Append to diagram names
                 diagramlabels.append(iotDomain.getName()).append("!").append("IoT Domain").append("#");
-                diagramlabels.append(architectureSolution.getName()).append("!").append("Architecture Solution").append("#");
+                diagramlabels.append(architectureSolution.getArchitecture().getName()).append("!").append("Architecture Solution").append("#");
                 diagramlabels.append(qualityRequirement.getName()).append("!").append("Quality Requirement").append("#");
                 diagramlabels.append(technology.getDescription()).append("!").append("Technology").append("#");
 
                 pathString.append(iotDomain.getName()).append(" >> ");
-                pathString.append(architectureSolution.getName()).append(" >> ");
+                pathString.append(architectureSolution.getArchitecture().getName()).append(" >> ");
                 pathString.append(qualityRequirement.getName()).append(" >> ");
                 pathString.append(technology.getDescription());
             }
@@ -250,8 +208,8 @@ public class TreeViewComponent extends VerticalLayout {
             //Notification.show("Icon clicked for: " + tech.getDescription());
 
             // Find the specific association that links this technology
-            ArchitectureSolutionQualityRequirementTechnology association =
-                    ((Technology) node.getData()).getArchitectureSolutionQualityRequirementTechnologies().stream()
+            QualityRequirementTechnology association =
+                    ((Technology) node.getData()).getAssociations().stream()
                             .findFirst().get();
 
             addDetailsDialog(

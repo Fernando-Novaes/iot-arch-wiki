@@ -6,27 +6,26 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-@Entity
 @Data
+@Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
-public class IoTDomain extends DomainBase {
+@EqualsAndHashCode(callSuper=false)
+public class Architecture {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
-    private String description;
 
-    @OneToMany(mappedBy = "ioTDomain", fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "architecture", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<ArchitectureSolution> architectureSolutions;
 
     @Override
     public String toString() {
-        return this.name;
+        return name;
     }
 }

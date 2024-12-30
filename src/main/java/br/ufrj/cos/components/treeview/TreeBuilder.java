@@ -36,7 +36,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                     root.addChild(buildTreeIoTDomain(domain));
                 }
             } else if (list.get(0) instanceof ArchitectureSolution) {
-                ((List<ArchitectureSolution>) list).sort(Comparator.comparing(ArchitectureSolution::getName));
+                ((List<ArchitectureSolution>) list).sort(Comparator.comparing(architectureSolution -> architectureSolution.getArchitecture().getName()));
                 for (ArchitectureSolution arch : (List<ArchitectureSolution>) list) {
                     root.addChild(buildTreeArchitectureSolution(arch));
                 }
@@ -54,7 +54,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         TreeNode<IoTDomain> domainNode = new TreeNode<>(domain);
 
         List<ArchitectureSolution> archsSorted = domain.getArchitectureSolutions();
-        archsSorted.sort(Comparator.comparing(ArchitectureSolution::getName));
+        archsSorted.sort(Comparator.comparing(architectureSolution -> architectureSolution.getArchitecture().getName()));
 
         for (ArchitectureSolution solution : archsSorted) {
             TreeNode<ArchitectureSolution> solutionNode = new TreeNode<>(solution);
@@ -68,6 +68,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
     private TreeNode<ArchitectureSolution> buildTreeArchitectureSolution(ArchitectureSolution arch) {
         TreeNode<ArchitectureSolution> archNode = new TreeNode<>(arch);
         buildTreeQualityRequirement(arch, archNode);
+
         return archNode;
     }
 

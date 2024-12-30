@@ -7,12 +7,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, exclude = "associations")
 public class QualityRequirement extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,36 +21,21 @@ public class QualityRequirement extends DomainBase {
 
     private String name;
 
-    // One-to-Many relationship with ArchitectureSolutionQualityRequirementTechnology
     @OneToMany(mappedBy = "qualityRequirement", fetch = FetchType.EAGER)
-    private List<ArchitectureSolutionQualityRequirementTechnology> architectureSolutionQualityRequirementTechnologies;
+    private List<QualityRequirementTechnology> associations;
 
-    /***
-     * Get all Technologies of this QualityRequirement
-     *
-     * @return List<Technology>
-     */
     public List<Technology> getTechnologies() {
-        List<Technology> technologies = new ArrayList<>();
-        this.architectureSolutionQualityRequirementTechnologies.forEach(technology -> {
-            technologies.add(technology.getTechnology());
-        });
-
-        return technologies;
+        return associations.stream()
+                .map(QualityRequirementTechnology::getTechnology)
+                .distinct()
+                .toList();
     }
 
-    /***
-     * Get all ArchitectureSolutions of this Technology
-     *
-     * @return List<ArchitectureSolution>
-     */
     public List<ArchitectureSolution> getArchitectureSolutions() {
-        List<ArchitectureSolution> architectureSolutions = new ArrayList<>();
-        this.architectureSolutionQualityRequirementTechnologies.forEach(arch -> {
-            architectureSolutions.add(arch.getArchitectureSolution());
-        });
-
-        return architectureSolutions;
+        return associations.stream()
+                .map(QualityRequirementTechnology::getArchitectureSolution)
+                .distinct()
+                .toList();
     }
 
     @Override

@@ -23,7 +23,7 @@ public interface QualityRequirementRepository extends JpaRepository<QualityRequi
     @Query(value = "SELECT new br.ufrj.cos.views.record.QualityRequirementRecord(i.name) FROM QualityRequirement i GROUP BY i.name")
     List<QualityRequirementRecord> findAllQualityRequirementGroupedByName();
 
-    @Query("select q from QualityRequirement q join q.architectureSolutionQualityRequirementTechnologies a where a.id = :id")
+    @Query("select q from QualityRequirement q join q.associations a where a.id = :id")
     List<QualityRequirement> findByArchitectureSolutionId(@Param("id") Long id);
 
     List<QualityRequirement> findAllByNameContainingIgnoreCase(String name);
@@ -31,7 +31,7 @@ public interface QualityRequirementRepository extends JpaRepository<QualityRequi
     @Query("SELECT DISTINCT qr.name FROM QualityRequirement qr")
     List<String> findDistinctNames();
 
-    List<QualityRequirement> findByArchitectureSolutionQualityRequirementTechnologies_ArchitectureSolution_NameContainingIgnoreCaseOrderByNameAsc(String name);
+    List<QualityRequirement> findByAssociations_ArchitectureSolution_Architecture_Name_ContainingIgnoreCaseOrderByNameAsc(String name);
 
 
 }

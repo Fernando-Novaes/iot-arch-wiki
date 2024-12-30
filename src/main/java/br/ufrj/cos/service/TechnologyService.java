@@ -45,7 +45,7 @@ public class TechnologyService {
     }
 
     public List<Technology> findByArchitectureSolutionName(String architectureSolutionName) {
-        return this.technologyRepository.findByArchitectureSolutionQualityRequirementTechnologies_ArchitectureSolution_NameContainingIgnoreCase(architectureSolutionName);
+        return this.technologyRepository.findByAssociations_ArchitectureSolution_Architecture_NameContainingIgnoreCase(architectureSolutionName);
     }
 
     public List<Technology> findByDescription(String description) {

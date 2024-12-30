@@ -46,15 +46,15 @@ public class ArchitectureSolutionService {
     }
 
     public List<ArchitectureSolution> findByNameContainingIgnoreCase(String name) {
-        return this.architectureSolutionRepository.findByNameContainingIgnoreCase(name);
+        return this.architectureSolutionRepository.findByArchitecture_NameContainingIgnoreCase(name);
     }
 
     public List<ArchitectureSolution> findAllOrderedByName() {
-        return this.architectureSolutionRepository.findAll(Sort.by("name"));
+        return this.architectureSolutionRepository.findAll(Sort.by("architecture.name"));
     }
 
     public List<ArchitectureSolution> findAllByIoTDomain(IoTDomain domain) {
-        return this.architectureSolutionRepository.findArchitectureSolutionByIotDomain(domain);
+        return this.architectureSolutionRepository.findArchitectureSolutionByIoTDomain(domain);
     }
 
     public void delete(ArchitectureSolution architectureSolution) {

@@ -2,44 +2,59 @@
 
 .slider-panel {
     position: fixed;
-    left: 0;
+    top: 0;
     right: 0;
-    padding-bottom: 1em;
+    height: 100vh;
+    width: 400px; /* Default width */
     z-index: 1000;
     background-color: var(--lumo-base-color);
-    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease-in-out;
-    transform: translateY(calc(100% - 30px)); /* 40px is button height */
-}
-
-.slider-panel.bottom {
-    bottom: 0;
+    transform: translateX(100%); /* Hide to the right */
+    border-color: white;
+    border-style: solid;
+    border-width: 1px;
 }
 
 .slider-panel.expanded {
-    transform: translateY(0);
+    transform: translateX(0); /* Show panel */
 }
 
 .slider-toggle {
     position: absolute;
-    top: -40px;
-    left: 90%;
-    transform: translateX(-50%);
+    left: -40px;
+    top: 50%;
+    transform: translateY(-50%);
     border-radius: var(--lumo-border-radius-l) var(--lumo-border-radius-l) 0 0 !important;
     margin: 0 !important;
-    min-width: 120px;
+    min-width: 40px;
+    min-height: 120px;
+    padding: 12px 8px !important;
     background-color: var(--lumo-primary-color) !important;
     color: var(--lumo-primary-contrast-color) !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.slider-toggle vaadin-icon {
+    font-size: var(--lumo-font-size-l);
 }
 
 .slider-content {
     padding: var(--lumo-space-m);
     overflow-y: auto;
-    max-height: 80vh; /* Prevents panel from being taller than viewport */
+    height: 100%;
+    box-sizing: border-box;
 }
 
 /* Optional: Add some responsive styling */
 @media (max-width: 600px) {
+    .slider-panel {
+        width: 85vw; /* Use percentage of viewport width on mobile */
+    }
+
     .slider-content {
         padding: var(--lumo-space-s);
     }

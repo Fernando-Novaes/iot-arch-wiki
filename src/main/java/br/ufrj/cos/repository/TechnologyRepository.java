@@ -22,7 +22,7 @@ public interface TechnologyRepository extends JpaRepository<Technology, Long> {
     @Query(value = "SELECT new br.ufrj.cos.views.record.TechnologyRecord(i.description) FROM Technology i GROUP BY i.description")
     List<TechnologyRecord> findAllTechnologyGroupedByName();
 
-    List<Technology> findByArchitectureSolutionQualityRequirementTechnologies_ArchitectureSolution_NameContainingIgnoreCase(String name);
+    List<Technology> findByAssociations_ArchitectureSolution_Architecture_NameContainingIgnoreCase(String name);
 
 
     List<Technology> findByDescriptionContainingIgnoreCase(String description);

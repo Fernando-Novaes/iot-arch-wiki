@@ -3,6 +3,7 @@ package br.ufrj.cos.views;
 
 import br.ufrj.cos.views.about.AboutViewView;
 import br.ufrj.cos.views.board.BoardView;
+import br.ufrj.cos.views.datamanager.DataManagerView;
 import br.ufrj.cos.views.home.HomeView;
 import br.ufrj.cos.views.iotarch.IoTArchView;
 import br.ufrj.cos.views.qualityrequirement.QualityRequirementView;
@@ -15,6 +16,8 @@ import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
@@ -113,7 +116,8 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
                 new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
                 new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class),
-                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class)
+                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class),
+                new MenuItemInfo("Data Manager", LineAwesomeIcon.DATABASE_SOLID.create(), DataManagerView.class)
         };
     }
 

@@ -3,6 +3,7 @@ package br.ufrj.cos.views.datamanager;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.utils.GridCRUDUtils;
+import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Component;
@@ -29,19 +30,27 @@ public class DataManagerView extends BaseView {
 
     private final IoTDomainService domainService;
     private final ArchitectureSolutionService architectureSolutionService;
+    private final ArchitectureService architectureService;
     private final QualityRequirementService qualityRequirementService;
     private final PaperReferenceService paperReferenceService;
     private final TechnologyService technologyService;
 
-    private final KnowledegeDataMananger knowledgeDataMananger;
+    private final KnowledgeDataManager knowledgeDataManager;
 
     GridCrud<IoTDomain> gridDomains;
-    GridCrud<ArchitectureSolution> gridArchs;
+    GridCrud<Architecture> gridArchs;
     GridCrud<QualityRequirement> gridQualityRequirements;
     GridCrud<Technology> gridTechs;
     GridCrud<PaperReference> gridPapers;
 
     Tabs tabs = new Tabs();
+
+    private Span domainBadge;
+    private Span archBadge;
+    private Span qualityBadge;
+    private Span techBadge;
+    private Span paperBadge;
+    private Span archSolutionBadge;
 
     ComboBox<IoTDomain> iotDomainRegisterCombo = new ComboBox<>();
     ComboBox<PaperReference> paperReferenceRegisterCombo = new ComboBox<>();
@@ -51,14 +60,15 @@ public class DataManagerView extends BaseView {
     ArchitectureSolution architectureSolution = new ArchitectureSolution();
 
     @Autowired
-    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService, KnowledegeDataMananger knowledgeDataMananger) {
+    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, ArchitectureService architectureService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService, KnowledgeDataManager knowledgeDataManager) {
         this.domainService = domainService;
         this.architectureSolutionService = architectureSolutionService;
+        this.architectureService = architectureService;
         this.qualityRequirementService = qualityRequirementService;
         this.paperReferenceService = paperReferenceService;
         this.technologyService = technologyService;
-        this.knowledgeDataMananger = knowledgeDataMananger;
-        this.knowledgeDataMananger.setArchitectureSolution(this.architectureSolution);
+        this.knowledgeDataManager = knowledgeDataManager;
+        this.knowledgeDataManager.setArchitectureSolution(this.architectureSolution);
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
@@ -68,7 +78,7 @@ public class DataManagerView extends BaseView {
         tabs = createTabs();
 
         gridDomains = createIoTDomainGridCrud();
-        gridArchs = createArchitectureSolutionGridCrud();
+        gridArchs = createArchitectureGridCrud();
         gridQualityRequirements = createQualityRequirementGridCrud();
         gridTechs = createTechnolgyGridCrud();
         gridPapers = createPaperReferenceGridCrud();
@@ -84,10 +94,23 @@ public class DataManagerView extends BaseView {
         return span;
     }
 
+    /***
+     * Refreshes badge count
+     */
+    private void refreshBadgeCount() {
+        this.paperBadge = this.createBadge(String.valueOf(this.paperReferenceService.findAll().size()));
+        this.archBadge = this.createBadge(String.valueOf(this.architectureService.findAll().size()));
+        this.qualityBadge = this.createBadge(String.valueOf(this.qualityRequirementService.findAll().size()));
+        this.techBadge = this.createBadge(String.valueOf(this.technologyService.findAll().size()));
+        this.archSolutionBadge = this.createBadge(String.valueOf(this.architectureSolutionService.findAll().size()));
+        this.domainBadge = this.createBadge(String.valueOf(this.domainService.findAll().size()));
+    }
+
     private void createTabLayout() {
         Div contentContainer = new Div();
         contentContainer.setSizeFull();
-        contentContainer.add(gridDomains);
+        contentContainer.add(gridPapers);
+        refreshBadgeCount();
 
         // Add a listener to switch the content when the tab changes
         tabs.addSelectedChangeListener(event -> {
@@ -95,22 +118,22 @@ public class DataManagerView extends BaseView {
             Component selectedContent = null;
             switch (tabs.getSelectedIndex()) {
                 case 0:
-                    selectedContent = gridDomains;
-                    break;
-                case 1:
-                    selectedContent = gridArchs;
-                    break;
-                case 2:
-                    selectedContent = gridQualityRequirements;
-                    break;
-                case 3:
-                    selectedContent = gridTechs;
-                    break;
-                case 4:
                     selectedContent = gridPapers;
                     break;
+                case 1:
+                    selectedContent = gridDomains;
+                    break;
+                case 2:
+                    selectedContent = gridArchs;
+                    break;
+                case 3:
+                    selectedContent = gridQualityRequirements;
+                    break;
+                case 4:
+                    selectedContent = gridTechs;
+                    break;
                 case 5:
-                    selectedContent = this.knowledgeDataMananger.createKnowledgeCrud();
+                    selectedContent = this.knowledgeDataManager.createKnowledgeCrud();
                     break;
             }
             contentContainer.add(selectedContent);
@@ -124,16 +147,16 @@ public class DataManagerView extends BaseView {
      * @return Tabs
      */
     private Tabs createTabs() {
-        Tab domains = new Tab(new Span("IoT Domains"), this.createBadge(String.valueOf(this.domainService.findAll().size())));
-        Tab archs = new Tab(new Span("Architectures"), this.createBadge(String.valueOf(this.architectureSolutionService.findAll().size())));
-        Tab qrs = new Tab(new Span("Quality Requirements"), this.createBadge(String.valueOf(this.qualityRequirementService.findAll().size())));
-        Tab techs = new Tab(new Span("Technologies"), this.createBadge(String.valueOf(this.technologyService.findAll().size())));
-        Tab papers = new Tab(new Span("References"), this.createBadge(String.valueOf(this.paperReferenceService.findAll().size())));
-        Tab registers = new Tab(new Span("Knowledge"), this.createBadge(String.valueOf(this.architectureSolutionService.findAll().stream().distinct().toList().size())));
+        this.refreshBadgeCount();
 
-        Tabs tabs = new Tabs(domains, archs, qrs, techs, papers, registers);
+        Tab papers = new Tab(new Span("References"), this.paperBadge);
+        Tab domains = new Tab(new Span("IoT Domains"), this.domainBadge);
+        Tab archs = new Tab(new Span("Architectures"), this.archBadge);
+        Tab qrs = new Tab(new Span("Quality Requirements"), this.qualityBadge);
+        Tab techs = new Tab(new Span("Technologies"), this.techBadge);
+        Tab knowledge = new Tab(new Span("Architecture Solution"), this.archSolutionBadge);
 
-        return tabs;
+        return new Tabs(papers, domains, archs, qrs, techs, knowledge);
     }
 
     /***
@@ -145,6 +168,8 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.getGrid().getDataProvider().refreshAll();
         gridTechs.getGrid().getDataProvider().refreshAll();
         gridPapers.getGrid().getDataProvider().refreshAll();
+
+        this.refreshBadgeCount();
     }
 
     /***
@@ -158,7 +183,7 @@ public class DataManagerView extends BaseView {
         gridTechs.getGrid().getColumnByKey("description").setAutoWidth(true);
         gridTechs.getCrudFormFactory().setVisibleProperties("architectureSolution", "qualityRequirement", "description");
         gridTechs.getGrid().setDetailsVisibleOnClick(true);
-        gridTechs.getCrudFormFactory().setVisibleProperties("description", "remark");
+        gridTechs.getCrudFormFactory().setVisibleProperties("description", "notes");
         gridTechs.setAddOperation(tech -> {
             this.technologyService.saveAndFlush(tech);
             this.refreshAllData();
@@ -167,7 +192,7 @@ public class DataManagerView extends BaseView {
         });
         gridTechs.setUpdateOperation(this.technologyService::saveAndUpdate);
 
-        GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "remark", "architectureSolutionQualityRequirementTechnologies", "architectureSolutions", "qualityRequirements");
+        GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "notes", "associations", "architectureSolutions", "qualityRequirements");
 
         ComboBox<ArchitectureSolution> comboBoxArch = new ComboBox<ArchitectureSolution>("Archs", this.architectureSolutionService.findAllOrderedByName());
         ComboBox<QualityRequirement> comboBoxQR = new ComboBox<QualityRequirement>("Archs", Collections.emptyList());
@@ -205,7 +230,7 @@ public class DataManagerView extends BaseView {
         gridPapers.setSizeFull();
         gridPapers.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridPapers.getGrid().getColumnByKey("title").setAutoWidth(true);
-        gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link");
+        gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link", "publishYear");
         gridPapers.setAddOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
@@ -226,12 +251,12 @@ public class DataManagerView extends BaseView {
                         this.paperReferenceService.delete(paper);
                         this.refreshAllData();
                     } catch (Exception e) {
-                        Notification.show("Error: " + e.getMessage());
+                        NotificationUtils.showErrorNotification("Error: " + e.getMessage());
                     }
                 }
         );
 
-        gridPapers.setFindAllOperation(this.paperReferenceService::findAll);
+        gridPapers.setFindAllOperation(this.paperReferenceService::finAllOrderByPaperReferenceTitle);
 
         // additional components
         TextField filter = GridCRUDUtils.createGridTextFilter(gridPapers,"Filter by Paper Title","400px");
@@ -251,7 +276,7 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.getGrid().getColumnByKey("name").setAutoWidth(true);
         //gridQualityRequirements.getGrid().getColumnByKey("technology").setAutoWidth(true);
 
-        GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "architectureSolutionQualityRequirementTechnologies", "architectureSolutions", "technologies");
+        GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "associations", "architectureSolutions", "technologies");
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAllOrderedByName);
 
         gridQualityRequirements.setAddOperation(
@@ -284,7 +309,7 @@ public class DataManagerView extends BaseView {
                 // Process custom value
                 comboBoxQR.setValue(customValue);
             } catch (Exception e) {
-                Notification.show("Error: " + e.getMessage());
+                NotificationUtils.showErrorNotification("Error: " + e.getMessage());
             }
         });
         gridQualityRequirements.getCrudFormFactory().setFieldProvider("name", qr -> comboBoxQR);
@@ -303,10 +328,10 @@ public class DataManagerView extends BaseView {
             List<QualityRequirement> qrs = this.qualityRequirementService.findAllOrderedByName();
             if (!filterByArch.getValue().isEmpty()) {
                 qrs = qrs.stream()
-                        .filter(q -> q.getArchitectureSolutionQualityRequirementTechnologies().stream().anyMatch(arch -> arch.getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))).toList();
+                        .filter(q -> q.getArchitectureSolutions().stream().anyMatch(arch -> arch.getArchitecture().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))).toList();
             }
             if (filterByQR.getValue() != null) {
-                qrs = qrs.stream().filter(q -> q.getArchitectureSolutionQualityRequirementTechnologies().stream().anyMatch(arch -> arch.getArchitectureSolution().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))).toList();
+                qrs = qrs.stream().filter(q -> q.getArchitectureSolutions().stream().anyMatch(arch -> arch.getArchitecture().getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))).toList();
             }
             return qrs;
         });
@@ -314,54 +339,52 @@ public class DataManagerView extends BaseView {
         return gridQualityRequirements;
     }
 
-    private GridCrud<ArchitectureSolution> createArchitectureSolutionGridCrud() {
-        GridCrud<ArchitectureSolution> gridArchs = new GridCrud<>(ArchitectureSolution.class);
+    private GridCrud<Architecture> createArchitectureGridCrud() {
+        GridCrud<Architecture> gridArchs = new GridCrud<>(Architecture.class);
         gridArchs.setSizeFull();
         gridArchs.getGrid().getColumnByKey("id").setWidth("60px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
-        gridArchs.getGrid().getColumnByKey("iotDomain").setAutoWidth(true);
-        gridArchs.getGrid().getColumnByKey("paperReference").setAutoWidth(true);
         gridArchs.setDeleteOperation(
                 arch -> {
                     try {
-                        this.architectureSolutionService.delete(arch);
+                        this.architectureService.delete(arch);
                         this.refreshAllData();
                     } catch (Exception e) {
-                        Notification.show("Error: " + e.getMessage());
+                        NotificationUtils.showErrorNotification("Error: " + e.getMessage());
                     }
                 }
         );
         gridArchs.setAddOperation(
                 arch -> {
                     try {
-                        this.architectureSolutionService.saveAndFlush(arch);
+                        this.architectureService.saveAndFlush(arch);
                         this.refreshAllData();
                         return arch;
                     } catch (Exception e) {
-                        Notification.show("A Paper reference is mandatory.");
+                        NotificationUtils.showErrorNotification("A Paper reference is mandatory.");
                         return null;
                     }
                 });
 
-        gridArchs.setFindAllOperation(this.architectureSolutionService::findAllOrderedByName);
+        gridArchs.setFindAllOperation(this.architectureService::findAll);
         gridArchs.setUpdateOperation(arch -> {
                     try {
-                        this.architectureSolutionService.saveAndFlush(arch);
+                        this.architectureService.saveAndFlush(arch);
                         this.refreshAllData();
                         return arch;
                     } catch (Exception e) {
-                        Notification.show("A Paper reference is mandatory.");
+                        NotificationUtils.showErrorNotification("A Paper reference is mandatory.");
                         return null;
                     }
                 });
-        gridArchs.getCrudFormFactory().setVisibleProperties("id", "name", "paperReference");
+        gridArchs.getCrudFormFactory().setVisibleProperties("id", "name");
         //gridArchs.getGrid().removeColumnByKey("qrs");
         //gridArchs.getGrid().removeColumnByKey("technologies");
-        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name", "description");
-        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name", "description");
+        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name");
+        gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name");
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
                 new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
-        gridArchs.getCrudFormFactory().setFieldProvider("iotDomain",
+        gridArchs.getCrudFormFactory().setFieldProvider("ioTDomain",
                 new ComboBoxProvider<IoTDomain>("IoT Domain", this.domainService.findAllOrderByName().stream().toList()));
 
         // Create the filter components
@@ -371,18 +394,17 @@ public class DataManagerView extends BaseView {
 
         // Set the filter operations
         gridArchs.setFindAllOperation(() -> {
-            List<ArchitectureSolution> solutions = this.architectureSolutionService.findAllOrderedByName();
+            List<Architecture> archs = this.architectureService.findAll();
             if (!filterByArch.getValue().isEmpty()) {
-                solutions = solutions.stream()
-                        .filter(s -> s.getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))
+                archs = archs.stream()
+                        .filter(a -> a.getName().toLowerCase().contains(filterByArch.getValue().toLowerCase()))
                         .collect(Collectors.toList());
             }
             if (filterByDomain.getValue() != null) {
-                solutions = solutions.stream()
-                        .filter(s -> s.getIotDomain().equals(filterByDomain.getValue()))
-                        .collect(Collectors.toList());
+                archs = archs.stream().filter(a -> a.getArchitectureSolutions().stream()
+                        .allMatch(d -> d.getIoTDomain().equals(filterByDomain.getValue()))).toList();
             }
-            return solutions;
+            return archs;
         });
 
         return gridArchs;
@@ -419,7 +441,7 @@ public class DataManagerView extends BaseView {
                         this.domainService.delete(d);
                         this.refreshAllData();
                     } catch (Exception e) {
-                        Notification.show("Error: " + e.getMessage());
+                        NotificationUtils.showErrorNotification("Error: " + e.getMessage());
                     }
                 }
         );
