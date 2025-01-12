@@ -27,7 +27,7 @@ import java.util.ArrayList;
 
 @UIScope
 @Component
-class KnowledgeDataManager {
+class ArchitectureSolutionDataManager {
 
     @Setter
     private ArchitectureSolution architectureSolution;
@@ -39,13 +39,14 @@ class KnowledgeDataManager {
     private final QualityRequirementService qualityRequirementService;
     private final TechnologyService technologyService;
     private final ArchitectureService architectureService;
+    private final QualityRequirementTechnologyService qualityRequirementTechnologyService;
 
     @Autowired
-    public KnowledgeDataManager(
+    public ArchitectureSolutionDataManager(
             ArchitectureSolutionService architectureSolutionService,
             IoTDomainService ioTDomainService,
             PaperReferenceService paperReferenceService, QualityRequirementService qualityRequirementService,
-            TechnologyService technologyService, ArchitectureService architectureService) {
+            TechnologyService technologyService, ArchitectureService architectureService, QualityRequirementTechnologyService qualityRequirementTechnologyService) {
 
         this.architectureSolutionService = architectureSolutionService;
         this.ioTDomainService = ioTDomainService;
@@ -53,6 +54,7 @@ class KnowledgeDataManager {
         this.qualityRequirementService = qualityRequirementService;
         this.technologyService = technologyService;
         this.architectureService = architectureService;
+        this.qualityRequirementTechnologyService = qualityRequirementTechnologyService;
     }
 
     /***
@@ -133,7 +135,7 @@ class KnowledgeDataManager {
         // Customize button style
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
 
-        //Save button
+        //Save Architecture Solution button
         Button saveBtn = new Button("Save");
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveBtn.addClickListener(save -> {
@@ -146,7 +148,7 @@ class KnowledgeDataManager {
             NotificationUtils.showSuccessNotification("Architecture Solution saved.");
         });
 
-        //Cancel buttonm
+        //Cancel Architecture Solution button
         Button cancelBtn = new Button("Cancel");
         cancelBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
         cancelBtn.addClickListener(click -> {
@@ -228,9 +230,10 @@ class KnowledgeDataManager {
         this.architectureSolution.getQualityRequirementTechnologies().stream().filter(
                 q -> q.getId().equals(qualityRequirementTechnology.getId())).findAny().ifPresent(q -> {
                     this.architectureSolution.getQualityRequirementTechnologies().remove(q);
+                    this.qualityRequirementTechnologyService.delete(qualityRequirementTechnology);
                 });
 
-        Notification.show("Quality Requirement and Technology Deleted.");
+        NotificationUtils.showSuccessNotification("Quality Requirement and Technology Deleted.");
     }
 
     /***
@@ -251,6 +254,7 @@ class KnowledgeDataManager {
         dialogLayout.add(qualityRequirementComboDialog, technologyComboDialog);
         dialog.add(dialogLayout);
 
+        //Save Quality Requirement and Technology
         Button saveButton = new Button("Save");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(s -> {
@@ -276,6 +280,7 @@ class KnowledgeDataManager {
             NotificationUtils.showSuccessNotification("Quality Requirement added.");
         });
 
+        //Cancel Quality Requirement and Technology
         Button cancelButton = new Button("Cancel", e -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
 

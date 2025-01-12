@@ -24,7 +24,7 @@ public class PaperReference extends DomainBase {
         private String link;
         private int publishYear;
 
-        @OneToOne(mappedBy = "paperReference", cascade = CascadeType.ALL, optional = true)
+        @OneToOne(mappedBy = "paperReference", cascade = CascadeType.ALL, orphanRemoval = true)
         private ArchitectureSolution architectureSolution;
 
 

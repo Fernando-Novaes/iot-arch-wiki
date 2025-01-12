@@ -19,17 +19,18 @@ public class ArchitectureSolution extends DomainBase {
 
     private String description;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "architecture_id", nullable = false)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "architecture_id")
     private Architecture architecture;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "paper_reference_id", nullable = true)
     private PaperReference paperReference;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     private IoTDomain ioTDomain;
 
-    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "architectureSolution", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<QualityRequirementTechnology> qualityRequirementTechnologies;
 
     public List<QualityRequirement> getQualityRequirements() {

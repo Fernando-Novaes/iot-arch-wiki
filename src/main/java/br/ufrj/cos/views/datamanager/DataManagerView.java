@@ -8,9 +8,9 @@ import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
@@ -35,7 +35,7 @@ public class DataManagerView extends BaseView {
     private final PaperReferenceService paperReferenceService;
     private final TechnologyService technologyService;
 
-    private final KnowledgeDataManager knowledgeDataManager;
+    private final ArchitectureSolutionDataManager architectureSolutionDataManager;
 
     GridCrud<IoTDomain> gridDomains;
     GridCrud<Architecture> gridArchs;
@@ -60,15 +60,15 @@ public class DataManagerView extends BaseView {
     ArchitectureSolution architectureSolution = new ArchitectureSolution();
 
     @Autowired
-    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, ArchitectureService architectureService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService, KnowledgeDataManager knowledgeDataManager) {
+    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, ArchitectureService architectureService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService, ArchitectureSolutionDataManager architectureSolutionDataManager) {
         this.domainService = domainService;
         this.architectureSolutionService = architectureSolutionService;
         this.architectureService = architectureService;
         this.qualityRequirementService = qualityRequirementService;
         this.paperReferenceService = paperReferenceService;
         this.technologyService = technologyService;
-        this.knowledgeDataManager = knowledgeDataManager;
-        this.knowledgeDataManager.setArchitectureSolution(this.architectureSolution);
+        this.architectureSolutionDataManager = architectureSolutionDataManager;
+        this.architectureSolutionDataManager.setArchitectureSolution(this.architectureSolution);
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
@@ -133,7 +133,7 @@ public class DataManagerView extends BaseView {
                     selectedContent = gridTechs;
                     break;
                 case 5:
-                    selectedContent = this.knowledgeDataManager.createKnowledgeCrud();
+                    selectedContent = this.architectureSolutionDataManager.createKnowledgeCrud();
                     break;
             }
             contentContainer.add(selectedContent);
@@ -248,7 +248,30 @@ public class DataManagerView extends BaseView {
         gridPapers.setDeleteOperation(
                 paper -> {
                     try {
-                        this.paperReferenceService.delete(paper);
+                        if (paper.getArchitectureSolution() != null) {
+                            // Confirm the deletion
+                            ConfirmDialog confirmDialog = new ConfirmDialog();
+                            confirmDialog.setHeader("Confirm Deletion");
+                            confirmDialog.setText(String.format("There is a Architecture Solution associated to this Paper Reference. This Solution will be deleted too. Are you sure you want to delete this Paper Reference [%s]?", paper.getTitle()));
+                            confirmDialog.setCancelable(true);
+                            confirmDialog.setConfirmText("Delete");
+                            confirmDialog.addConfirmListener(confirmEvent -> {
+                                // Perform deletion logic
+                                ArchitectureSolution as = paper.getArchitectureSolution();
+                                as.setPaperReference(null);
+                                as.setArchitecture(null);
+                                as.setDescription(null);
+                                as.setIoTDomain(null);
+                                this.architectureSolutionService.saveAndUpdate(as);
+                                this.architectureSolutionService.delete(as);
+                                this.paperReferenceService.delete(paper);
+                            });
+
+                            confirmDialog.open();
+                        }  else {
+                            this.paperReferenceService.delete(paper);
+                        }
+
                         this.refreshAllData();
                     } catch (Exception e) {
                         NotificationUtils.showErrorNotification("Error: " + e.getMessage());

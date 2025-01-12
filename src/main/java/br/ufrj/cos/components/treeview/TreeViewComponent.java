@@ -5,9 +5,12 @@ import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
+import br.ufrj.cos.components.sliderpanel.SliderPanel;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
+import com.vaadin.flow.component.ClickEvent;
+import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
@@ -46,6 +49,8 @@ public class TreeViewComponent extends VerticalLayout {
     StringBuilder pathString;
     @Getter
     private List<? extends DomainBase> treeViewData;
+    @Getter @Setter
+    private SliderPanel detailsSliderPanel;
 
     @Autowired
     public TreeViewComponent(QRCodeComponent qrCodeComponent,
@@ -70,6 +75,7 @@ public class TreeViewComponent extends VerticalLayout {
         btn.setText(text);
         btn.addClassName("button-base");
         btn.addClassName(className);
+
         return btn;
     }
 
@@ -81,7 +87,12 @@ public class TreeViewComponent extends VerticalLayout {
             Object data = node.getData();
 
             if (data instanceof IoTDomain) {
-                return addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
+                Button iotDomainLeaf =  addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
+                iotDomainLeaf.addClickListener(buttonClickEvent -> {
+                    IoTDomain domain = (IoTDomain) node.getData();
+                    new Text(String.format("Architecture: %s", domain.getName()));
+                });
+                return iotDomainLeaf;
             } else if (data instanceof ArchitectureSolution) {
                 return addBoxToTreeViewNode(((ArchitectureSolution) data).getArchitecture().getName(), "architecture-solution");
             } else if (data instanceof QualityRequirement) {
@@ -93,6 +104,7 @@ public class TreeViewComponent extends VerticalLayout {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
@@ -201,7 +213,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         // Create a button to handle the click event
         Button button = new Button(icon);
-        button.setTooltipText("More details");
+        button.setTooltipText("Reference details");
         button.addClickListener(event -> {
             this.selectRow(node, treeGrid);
             // Action when the icon is clicked
@@ -238,7 +250,7 @@ public class TreeViewComponent extends VerticalLayout {
      */
     private DiagramComponent createDiagram(String diagramNames) {
         List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
-        List<EdgeDiagram> edges = getEdgeDiagrams(nodes.size());
+        List<EdgeDiagram> edges = getEdgesDiagrams(nodes.size());
 
         this.diagramComponent.setNodes(nodes);
         this.diagramComponent.setEdges(edges);
@@ -260,7 +272,7 @@ public class TreeViewComponent extends VerticalLayout {
         }
     }
 
-    private List<EdgeDiagram> getEdgeDiagrams(int edgesCount) {
+    private List<EdgeDiagram> getEdgesDiagrams(int edgesCount) {
         List<EdgeDiagram> edges = new ArrayList<>();
 
         for (int i = 0; i < edgesCount; i++) {
@@ -349,6 +361,11 @@ public class TreeViewComponent extends VerticalLayout {
 
     public void addTreeRootSelection(TreeRootSelectionComponent rootSelection) {
         this.treeRootSelectionComponent = rootSelection;
+    }
+
+    private ComponentEventListener clickListener;
+    public void addNodeClickEvent(ComponentEventListener clickEvent) {
+        this.clickListener = clickEvent;
     }
 
     @Override
