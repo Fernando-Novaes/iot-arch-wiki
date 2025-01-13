@@ -3,6 +3,7 @@ package br.ufrj.cos.views.datamanager;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.utils.NotificationUtils;
+import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -250,8 +251,9 @@ class ArchitectureSolutionDataManager {
 
         ComboBox<QualityRequirement> qualityRequirementComboDialog = new ComboBox<>("Select Quality Requirement", this.qualityRequirementService.findAllOrderedByName());
         ComboBox<Technology> technologyComboDialog = new ComboBox<>("Select Technology", this.technologyService.findAllOrderedByDescription());
+        TextArea technoNotes = new TextArea();
 
-        dialogLayout.add(qualityRequirementComboDialog, technologyComboDialog);
+        dialogLayout.add(qualityRequirementComboDialog, technologyComboDialog, technoNotes);
         dialog.add(dialogLayout);
 
         //Save Quality Requirement and Technology
@@ -265,6 +267,7 @@ class ArchitectureSolutionDataManager {
             requirementTechnology.setQualityRequirement(qualityRequirement);
             requirementTechnology.setTechnology(technology);
             requirementTechnology.setArchitectureSolution(this.architectureSolution);
+            requirementTechnology.setNotes(technoNotes.getValue());
 
             if (this.architectureSolution.getQualityRequirementTechnologies() != null) {
                 this.architectureSolution.getQualityRequirementTechnologies().add(requirementTechnology);

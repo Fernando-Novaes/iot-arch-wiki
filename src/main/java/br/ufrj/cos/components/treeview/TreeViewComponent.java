@@ -9,7 +9,6 @@ import br.ufrj.cos.components.sliderpanel.SliderPanel;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
-import com.vaadin.flow.component.ClickEvent;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
@@ -262,7 +261,7 @@ public class TreeViewComponent extends VerticalLayout {
     /***
      * Set the background color of the node accordingly the pattern
      */
-    private String setDiagramNodesBackStyle(String domain) {
+    private String setBoxStyleToNodes(String domain) {
         switch (domain) {
             case "IoT Domain": return "#ED8312E5";
             case "Architecture Solution": return "#ffffff";
@@ -292,7 +291,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         names.forEach(n -> {
             String[] namesAndTypes = n.split("!");
-            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(names.indexOf(n))).label(namesAndTypes[0]).color(this.setDiagramNodesBackStyle(namesAndTypes[1])).tooltip(namesAndTypes[1]).build();
+            NodeDiagram dom = NodeDiagram.builder().id(String.valueOf(names.indexOf(n))).label(namesAndTypes[0]).color(this.setBoxStyleToNodes(namesAndTypes[1])).tooltip(namesAndTypes[1]).build();
             nodes.add(dom);
         });
 

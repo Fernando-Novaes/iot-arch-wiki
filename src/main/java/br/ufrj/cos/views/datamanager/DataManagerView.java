@@ -7,6 +7,7 @@ import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.html.Div;
@@ -178,6 +179,7 @@ public class DataManagerView extends BaseView {
      */
     private GridCrud<Technology> createTechnolgyGridCrud() {
         GridCrud<Technology> gridTechs = new GridCrud<>(Technology.class);
+        gridTechs.setShowNotifications(false);
         gridTechs.setSizeFull();
 //        gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridTechs.getGrid().getColumnByKey("description").setAutoWidth(true);
@@ -187,10 +189,18 @@ public class DataManagerView extends BaseView {
         gridTechs.setAddOperation(tech -> {
             this.technologyService.saveAndFlush(tech);
             this.refreshAllData();
-
+            this.refreshBadgeCount();
+            NotificationUtils.showSuccessNotification("Technology saved.");
             return tech;
         });
         gridTechs.setUpdateOperation(this.technologyService::saveAndUpdate);
+
+        gridTechs.setDeleteOperation(tech -> {
+            this.technologyService.delete(tech);
+            this.refreshAllData();
+            this.refreshBadgeCount();
+            NotificationUtils.showSuccessNotification("Technology deleted.");
+        });
 
         GridCRUDUtils.setColumnsOrder(gridTechs,"id", "description", "notes", "associations", "architectureSolutions", "qualityRequirements");
 
@@ -228,6 +238,7 @@ public class DataManagerView extends BaseView {
     private GridCrud<PaperReference> createPaperReferenceGridCrud() {
         GridCrud<PaperReference> gridPapers = new GridCrud<>(PaperReference.class);
         gridPapers.setSizeFull();
+        gridPapers.setShowNotifications(false);
         gridPapers.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridPapers.getGrid().getColumnByKey("title").setAutoWidth(true);
         gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link", "publishYear");
@@ -241,7 +252,7 @@ public class DataManagerView extends BaseView {
         gridPapers.setUpdateOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
-
+            NotificationUtils.showSuccessNotification("Paper Reference saved.");
             return paper;
         });
 
@@ -251,8 +262,9 @@ public class DataManagerView extends BaseView {
                         if (paper.getArchitectureSolution() != null) {
                             // Confirm the deletion
                             ConfirmDialog confirmDialog = new ConfirmDialog();
+                            confirmDialog.setText(
+                                    new Html(String.format("<p>There is an Architecture Solution associated with this Paper Reference.</br>This Solution will also be deleted. Are you sure you want to delete this Paper Reference: </br></br><b>%s</b></p>?", paper.getTitle())));
                             confirmDialog.setHeader("Confirm Deletion");
-                            confirmDialog.setText(String.format("There is a Architecture Solution associated to this Paper Reference. This Solution will be deleted too. Are you sure you want to delete this Paper Reference [%s]?", paper.getTitle()));
                             confirmDialog.setCancelable(true);
                             confirmDialog.setConfirmText("Delete");
                             confirmDialog.addConfirmListener(confirmEvent -> {
@@ -265,14 +277,16 @@ public class DataManagerView extends BaseView {
                                 this.architectureSolutionService.saveAndUpdate(as);
                                 this.architectureSolutionService.delete(as);
                                 this.paperReferenceService.delete(paper);
+                                this.refreshAllData();
+                                NotificationUtils.showSuccessNotification("Paper Reference deleted.");
                             });
 
                             confirmDialog.open();
                         }  else {
                             this.paperReferenceService.delete(paper);
+                            this.refreshAllData();
+                            NotificationUtils.showSuccessNotification("Paper Reference deleted.");
                         }
-
-                        this.refreshAllData();
                     } catch (Exception e) {
                         NotificationUtils.showErrorNotification("Error: " + e.getMessage());
                     }
@@ -291,6 +305,7 @@ public class DataManagerView extends BaseView {
     private GridCrud<QualityRequirement> createQualityRequirementGridCrud() {
         GridCrud<QualityRequirement> gridQualityRequirements = new GridCrud<>(QualityRequirement.class);
         gridQualityRequirements.setSizeFull();
+        gridQualityRequirements.setShowNotifications(false);
         gridQualityRequirements.getGrid().setDetailsVisibleOnClick(true);
         gridQualityRequirements.getCrudFormFactory().setVisibleProperties("name", "architectureSolution");
         gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name");
@@ -306,7 +321,7 @@ public class DataManagerView extends BaseView {
                 qr -> {
                     this.qualityRequirementService.saveAndFlush(qr);
                     this.refreshAllData();
-
+                    NotificationUtils.showSuccessNotification("Quality Requirement saved.");
                     return qr;
                 }
         );
@@ -314,13 +329,14 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.setUpdateOperation(qr -> {
             this.qualityRequirementService.saveAndFlush(qr);
             this.refreshAllData();
-
+            NotificationUtils.showSuccessNotification("Quality Requirement saved.");
             return qr;
         });
 
         gridQualityRequirements.setDeleteOperation(qr -> {
                     this.qualityRequirementService.delete(qr);
                     this.refreshAllData();
+                    NotificationUtils.showSuccessNotification("Quality Requirement deleted.");
                 }
         );
 
@@ -365,6 +381,7 @@ public class DataManagerView extends BaseView {
     private GridCrud<Architecture> createArchitectureGridCrud() {
         GridCrud<Architecture> gridArchs = new GridCrud<>(Architecture.class);
         gridArchs.setSizeFull();
+        gridArchs.setShowNotifications(false);
         gridArchs.getGrid().getColumnByKey("id").setWidth("60px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
         gridArchs.setDeleteOperation(
@@ -372,6 +389,7 @@ public class DataManagerView extends BaseView {
                     try {
                         this.architectureService.delete(arch);
                         this.refreshAllData();
+                        NotificationUtils.showSuccessNotification("Architecture Solution deleted.");
                     } catch (Exception e) {
                         NotificationUtils.showErrorNotification("Error: " + e.getMessage());
                     }
@@ -382,6 +400,7 @@ public class DataManagerView extends BaseView {
                     try {
                         this.architectureService.saveAndFlush(arch);
                         this.refreshAllData();
+                        NotificationUtils.showSuccessNotification("Architecture Solution saved.");
                         return arch;
                     } catch (Exception e) {
                         NotificationUtils.showErrorNotification("A Paper reference is mandatory.");
@@ -394,6 +413,7 @@ public class DataManagerView extends BaseView {
                     try {
                         this.architectureService.saveAndFlush(arch);
                         this.refreshAllData();
+                        NotificationUtils.showSuccessNotification("Architecture Solution saved.");
                         return arch;
                     } catch (Exception e) {
                         NotificationUtils.showErrorNotification("A Paper reference is mandatory.");
@@ -436,6 +456,7 @@ public class DataManagerView extends BaseView {
     private GridCrud<IoTDomain> createIoTDomainGridCrud() {
         GridCrud<IoTDomain> gridDomains = new GridCrud<>(IoTDomain.class);
         gridDomains.setSizeFull();
+        gridDomains.setShowNotifications(false);
         gridDomains.getCrudFormFactory().setVisibleProperties("id", "name");
         gridDomains.getGrid().removeColumnByKey("architectureSolutions");
         gridDomains.setShowNotifications(true);
@@ -447,7 +468,7 @@ public class DataManagerView extends BaseView {
                 domain -> {
                     this.domainService.saveAndFlush(domain);
                     this.refreshAllData();
-
+                    NotificationUtils.showErrorNotification("IoT Domain saved.");
                     return domain;
                 });
         gridDomains.setFindAllOperation(this.domainService::findAllOrderByName);
@@ -455,7 +476,7 @@ public class DataManagerView extends BaseView {
                 domain -> {
                     this.domainService.saveOrUpdate(domain);
                     this.refreshAllData();
-
+                    NotificationUtils.showErrorNotification("IoT Domain saved.");
                     return domain;
                 });
         gridDomains.setDeleteOperation(
@@ -463,6 +484,7 @@ public class DataManagerView extends BaseView {
                     try {
                         this.domainService.delete(d);
                         this.refreshAllData();
+                        NotificationUtils.showErrorNotification("IoT Domain deleted.");
                     } catch (Exception e) {
                         NotificationUtils.showErrorNotification("Error: " + e.getMessage());
                     }

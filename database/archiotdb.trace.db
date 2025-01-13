@@ -1452,3 +1452,6 @@ Caused by: org.h2.mvstore.MVStoreException: The file is locked: C:/Users/Fernand
 	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
 	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
 	... 28 more
+2025-01-12 20:05:46.933936-03:00 jdbc[23]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "DESCRIPTION CHARACTER VARYING(255)": "U&'Fog layer in two levels: First Level\\2013Intra mobility (User network): Nodes... (267)"; SQL statement:
+insert into technology (description,notes,id) values (?,?,default) [22001-224]

@@ -91,7 +91,7 @@ public class IoTArchView extends BaseView {
         this.treeViewDataSource = this.treeView.getTreeViewData();
 
         this.createHeader("IoT-Arch Knowledge Base");
-        getContent().add(this.createSearchDiv(), treeView);
+        getContent().add(this.createSearchDiv(), treeView, this.sliderPanel);
         this.loadDataToComboBoxes(ActionType.NONE);
 
         this.createDetailSliderPanel();
@@ -262,8 +262,8 @@ public class IoTArchView extends BaseView {
         this.prepareComboBox(technologiesCombo, ActionType.TECHNOLOGY);
         //technologiesCombo.setItems(this.technologyService.findAllOrderedByDescription());
 
-        this.publishYearCombo = new ComboBox<>("Published Year");
-        this.prepareComboBox(publishYearCombo, ActionType.PUBLISHYEAR);
+//        this.publishYearCombo = new ComboBox<>("Published Year");
+//        this.prepareComboBox(publishYearCombo, ActionType.PUBLISHYEAR);
 
         this.prepareComboBoxLayout();
 
@@ -336,7 +336,7 @@ public class IoTArchView extends BaseView {
                 this.architectureCombo,
                 this.qualityCombo,
                 this.technologiesCombo,
-                this.publishYearCombo,
+                //this.publishYearCombo,
                 searchButton,
                 cancelButton
         );
@@ -448,13 +448,13 @@ public class IoTArchView extends BaseView {
             this.technologiesCombo.setItems(list.stream().distinct().toList());
         }
 
-        List<Integer> publishYears = new ArrayList<>();
-        this.paperReferenceService.findAll().forEach(paper -> {
-            if (!publishYears.contains(paper.getPublishYear())) {
-                publishYears.add(paper.getPublishYear());
-            }
-        });
-        this.publishYearCombo.setItems(publishYears.stream().sorted().distinct().toList());
+//        List<Integer> publishYears = new ArrayList<>();
+//        this.paperReferenceService.findAll().forEach(paper -> {
+//            if (!publishYears.contains(paper.getPublishYear())) {
+//                publishYears.add(paper.getPublishYear());
+//            }
+//        });
+//        this.publishYearCombo.setItems(publishYears.stream().sorted().distinct().toList());
     }
 
     private void filterTreeViewDataSource() {
@@ -490,17 +490,17 @@ public class IoTArchView extends BaseView {
         list.add(finalDomain);
 
         //Search by publishDate
-        if (publishYearCombo.getValue() != null) {
-            list = listAux.stream().filter(x -> {
-                x.getArchitectureSolutions().stream().filter(a -> {
-                    if (!Objects.equals(a.getPaperReference().getPublishYear(), publishYearCombo.getValue())) {
-                        listAux.remove(x);
-                    }
-                    return true;
-                }).toList();
-                return true;
-            }).toList();
-        }
+//        if (publishYearCombo.getValue() != null) {
+//            list = listAux.stream().filter(x -> {
+//                x.getArchitectureSolutions().stream().filter(a -> {
+//                    if (!Objects.equals(a.getPaperReference().getPublishYear(), publishYearCombo.getValue())) {
+//                        listAux.remove(x);
+//                    }
+//                    return true;
+//                }).toList();
+//                return true;
+//            }).toList();
+//        }
 
         this.treeView.setTreeViewData(list);
     }
@@ -514,6 +514,7 @@ public class IoTArchView extends BaseView {
         this.sliderPanel.setButtonTexts("Hide Details", "Show Details");
         this.sliderPanel.setExpanded(false);
 
-        getContent().add(this.sliderPanel);
+        this.treeView.setDetailsSliderPanel(this.sliderPanel);
+
     }
 }

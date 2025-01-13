@@ -51,4 +51,8 @@ public class TechnologyService {
     public List<Technology> findByDescription(String description) {
         return this.technologyRepository.findByDescriptionContainingIgnoreCase(description);
     }
+
+    public void delete(Technology technology) {
+        technologyRepository.delete(technology);
+    }
 }
