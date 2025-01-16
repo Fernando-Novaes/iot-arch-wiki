@@ -75,6 +75,14 @@ public class TreeViewComponent extends VerticalLayout {
         btn.addClassName("button-base");
         btn.addClassName(className);
 
+        btn.getElement().addEventListener("mouseover", event -> {
+            this.detailsSliderPanel.setContent(new Text(String.format("Architecture: %s", text)));
+        });
+
+        btn.getElement().addEventListener("mouseout", event -> {
+            this.detailsSliderPanel.setContent(new Text(String.format("Architecture: %s", "")));
+        });
+
         return btn;
     }
 
@@ -86,12 +94,7 @@ public class TreeViewComponent extends VerticalLayout {
             Object data = node.getData();
 
             if (data instanceof IoTDomain) {
-                Button iotDomainLeaf =  addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
-                iotDomainLeaf.addClickListener(buttonClickEvent -> {
-                    IoTDomain domain = (IoTDomain) node.getData();
-                    new Text(String.format("Architecture: %s", domain.getName()));
-                });
-                return iotDomainLeaf;
+                return addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
             } else if (data instanceof ArchitectureSolution) {
                 return addBoxToTreeViewNode(((ArchitectureSolution) data).getArchitecture().getName(), "architecture-solution");
             } else if (data instanceof QualityRequirement) {
