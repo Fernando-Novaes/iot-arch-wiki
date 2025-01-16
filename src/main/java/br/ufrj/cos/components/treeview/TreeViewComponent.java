@@ -11,6 +11,7 @@ import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -69,18 +70,34 @@ public class TreeViewComponent extends VerticalLayout {
         this.treeViewData = treeViewData;
     }
 
-    private Button addBoxToTreeViewNode(String text, String className) {
+    private Button addBoxToTreeViewNode(TreeNode<?> node, String className) {
         Button btn = new Button();
-        btn.setText(text);
         btn.addClassName("button-base");
         btn.addClassName(className);
 
+        StringBuilder details = new StringBuilder();
+        details.append("<p><b>Details:</b>");
+        if (node.getData() instanceof ArchitectureSolution solution) {
+            btn.setText(solution.getArchitecture().getName());
+            details.append(String.format("<br><br><b>Architecture:</b> %s</br></br>", solution.getArchitecture().getName()));
+            details.append(String.format("<b>Description:</b> %s", solution.getDescription()));
+        } else if (node.getData() instanceof IoTDomain domain) {
+            btn.setText(domain.getName());
+        } else if (node.getData() instanceof QualityRequirement qr) {
+            btn.setText(qr.getName());
+        } else if (node.getData() instanceof Technology tech) {
+            btn.setText(tech.getDescription());
+        }
+
         btn.getElement().addEventListener("mouseover", event -> {
-            this.detailsSliderPanel.setContent(new Text(String.format("Architecture: %s", text)));
+            VerticalLayout vl = new VerticalLayout();
+            vl.setWidthFull();
+            vl.add(new Html(details.toString()));
+            this.detailsSliderPanel.setContent(vl);
         });
 
         btn.getElement().addEventListener("mouseout", event -> {
-            this.detailsSliderPanel.setContent(new Text(String.format("Architecture: %s", "")));
+            this.detailsSliderPanel.setContent(new Text(""));
         });
 
         return btn;
@@ -94,11 +111,11 @@ public class TreeViewComponent extends VerticalLayout {
             Object data = node.getData();
 
             if (data instanceof IoTDomain) {
-                return addBoxToTreeViewNode(((IoTDomain) data).getName(), "iot-domain");
+                return addBoxToTreeViewNode(node, "iot-domain");
             } else if (data instanceof ArchitectureSolution) {
-                return addBoxToTreeViewNode(((ArchitectureSolution) data).getArchitecture().getName(), "architecture-solution");
+                return addBoxToTreeViewNode(node, "architecture-solution");
             } else if (data instanceof QualityRequirement) {
-                return addBoxToTreeViewNode(((QualityRequirement) data).getName(), "quality-requirement");
+                return addBoxToTreeViewNode(node, "quality-requirement");
             } else if (data instanceof Technology) {
                 String nodeNames = null;
                 try {
@@ -211,7 +228,7 @@ public class TreeViewComponent extends VerticalLayout {
         // Create an icon
         Icon icon = VaadinIcon.INFO_CIRCLE.create(); // Use any icon you prefer
         icon.getElement().getStyle().set("cursor", "pointer"); // Change cursor style to pointer for clickable effect
-        icon.setSize("24px");
+        icon.setSize("20px");
 
         // Create a button to handle the click event
         Button button = new Button(icon);
@@ -233,12 +250,12 @@ public class TreeViewComponent extends VerticalLayout {
 
         this.createDiagram(diagramNames);
 
-        button.getStyle().set("min-width", "25px"); // Set the button size
-        button.getStyle().set("height", "35px"); // Set the button size
+        button.getStyle().set("min-width", "20px"); // Set the button size
+        button.getStyle().set("height", "22px"); // Set the button size
 
         // Create a layout to hold the text and the icon
         HorizontalLayout  layout = new HorizontalLayout ();
-        layout.add(addBoxToTreeViewNode(((Technology) node.getData()).getDescription(), "technology"), button);
+        layout.add(addBoxToTreeViewNode(node, "technology"), button);
         layout.setAlignItems(Alignment.CENTER);
         //layout.setSpacing(true); // Remove spacing between text and icon
 

@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTreeBuilder, QualityRequirementTreeBuilder {
@@ -19,7 +20,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                 .sorted(Comparator.comparing(solution -> solution.getArchitecture().getName()))
                 .forEach(solution -> {
                     TreeNode<ArchitectureSolution> solutionNode = new TreeNode<>(solution);
-                    buildQualityRequirementNodes(solution, solutionNode);
+                    buildQualityRequirementToExistNode(solution, solutionNode);
                     domainNode.addChild(solutionNode);
                 });
 
@@ -73,12 +74,14 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         return reqNode;
     }
 
-    private void buildQualityRequirementNodes(ArchitectureSolution solution, TreeNode<ArchitectureSolution> solutionNode) {
+    private void buildQualityRequirementToExistNode(ArchitectureSolution solution, TreeNode<ArchitectureSolution> solutionNode) {
         solution.getQualityRequirementTechnologies().stream()
-                //.sorted(Comparator.comparing(QualityRequirement::getName))
+                .sorted(Comparator.comparing(s -> s.getQualityRequirement().getName()))
                 .forEach(requirement -> {
                     TreeNode<QualityRequirement> reqNode = findOrCreateQualityRequirementNode(requirement.getQualityRequirement(), solutionNode);
-                    reqNode.addChild(buildTechnologyNode(requirement.getTechnology()));
+                    TreeNode<Technology> techNode = buildTechnologyNode(requirement.getTechnology());
+                    techNode.addChild(new TreeNode<>(requirement.getArchitectureSolution().getIoTDomain()));
+                    reqNode.addChild(techNode);
                 });
     }
 
@@ -119,10 +122,18 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         else if (firstItem instanceof ArchitectureSolution) {
             @SuppressWarnings("unchecked")
             List<ArchitectureSolution> solutions = (List<ArchitectureSolution>) list;
+
             solutions.stream()
                     .sorted(Comparator.comparing(solution -> solution.getArchitecture().getName()))
                     .forEach(solution -> {
-                        root.addChild(buildArchitectureSolutionNode(solution));
+                        Optional<TreeNode<?>> result = root.getChildren().stream().filter(node ->
+                                ((ArchitectureSolution)node.getData()).getArchitecture().equals(solution.getArchitecture())).findAny();
+
+                        if (result.isPresent()) {
+                            buildQualityRequirementToExistNode(solution, (TreeNode<ArchitectureSolution>) result.get());
+                        } else {
+                            root.addChild(buildArchitectureSolutionNode(solution));
+                        }
                     });
         }
         else if (firstItem instanceof QualityRequirement) {

@@ -90,8 +90,7 @@ public class SliderPanel extends Div {
     public void setContent(Component... components) {
         content.removeAll();
         VerticalLayout layout = new VerticalLayout();
-        layout.setHeight("100%");
-        layout.setWidth("100%");
+        layout.setSizeFull();
         layout.setPadding(true);
         layout.setSpacing(true);
         layout.removeAll();

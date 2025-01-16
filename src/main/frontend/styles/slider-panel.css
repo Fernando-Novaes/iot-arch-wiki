@@ -5,7 +5,7 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: 400px; /* Default width */
+    width: 25%; /* Default width */
     z-index: 1000;
     background-color: var(--lumo-base-color);
     box-shadow: -2px 0 8px rgba(0, 0, 0, 0.1);

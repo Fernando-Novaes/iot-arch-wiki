@@ -67,7 +67,7 @@ public class DiagramComponent extends VerticalLayout {
                         "nodes: { shape: 'box', size: 16, font: { size: 12 }, borderWidth: 2, shadow: true }, " +
                         "edges: { smooth: { type: 'vertical', forceDirection: 'vertical', roundness: 0 }, width: 2, shadow: false }, " +
                         "physics: { hierarchicalRepulsion: { centralGravity: 0, avoidOverlap: null }, " +
-                                    "maxVelocity: 91, minVelocity: 0.61, solver: 'hierarchicalRepulsion', enabled: true, stabilization: true }, interaction: { zoomView: true } };" +
+                                    "solver: 'hierarchicalRepulsion', enabled: true, stabilization: true }, interaction: { zoomView: true } };" +
 
                 "var network = new vis.Network(container, data, options);"+
                 "network.once('stabilizationIterationsDone', function () {"+
