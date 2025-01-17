@@ -41,7 +41,7 @@ public class SliderPanel extends Div {
         content.addClassName("slider-content");
 
         // Set default width for right-side panel
-        content.getStyle().set("width", "40%");
+        content.getStyle().set("width", "100%");
 
         // Configure vertical text
         toggleButton.getElement().getStyle()
@@ -89,13 +89,14 @@ public class SliderPanel extends Div {
 
     public void setContent(Component... components) {
         content.removeAll();
-        VerticalLayout layout = new VerticalLayout();
-        layout.setSizeFull();
-        layout.setPadding(true);
-        layout.setSpacing(true);
-        layout.removeAll();
-        layout.add(components);
-        content.add(layout);
+//        VerticalLayout layout = new VerticalLayout();
+//        layout.setHeightFull();
+//        layout.setWidthFull();
+//        layout.setPadding(true);
+//        layout.setSpacing(true);
+//        layout.removeAll();
+//        layout.add(components);
+        content.add(components);
     }
 
     public void setButtonTexts(String expandedText, String collapsedText) {

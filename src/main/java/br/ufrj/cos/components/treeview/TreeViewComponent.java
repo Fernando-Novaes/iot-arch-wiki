@@ -90,10 +90,10 @@ public class TreeViewComponent extends VerticalLayout {
         }
 
         btn.getElement().addEventListener("mouseover", event -> {
-            VerticalLayout vl = new VerticalLayout();
-            vl.setWidthFull();
-            vl.add(new Html(details.toString()));
-            this.detailsSliderPanel.setContent(vl);
+            HorizontalLayout hl = new HorizontalLayout();
+            hl.setWidthFull();
+            hl.add(new Html(details.toString()));
+            this.detailsSliderPanel.setContent(hl);
         });
 
         btn.getElement().addEventListener("mouseout", event -> {
