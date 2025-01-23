@@ -11,7 +11,6 @@ import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -81,23 +80,28 @@ public class TreeViewComponent extends VerticalLayout {
             btn.setText(solution.getArchitecture().getName());
             details.append(String.format("<br><br><b>Architecture:</b> %s</br></br>", solution.getArchitecture().getName()));
             details.append(String.format("<b>Description:</b> %s", solution.getDescription()));
+            btn.getElement().addEventListener("mouseover", event -> {
+                this.detailsSliderPanel.setArchitectureContent(new Text(details.toString()));
+            });
         } else if (node.getData() instanceof IoTDomain domain) {
+            btn.getElement().addEventListener("mouseover", event -> {
+                this.detailsSliderPanel.setIoTDomainContent(new Text(domain.getName()));
+            });
             btn.setText(domain.getName());
         } else if (node.getData() instanceof QualityRequirement qr) {
+            btn.getElement().addEventListener("mouseover", event -> {
+                this.detailsSliderPanel.setQualityRequirementContent(new Text(qr.getName()));
+            });
             btn.setText(qr.getName());
         } else if (node.getData() instanceof Technology tech) {
+            btn.getElement().addEventListener("mouseover", event -> {
+                this.detailsSliderPanel.setTechnologyContent(new Text(tech.getNotes()));
+            });
             btn.setText(tech.getDescription());
         }
 
-        btn.getElement().addEventListener("mouseover", event -> {
-            HorizontalLayout hl = new HorizontalLayout();
-            hl.setWidthFull();
-            hl.add(new Html(details.toString()));
-            this.detailsSliderPanel.setContent(hl);
-        });
-
         btn.getElement().addEventListener("mouseout", event -> {
-            this.detailsSliderPanel.setContent(new Text(""));
+            this.detailsSliderPanel.clearContents();
         });
 
         return btn;

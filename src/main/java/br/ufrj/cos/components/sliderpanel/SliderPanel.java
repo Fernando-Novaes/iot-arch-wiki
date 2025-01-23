@@ -4,15 +4,11 @@ import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
-import lombok.Builder;
 
 @SpringComponent
 @UIScope
@@ -23,6 +19,12 @@ public class SliderPanel extends Div {
     private boolean expanded = true; // Default to expanded
     private String expandedText = "Hide Detail";
     private String collapsedText = "Show Detail";
+
+    private HorizontalLayout header = new HorizontalLayout();
+    private HorizontalLayout iotDomainHL = new HorizontalLayout();
+    private HorizontalLayout archHL = new HorizontalLayout();
+    private HorizontalLayout qrHL = new HorizontalLayout();
+    private HorizontalLayout techHL = new HorizontalLayout();
 
     public SliderPanel() {
         this.removeAll();
@@ -49,6 +51,7 @@ public class SliderPanel extends Div {
                 .set("text-orientation", "mixed")
                 .set("transform", "rotate(180deg)"); // This makes text read from top to bottom
 
+        this.addDetailsContent();
         add(toggleButton, content);
     }
 
@@ -87,16 +90,62 @@ public class SliderPanel extends Div {
         }
     }
 
-    public void setContent(Component... components) {
-        content.removeAll();
-//        VerticalLayout layout = new VerticalLayout();
-//        layout.setHeightFull();
-//        layout.setWidthFull();
-//        layout.setPadding(true);
-//        layout.setSpacing(true);
-//        layout.removeAll();
-//        layout.add(components);
-        content.add(components);
+    private void addDetailsContent() {
+        header.setWidth("100%");
+        header.setSpacing(true);
+        header.setPadding(false);
+        header.setHeight("10%");
+        header.add(new Html("<p><h1><b>Details:</b></h1><p>"));
+
+        iotDomainHL.setWidth("100%");
+        iotDomainHL.setSpacing(true);
+        iotDomainHL.setPadding(false);
+        iotDomainHL.setHeight("10%");
+
+        archHL.setWidth("100%");
+        archHL.setSpacing(true);
+        archHL.setPadding(false);
+        archHL.setHeight("25%");
+
+        qrHL.setWidth("100%");
+        qrHL.setSpacing(true);
+        qrHL.setPadding(false);
+        qrHL.setHeight("25%");
+
+        techHL.setWidth("100%");
+        techHL.setSpacing(true);
+        techHL.setPadding(false);
+        techHL.setHeight("30%");
+
+        content.add(header, iotDomainHL, archHL, qrHL, techHL);
+    }
+
+    public void setIoTDomainContent(Component component) {
+        iotDomainHL.removeAll();
+        iotDomainHL.add(new Html("<p><h1><b>IoT Domain:</b></h1><p></br>"), component);
+    }
+
+    public void setArchitectureContent(Component component) {
+        archHL.removeAll();
+        archHL.add(new Html("<p><h3><b>Architecture:</b></h3><p></br>"), component);
+    }
+
+    public void setQualityRequirementContent(Component component) {
+        qrHL.removeAll();
+        qrHL.add(new Html("<p><h3><b>Quality Requirement:</b></h3><p></br>"), component);
+    }
+
+    public void setTechnologyContent(Component component) {
+        techHL.removeAll();
+        techHL.add(new Html("<p><h3><b>Technology:</b></h3><p></br>"), component);
+    }
+
+    public void clearContents() {
+        header.removeAll();
+        iotDomainHL.removeAll();
+        archHL.removeAll();
+        qrHL.removeAll();
+        techHL.removeAll();
     }
 
     public void setButtonTexts(String expandedText, String collapsedText) {

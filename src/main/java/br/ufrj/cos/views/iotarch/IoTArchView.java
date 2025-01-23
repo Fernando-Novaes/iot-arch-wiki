@@ -510,7 +510,7 @@ public class IoTArchView extends BaseView {
      * Creates the search panel at the bottom of the page
      */
     private void createDetailSliderPanel() {
-        this.sliderPanel.setContent(new Text("Side Panel..."));
+        //this.sliderPanel.setContent(new Text("Side Panel..."));
         this.sliderPanel.setButtonTexts("Hide Details", "Show Details");
         this.sliderPanel.setExpanded(false);
 
