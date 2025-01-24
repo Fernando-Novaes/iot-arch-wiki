@@ -11,6 +11,7 @@ import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
 import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -70,32 +71,65 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     private Button addBoxToTreeViewNode(TreeNode<?> node, String className) {
-        Button btn = new Button();
+        String STRING_TITLE_DETAILS = "<div>" +
+                                      "<h3>%s: </h3>" +
+                                      "<b>%s</b>" +
+                                      "</br><div style='font-style: italic; margin-bottom: 5px;'>%s</div>" +
+                                      "</div>";
+
+                Button btn = new Button();
         btn.addClassName("button-base");
         btn.addClassName(className);
 
-        StringBuilder details = new StringBuilder();
-        details.append("<p><b>Details:</b>");
         if (node.getData() instanceof ArchitectureSolution solution) {
             btn.setText(solution.getArchitecture().getName());
-            details.append(String.format("<br><br><b>Architecture:</b> %s</br></br>", solution.getArchitecture().getName()));
-            details.append(String.format("<b>Description:</b> %s", solution.getDescription()));
+
             btn.getElement().addEventListener("mouseover", event -> {
-                this.detailsSliderPanel.setArchitectureContent(new Text(details.toString()));
+                this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", solution.getIoTDomain().getName(),
+                                (solution.getIoTDomain().getDescription() == null) ? "No description" : solution.getIoTDomain().getDescription()))));
+                this.detailsSliderPanel.setArchitectureContent(
+                        new HorizontalLayout(
+                                new Html(String.format(STRING_TITLE_DETAILS, "Architecture", solution.getArchitecture().getName(),
+                                        (solution.getDescription().isEmpty()) ? "No description" : solution.getDescription()))));
             });
         } else if (node.getData() instanceof IoTDomain domain) {
             btn.getElement().addEventListener("mouseover", event -> {
-                this.detailsSliderPanel.setIoTDomainContent(new Text(domain.getName()));
+                this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", domain.getName(),
+                                (domain.getDescription() == null) ? "No description" : domain.getDescription()))));
             });
             btn.setText(domain.getName());
         } else if (node.getData() instanceof QualityRequirement qr) {
             btn.getElement().addEventListener("mouseover", event -> {
-                this.detailsSliderPanel.setQualityRequirementContent(new Text(qr.getName()));
+                IoTDomain domain = qr.getAssociations().getFirst().getArchitectureSolution().getIoTDomain();
+                this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", domain.getName(),
+                                (domain.getDescription() == null) ? "No description" : domain.getDescription()))));
+                this.detailsSliderPanel.setArchitectureContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "Architecture", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(), (qr.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
+                                "No description" : qr.getAssociations().getFirst().getArchitectureSolution().getDescription()))));
+                this.detailsSliderPanel.setQualityRequirementContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "Quality Requirement", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(), (qr.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
+                                "No description"))));
+                        new Text(qr.getName())));
             });
             btn.setText(qr.getName());
         } else if (node.getData() instanceof Technology tech) {
             btn.getElement().addEventListener("mouseover", event -> {
-                this.detailsSliderPanel.setTechnologyContent(new Text(tech.getNotes()));
+                IoTDomain domain = tech.getAssociations().getFirst().getQualityRequirement().getAssociations().getFirst().getArchitectureSolution().getIoTDomain();
+                this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", domain.getName(),
+                                (domain.getDescription() == null) ? "No description" : domain.getDescription()))));
+                this.detailsSliderPanel.setArchitectureContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "Architecture", tech.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
+                        (tech.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
+                        "No description" : tech.getAssociations().getFirst().getArchitectureSolution().getDescription()))));
+                this.detailsSliderPanel.setQualityRequirementContent(
+                        new HorizontalLayout(
+                                new Text(tech.getAssociations().getFirst().getQualityRequirement().getName())));
+                this.detailsSliderPanel.setTechnologyContent(
+                        new HorizontalLayout(new Html(String.format(String.format(STRING_TITLE_DETAILS, "Technology", tech.getDescription(), (tech.getNotes() == null)? "No description" : tech.getNotes())))));
             });
             btn.setText(tech.getDescription());
         }

@@ -7,6 +7,7 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
@@ -73,9 +74,6 @@ public class SliderPanel extends Div {
         // Add text first (it will appear at the bottom due to rotation)
         String text = isExpanded ? expandedText : collapsedText;
         toggleButton.getElement().appendChild(new Text(text).getElement());
-
-        // Add icon last (it will appear at the top due to rotation)
-        //toggleButton.getElement().appendChild(icon.getElement());
     }
 
     public void toggle() {
@@ -90,13 +88,28 @@ public class SliderPanel extends Div {
         }
     }
 
-    private void addDetailsContent() {
-        header.setWidth("100%");
-        header.setSpacing(true);
-        header.setPadding(false);
-        header.setHeight("10%");
-        header.add(new Html("<p><h1><b>Details:</b></h1><p>"));
+    public void setIoTDomainContent(Component component) {
+        //iotDomainHL.removeAll();
+        iotDomainHL.add(component);
+    }
 
+    public void setArchitectureContent(Component component) {
+        //archHL.removeAll();
+        archHL.add(component);
+    }
+
+    public void setQualityRequirementContent(Component component) {
+        //qrHL.removeAll();
+        qrHL.add(component);
+    }
+
+    public void setTechnologyContent(Component component) {
+        //techHL.removeAll();
+        techHL.add(component);
+    }
+
+    private void addDetailsContent() {
+        // Keep existing width, spacing, and height configurations
         iotDomainHL.setWidth("100%");
         iotDomainHL.setSpacing(true);
         iotDomainHL.setPadding(false);
@@ -117,27 +130,10 @@ public class SliderPanel extends Div {
         techHL.setPadding(false);
         techHL.setHeight("30%");
 
+        // Add a main header if needed
+        header.add(new Html("<div><h1>Details</h1></div>"));
+
         content.add(header, iotDomainHL, archHL, qrHL, techHL);
-    }
-
-    public void setIoTDomainContent(Component component) {
-        iotDomainHL.removeAll();
-        iotDomainHL.add(new Html("<p><h1><b>IoT Domain:</b></h1><p></br>"), component);
-    }
-
-    public void setArchitectureContent(Component component) {
-        archHL.removeAll();
-        archHL.add(new Html("<p><h3><b>Architecture:</b></h3><p></br>"), component);
-    }
-
-    public void setQualityRequirementContent(Component component) {
-        qrHL.removeAll();
-        qrHL.add(new Html("<p><h3><b>Quality Requirement:</b></h3><p></br>"), component);
-    }
-
-    public void setTechnologyContent(Component component) {
-        techHL.removeAll();
-        techHL.add(new Html("<p><h3><b>Technology:</b></h3><p></br>"), component);
     }
 
     public void clearContents() {
