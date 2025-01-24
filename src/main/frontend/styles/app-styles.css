@@ -15,6 +15,7 @@
     font-weight: bold;
     color: black;
     height: 22px;
+    cursor: pointer;
 }
 
 /* IoT Domain button style */

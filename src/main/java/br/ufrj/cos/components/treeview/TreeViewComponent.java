@@ -39,6 +39,7 @@ import java.util.List;
 @CssImport(value = "./styles/app-styles.css", themeFor = "vaadin-grid")
 public class TreeViewComponent extends VerticalLayout {
 
+    private final TreeGrid<TreeNode<?>> treeGrid = new TreeGrid<>();
     private final QRCodeComponent qrCodeComponent;
     private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
@@ -110,9 +111,8 @@ public class TreeViewComponent extends VerticalLayout {
                         new Html(String.format(STRING_TITLE_DETAILS, "Architecture", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(), (qr.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
                                 "No description" : qr.getAssociations().getFirst().getArchitectureSolution().getDescription()))));
                 this.detailsSliderPanel.setQualityRequirementContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "Quality Requirement", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(), (qr.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
+                        new Html(String.format(STRING_TITLE_DETAILS, "Quality Requirement", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
                                 "No description"))));
-                        new Text(qr.getName())));
             });
             btn.setText(qr.getName());
         } else if (node.getData() instanceof Technology tech) {
@@ -125,14 +125,19 @@ public class TreeViewComponent extends VerticalLayout {
                         new Html(String.format(STRING_TITLE_DETAILS, "Architecture", tech.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
                         (tech.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
                         "No description" : tech.getAssociations().getFirst().getArchitectureSolution().getDescription()))));
-                this.detailsSliderPanel.setQualityRequirementContent(
-                        new HorizontalLayout(
-                                new Text(tech.getAssociations().getFirst().getQualityRequirement().getName())));
+                QualityRequirement qr = tech.getAssociations().getFirst().getQualityRequirement();
+                this.detailsSliderPanel.setQualityRequirementContent(new HorizontalLayout(
+                        new Html(String.format(STRING_TITLE_DETAILS, "Quality Requirement", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
+                                "No description"))));
                 this.detailsSliderPanel.setTechnologyContent(
                         new HorizontalLayout(new Html(String.format(String.format(STRING_TITLE_DETAILS, "Technology", tech.getDescription(), (tech.getNotes() == null)? "No description" : tech.getNotes())))));
             });
             btn.setText(tech.getDescription());
         }
+
+        btn.addClickListener(click -> {
+            this.selectRow(node, this.treeGrid);
+        });
 
         btn.getElement().addEventListener("mouseout", event -> {
             this.detailsSliderPanel.clearContents();
@@ -143,8 +148,6 @@ public class TreeViewComponent extends VerticalLayout {
 
     public void load() {
         // Define columns (e.g., displaying IoT Domain names)
-        TreeGrid<TreeNode<?>> treeGrid = new TreeGrid<>();
-
         treeGrid.addComponentHierarchyColumn(node -> {
             Object data = node.getData();
 
