@@ -4,8 +4,10 @@ package br.ufrj.cos.repository;
 import br.ufrj.cos.components.chart.data.QualityRequirementChartRecord;
 import br.ufrj.cos.domain.QualityRequirement;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -13,6 +15,17 @@ import java.util.List;
 
 @Repository
 public interface QualityRequirementRepository extends JpaRepository<QualityRequirement, Long> {
+
+    @Query("SELECT DISTINCT qr FROM QualityRequirement qr " +
+            "JOIN QualityRequirementTechnology qrt ON qrt.qualityRequirement = qr " +
+            "JOIN ArchitectureSolution a ON qrt.architectureSolution = a " +
+            "WHERE a.ioTDomain.name = :domainName " +
+            "AND a.architecture.name = :architectureName")
+    @QueryHints({@QueryHint(name = org.hibernate.annotations.QueryHints.CACHEABLE, value = "false")})
+    List<QualityRequirement> findByIoTDomainAndArchitecture(
+            @Param("domainName") String domainName,
+            @Param("architectureName") String architectureName
+    );
 
     @Query(value = "select q from QualityRequirement as q")
     List<QualityRequirement> searchAll();

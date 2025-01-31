@@ -17,6 +17,8 @@ public class ArchitectureSolution extends DomainBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String description;
 
     @ManyToOne(fetch = FetchType.EAGER)

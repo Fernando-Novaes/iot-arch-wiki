@@ -8,6 +8,7 @@ import br.ufrj.cos.views.record.IoTDomainRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -28,15 +29,21 @@ public class IoTDomainService {
         return ioTDomainRepository.findByNameContainingIgnoreCase(name);
     }
 
+    @Transactional(readOnly = true)
     public List<IoTDomainRecord> findAllIoTDomainGroupedByName() {
+        ioTDomainRepository.flush();
         return ioTDomainRepository.findAllIoTDomainsGroupedByName();
     }
 
+    @Transactional(readOnly = true)
     public List<IoTDomain> findAll() {
+        ioTDomainRepository.flush();
         return ioTDomainRepository.findAll();
     }
 
+    @Transactional(readOnly = true)
     public List<IoTDomain> findAllOrderByName() {
+        ioTDomainRepository.flush();
         return ioTDomainRepository.findAll(Sort.by("name"));
     }
 

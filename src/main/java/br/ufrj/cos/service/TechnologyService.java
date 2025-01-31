@@ -6,6 +6,7 @@ import br.ufrj.cos.repository.TechnologyRepository;
 import br.ufrj.cos.views.record.TechnologyRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -54,5 +55,9 @@ public class TechnologyService {
 
     public void delete(Technology technology) {
         technologyRepository.delete(technology);
+    }
+
+    public List<Technology> findByIoTDomainAndArchitectureAndQualityRequirement(String domainName, String architectureName, String qualityRequirementName) {
+        return this.technologyRepository.findByIoTDomainAndArchitectureAndQualityRequirement(domainName, architectureName, qualityRequirementName);
     }
 }

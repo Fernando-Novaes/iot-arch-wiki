@@ -33,13 +33,14 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @UIScope
 @Component
 @CssImport(value = "./styles/app-styles.css", themeFor = "vaadin-grid")
 public class TreeViewComponent extends VerticalLayout {
 
-    private final TreeGrid<TreeNode<?>> treeGrid = new TreeGrid<>();
+    private TreeGrid<TreeNode<?>> treeGrid;
     private final QRCodeComponent qrCodeComponent;
     private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
@@ -72,81 +73,131 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     private Button addBoxToTreeViewNode(TreeNode<?> node, String className) {
-        String STRING_TITLE_DETAILS = "<div>" +
-                                      "<h3>%s: </h3>" +
-                                      "<b>%s</b>" +
-                                      "</br><div style='font-style: italic; margin-bottom: 5px;'>%s</div>" +
-                                      "</div>";
+        this.detailsSliderPanel.clearContents();
+        String SLIDEPANEL_DETAILS_FORMAT_STRING =
+                "<div>" +
+                "<h3>%s: </h3>" +
+                "<b>%s</b>" +
+                "</br><div style='font-style: italic; margin-bottom: 5px;'>%s</div>" +
+                "</div>";
 
-                Button btn = new Button();
+        Button btn = new Button();
         btn.addClassName("button-base");
         btn.addClassName(className);
 
-        if (node.getData() instanceof ArchitectureSolution solution) {
+        Object data = node.getData();
+        ArchitectureSolution archSolution = null;
+        if (data instanceof ArchitectureSolution solution) {
+            archSolution = solution;
             btn.setText(solution.getArchitecture().getName());
-
             btn.getElement().addEventListener("mouseover", event -> {
+                IoTDomain domain = solution.getIoTDomain();
                 this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", solution.getIoTDomain().getName(),
-                                (solution.getIoTDomain().getDescription() == null) ? "No description" : solution.getIoTDomain().getDescription()))));
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "IoT Domain",
+                                domain.getName(),
+                                Optional.ofNullable(domain.getDescription()).orElse("No description")))));
                 this.detailsSliderPanel.setArchitectureContent(
                         new HorizontalLayout(
-                                new Html(String.format(STRING_TITLE_DETAILS, "Architecture", solution.getArchitecture().getName(),
-                                        (solution.getDescription().isEmpty()) ? "No description" : solution.getDescription()))));
+                                new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "Architecture",
+                                        solution.getArchitecture().getName(),
+                                        solution.getDescription().isEmpty() ? "No description" : solution.getDescription()))));
+                //Adding reference details
+                String REFERENCE_DETAILS_STRING_FORMAT = "<div style='font-style: italic;'><center><b>%s, %s</b></center></div>";
+                this.detailsSliderPanel.setReferenceDetails(
+                        new Html(String.format(REFERENCE_DETAILS_STRING_FORMAT,
+                                solution.getPaperReference().getTitle(), solution.getPaperReference().getPublishYear())));
             });
-        } else if (node.getData() instanceof IoTDomain domain) {
-            btn.getElement().addEventListener("mouseover", event -> {
-                this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", domain.getName(),
-                                (domain.getDescription() == null) ? "No description" : domain.getDescription()))));
-            });
+        } else if (data instanceof IoTDomain domain) {
             btn.setText(domain.getName());
-        } else if (node.getData() instanceof QualityRequirement qr) {
             btn.getElement().addEventListener("mouseover", event -> {
-                IoTDomain domain = qr.getAssociations().getFirst().getArchitectureSolution().getIoTDomain();
                 this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", domain.getName(),
-                                (domain.getDescription() == null) ? "No description" : domain.getDescription()))));
-                this.detailsSliderPanel.setArchitectureContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "Architecture", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(), (qr.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
-                                "No description" : qr.getAssociations().getFirst().getArchitectureSolution().getDescription()))));
-                this.detailsSliderPanel.setQualityRequirementContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "Quality Requirement", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
-                                "No description"))));
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "IoT Domain",
+                                domain.getName(),
+                                Optional.ofNullable(domain.getDescription()).orElse("No description")))));
             });
+        } else if (data instanceof QualityRequirement qr) {
             btn.setText(qr.getName());
-        } else if (node.getData() instanceof Technology tech) {
+            //Getting the Architecture Solution
+            ArchitectureSolution finalArchSolution = (ArchitectureSolution) node.getParent().getData();
             btn.getElement().addEventListener("mouseover", event -> {
-                IoTDomain domain = tech.getAssociations().getFirst().getQualityRequirement().getAssociations().getFirst().getArchitectureSolution().getIoTDomain();
+                IoTDomain domain = finalArchSolution.getIoTDomain();
+
                 this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "IoT Domain", domain.getName(),
-                                (domain.getDescription() == null) ? "No description" : domain.getDescription()))));
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "IoT Domain",
+                                domain.getName(),
+                                Optional.ofNullable(domain.getDescription()).orElse("No description")))));
+
                 this.detailsSliderPanel.setArchitectureContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "Architecture", tech.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
-                        (tech.getAssociations().getFirst().getArchitectureSolution().getDescription().isEmpty()) ?
-                        "No description" : tech.getAssociations().getFirst().getArchitectureSolution().getDescription()))));
-                QualityRequirement qr = tech.getAssociations().getFirst().getQualityRequirement();
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "Architecture",
+                                finalArchSolution.getArchitecture().getName(),
+                                finalArchSolution.getDescription().isEmpty() ? "No description" : finalArchSolution.getDescription()))));
+
+                QualityRequirementTechnology assoc = finalArchSolution.getQualityRequirementTechnologies().stream().filter(assocs ->
+                        assocs.getQualityRequirement().getId().equals(qr.getId())).findAny().get();
+
                 this.detailsSliderPanel.setQualityRequirementContent(new HorizontalLayout(
-                        new Html(String.format(STRING_TITLE_DETAILS, "Quality Requirement", qr.getAssociations().getFirst().getArchitectureSolution().getArchitecture().getName(),
-                                "No description"))));
-                this.detailsSliderPanel.setTechnologyContent(
-                        new HorizontalLayout(new Html(String.format(String.format(STRING_TITLE_DETAILS, "Technology", tech.getDescription(), (tech.getNotes() == null)? "No description" : tech.getNotes())))));
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "Quality Requirement",
+                                qr.getName(),
+                                (assoc.getNotes() == null)? "No description" : assoc.getNotes()))));
+
+                //Adding reference details
+                String REFERENCE_DETAILS_STRING_FORMAT = "<div style='font-style: italic;'><center><b>%s, %s</b></center></div>";
+                this.detailsSliderPanel.setReferenceDetails(
+                        new Html(String.format(REFERENCE_DETAILS_STRING_FORMAT,
+                                finalArchSolution.getPaperReference().getTitle(), finalArchSolution.getPaperReference().getPublishYear())));
             });
+        } else if (data instanceof Technology tech) {
             btn.setText(tech.getDescription());
+            //Getting the ArchitectureSolution
+            ArchitectureSolution finalArchSolution = (ArchitectureSolution) node.getParent().getParent().getData();
+            btn.getElement().addEventListener("mouseover", event -> {
+                IoTDomain domain = finalArchSolution.getIoTDomain();
+
+                this.detailsSliderPanel.setIoTDomainContent(new HorizontalLayout(
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "IoT Domain",
+                                domain.getName(),
+                                Optional.ofNullable(domain.getDescription()).orElse("No description")))));
+
+                this.detailsSliderPanel.setArchitectureContent(new HorizontalLayout(
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "Architecture",
+                                finalArchSolution.getArchitecture().getName(),
+                                finalArchSolution.getDescription() == null ? "No description" : finalArchSolution.getDescription()))));
+
+                QualityRequirementTechnology assoc = finalArchSolution.getQualityRequirementTechnologies().stream().filter(assocs ->
+                        assocs.getTechnology().getId().equals(tech.getId())).findAny().get();
+
+                this.detailsSliderPanel.setQualityRequirementContent(new HorizontalLayout(
+
+                        new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "Quality Requirement",
+                                assoc.getQualityRequirement().getName(),
+                                (assoc.getNotes() == null)? "No description" : assoc.getNotes()))));
+
+                this.detailsSliderPanel.setTechnologyContent(
+                        new HorizontalLayout(new Html(String.format(SLIDEPANEL_DETAILS_FORMAT_STRING, "Technology",
+                                tech.getDescription(),
+                                (assoc.getNotes() == null)? "No description" : assoc.getNotes()))));
+
+                //Adding reference details
+                String REFERENCE_DETAILS_STRING_FORMAT = "<div style='font-style: italic;'><center><b>%s, %s</b></center></div>";
+                this.detailsSliderPanel.setReferenceDetails(
+                        new Html(String.format(REFERENCE_DETAILS_STRING_FORMAT,
+                                finalArchSolution.getPaperReference().getTitle(), finalArchSolution.getPaperReference().getPublishYear())));
+            });
         }
 
         btn.addClickListener(click -> {
             this.selectRow(node, this.treeGrid);
         });
 
-        btn.getElement().addEventListener("mouseout", event -> {
-            this.detailsSliderPanel.clearContents();
-        });
+      btn.getElement().addEventListener("mouseout", event -> {
+          this.detailsSliderPanel.clearContents();
+      });
 
         return btn;
     }
 
     public void load() {
+        treeGrid = new TreeGrid<>();
         // Define columns (e.g., displaying IoT Domain names)
         treeGrid.addComponentHierarchyColumn(node -> {
             Object data = node.getData();
@@ -169,19 +220,19 @@ public class TreeViewComponent extends VerticalLayout {
             }
             return new Text("");
         }).setHeader(this.treeRootSelectionComponent.create());
-        //add setheader above
+        //add set header above
 
         treeGrid.getStyle().setBorderRadius("8px");
 
         TreeNode<Object> root;
-        if (!this.isFiltering) {
+        if (this.isFiltering) {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
             this.setTreeViewData(treeViewService.getTreeViewData());
-
             if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         } else {
             root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
             if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+            this.setTreeViewData(treeViewService.getTreeViewData());
         }
 
         treeGrid.expand(root);
@@ -240,7 +291,7 @@ public class TreeViewComponent extends VerticalLayout {
                 QualityRequirementTechnology association =
                         technology.getAssociations().stream()
                                 .findFirst()
-                                .orElseThrow(() -> new Exception("No associated ArchitectureSolution found"));
+                                .orElseThrow(() -> new Exception("No associated Architecture Solution found!"));
 
                 ArchitectureSolution architectureSolution = association.getArchitectureSolution();
                 QualityRequirement qualityRequirement = association.getQualityRequirement();
@@ -284,7 +335,7 @@ public class TreeViewComponent extends VerticalLayout {
                     ((Technology) node.getData()).getAssociations().stream()
                             .findFirst().get();
 
-            addDetailsDialog(
+            createReferenceDetailsDialog(
                     association.getArchitectureSolution().getPaperReference().getTitle(),
                     association.getArchitectureSolution().getPaperReference().getLink());
         });
@@ -323,13 +374,13 @@ public class TreeViewComponent extends VerticalLayout {
      * Set the background color of the node accordingly the pattern
      */
     private String setBoxStyleToNodes(String domain) {
-        switch (domain) {
-            case "IoT Domain": return "#ED8312E5";
-            case "Architecture Solution": return "#ffffff";
-            case "Quality Requirement": return "yellow";
-            case "Technology": return "green";
-            default: return "#ED8312E5";
-        }
+        return switch (domain) {
+            case "IoT Domain" -> "#ED8312E5";
+            case "Architecture Solution" -> "#ffffff";
+            case "Quality Requirement" -> "yellow";
+            case "Technology" -> "green";
+            default -> "#ED8312E5";
+        };
     }
 
     private List<EdgeDiagram> getEdgesDiagrams(int edgesCount) {
@@ -359,7 +410,7 @@ public class TreeViewComponent extends VerticalLayout {
         return nodes;
     }
 
-    private void addDetailsDialog(String paperTitle, String paperLink) {
+    private void createReferenceDetailsDialog(String paperTitle, String paperLink) {
         Dialog dialog = new Dialog();
         dialog.setModal(true);
         dialog.setDraggable(true);

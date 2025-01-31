@@ -14,10 +14,13 @@ import com.vaadin.flow.component.tabs.TabsVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.PermitAll;
+
 import java.io.IOException;
 
 @PageTitle("Quality Requirement")
 @Route(value = "qualityreq-view", layout = MainLayout.class)
+@PermitAll
 public class QualityRequirementView extends BaseView {
 
     private final String PROPERTY_FILE_QR = "quality-requirement.properties";

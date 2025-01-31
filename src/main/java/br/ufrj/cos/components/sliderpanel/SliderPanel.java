@@ -7,7 +7,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.SpringComponent;
 import com.vaadin.flow.spring.annotation.UIScope;
 
@@ -21,15 +20,17 @@ public class SliderPanel extends Div {
     private String expandedText = "Hide Detail";
     private String collapsedText = "Show Detail";
 
-    private HorizontalLayout header = new HorizontalLayout();
-    private HorizontalLayout iotDomainHL = new HorizontalLayout();
-    private HorizontalLayout archHL = new HorizontalLayout();
-    private HorizontalLayout qrHL = new HorizontalLayout();
-    private HorizontalLayout techHL = new HorizontalLayout();
+    private final HorizontalLayout header = new HorizontalLayout();
+    private final HorizontalLayout iotDomainHL = new HorizontalLayout();
+    private final HorizontalLayout archHL = new HorizontalLayout();
+    private final HorizontalLayout qrHL = new HorizontalLayout();
+    private final HorizontalLayout techHL = new HorizontalLayout();
+    private final HorizontalLayout referenceHL = new HorizontalLayout();
 
     public SliderPanel() {
         this.removeAll();
         addClassName("slider-panel");
+        this.getStyle().set("box-shadow", "-3px 0 8px rgba(0, 0, 0, 0.4)");
 
         // Create toggle button
         toggleButton = new Button();
@@ -53,7 +54,8 @@ public class SliderPanel extends Div {
                 .set("transform", "rotate(180deg)"); // This makes text read from top to bottom
 
         this.addDetailsContent();
-        add(toggleButton, content);
+
+        add(toggleButton, this.createHeader(), content, referenceHL);
     }
 
     private void updateButtonContent(boolean isExpanded) {
@@ -108,6 +110,28 @@ public class SliderPanel extends Div {
         techHL.add(component);
     }
 
+    public void setReferenceDetails(Component component) {
+        referenceHL.add(component);
+    }
+
+    private Div createHeader() {
+        Div header = new Div();
+        header.getStyle()
+                .set("align-items", "center")
+                .set("justify-content", "center")
+                .set("background-color", "#373a3f")
+                .set("border", "1px solid #4a4d52")
+                //.set("border-radius", "12px")
+                //.set("margin-top", "px")
+                .set("width", "100%") // Increased width
+                .set("max-width", "1800px") // Increased max-width
+                .set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
+
+        header.add(new Html("<h3><center>Details</center></h3>"));
+
+        return header;
+    }
+
     private void addDetailsContent() {
         // Keep existing width, spacing, and height configurations
         iotDomainHL.setWidth("100%");
@@ -130,10 +154,7 @@ public class SliderPanel extends Div {
         techHL.setPadding(false);
         techHL.setHeight("30%");
 
-        // Add a main header if needed
-        header.add(new Html("<div><h1>Details</h1></div>"));
-
-        content.add(header, iotDomainHL, archHL, qrHL, techHL);
+        content.add(iotDomainHL, archHL, qrHL, techHL);
     }
 
     public void clearContents() {
@@ -142,6 +163,7 @@ public class SliderPanel extends Div {
         archHL.removeAll();
         qrHL.removeAll();
         techHL.removeAll();
+        referenceHL.removeAll();
     }
 
     public void setButtonTexts(String expandedText, String collapsedText) {

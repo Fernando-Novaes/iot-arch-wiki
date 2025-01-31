@@ -7,6 +7,7 @@ import br.ufrj.cos.repository.ArchitectureSolutionRepository;
 import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -59,5 +60,9 @@ public class ArchitectureSolutionService {
 
     public void delete(ArchitectureSolution architectureSolution) {
         this.architectureSolutionRepository.delete(architectureSolution);
+    }
+
+    public List<ArchitectureSolution> findByIoTDomainName(String domainName) {
+        return this.architectureSolutionRepository.findByIoTDomainName(domainName);
     }
 }

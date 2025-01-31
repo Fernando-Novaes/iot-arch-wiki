@@ -2,6 +2,7 @@ package br.ufrj.cos.views;
 
 import br.ufrj.cos.components.treeview.TreeViewComponent;
 import com.vaadin.flow.component.Composite;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
@@ -39,6 +40,26 @@ public abstract class BaseView extends Composite<VerticalLayout> {
         h1.setText(headerText);
         h1.setWidth("max-content");
         header.add(h1);
+
+        getContent().add(header);
+    }
+
+    /***
+     * Creates the Header of the Page
+     * @param headerHtmlText
+     */
+    public void createHeaderHTML(String headerHtmlText) {
+        HorizontalLayout header = new HorizontalLayout();
+        header.setWidthFull();
+        getContent().setFlexGrow(1.0, header);
+        header.setWidth("100%");
+        header.getStyle().set("flex-grow", "1");
+        header.setMinHeight("5%");
+        header.setMaxHeight("5%");
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
+
+        header.add(new Html(headerHtmlText));
 
         getContent().add(header);
     }

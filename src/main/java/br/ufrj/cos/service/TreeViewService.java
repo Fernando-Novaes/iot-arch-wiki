@@ -1,12 +1,16 @@
 package br.ufrj.cos.service;
 
 import br.ufrj.cos.components.treeview.*;
+import br.ufrj.cos.components.treeview.builder.ArchitectureSolutionTreeBuilder;
+import br.ufrj.cos.components.treeview.builder.IoTDomainTreeBuilder;
+import br.ufrj.cos.components.treeview.builder.QualityRequirementTreeBuilder;
 import br.ufrj.cos.domain.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -63,12 +67,23 @@ public class TreeViewService {
             }
 
             case ArchitectureSolution_Filtered -> {
-                List<ArchitectureSolution> list = ((List<IoTDomain>) this.getTreeViewData()).getFirst().getArchitectureSolutions();
+                List<ArchitectureSolution> list = new ArrayList<>();
+                ((List<IoTDomain>) this.getTreeViewData()).forEach(domain -> {
+                    list.addAll(domain.getArchitectureSolutions());
+                });
+
                 yield architectureSolutionTreeBuilder.setNodeAsRoot(list);
             }
 
             case QualityRequirement_Filtered, Technology_Filtered -> {
-                List<QualityRequirement> list = ((List<IoTDomain>) this.getTreeViewData()).getFirst().getArchitectureSolutions().getFirst().getQualityRequirements().stream().toList();
+                List<QualityRequirement> list = new ArrayList<>();
+                ((List<IoTDomain>) this.getTreeViewData()).forEach(domain -> {
+                    domain.getArchitectureSolutions().forEach(solution -> {
+                        solution.getQualityRequirementTechnologies().forEach(qrTech -> {
+                            list.add(qrTech.getQualityRequirement());
+                        });
+                    });
+                });
                 yield qualityRequirementTreeBuilder.setNodeAsRoot(list);
             }
 

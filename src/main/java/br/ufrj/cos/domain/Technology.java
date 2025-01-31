@@ -20,8 +20,10 @@ public class Technology extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String description;
+
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String notes;
 
     @OneToMany(mappedBy = "technology", fetch = FetchType.EAGER)

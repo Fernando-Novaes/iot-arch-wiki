@@ -7,6 +7,7 @@ import br.ufrj.cos.repository.QualityRequirementRepository;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -75,5 +76,9 @@ public class QualityRequirementService {
 
     public List<QualityRequirement> findByArchitectureSolution_NameContainingIgnoreCaseOOrderByNameAsc(String name){
         return this.qualityRequirementRepository.findByAssociations_ArchitectureSolution_Architecture_Name_ContainingIgnoreCaseOrderByNameAsc(name);
+    }
+
+    public List<QualityRequirement> findByIoTDomainAndArchitecture(String domainName, String architectureName) {
+        return this.qualityRequirementRepository.findByIoTDomainAndArchitecture(domainName, architectureName);
     }
 }

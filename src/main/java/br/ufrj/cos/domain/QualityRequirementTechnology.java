@@ -16,6 +16,8 @@ public class QualityRequirementTechnology extends DomainBase {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String notes;
 
     @ManyToOne

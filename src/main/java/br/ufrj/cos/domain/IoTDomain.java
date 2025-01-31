@@ -13,13 +13,15 @@ import java.util.Set;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, exclude = "architectureSolutions")
 public class IoTDomain extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String name;
+    @Lob
+    @Column(columnDefinition = "CLOB")
     private String description;
 
     @OneToMany(mappedBy = "ioTDomain", fetch = FetchType.EAGER)

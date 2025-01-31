@@ -4,14 +4,31 @@ package br.ufrj.cos.repository;
 import br.ufrj.cos.components.chart.data.TechnologyChartRecord;
 import br.ufrj.cos.domain.Technology;
 import br.ufrj.cos.views.record.TechnologyRecord;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
 public interface TechnologyRepository extends JpaRepository<Technology, Long> {
+
+    @Query("SELECT DISTINCT t FROM Technology t " +
+            "JOIN QualityRequirementTechnology qrt ON qrt.technology = t " +
+            "JOIN ArchitectureSolution a ON qrt.architectureSolution = a " +
+            "JOIN QualityRequirement qr ON qrt.qualityRequirement = qr " +
+            "WHERE a.ioTDomain.name = :domainName " +
+            "AND a.architecture.name = :architectureName " +
+            "AND qr.name = :qualityRequirementName")
+    @QueryHints({@QueryHint(name = org.hibernate.annotations.QueryHints.CACHEABLE, value = "false")})
+    List<Technology> findByIoTDomainAndArchitectureAndQualityRequirement(
+            @Param("domainName") String domainName,
+            @Param("architectureName") String architectureName,
+            @Param("qualityRequirementName") String qualityRequirementName
+    );
 
     @Query(value = "select t from Technology as t")
     List<Technology> searchAll();

@@ -19,12 +19,14 @@ import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.PostConstruct;
+import jakarta.annotation.security.PermitAll;
 
 import java.io.IOException;
 import java.util.List;
 
 @Route(value = "board-view", layout = MainLayout.class)
 @PageTitle("Iot-Arch Wiki - Board")
+@PermitAll
 public class BoardView extends BaseView {
 
     private final IoTDomainService domainService;
@@ -57,7 +59,8 @@ public class BoardView extends BaseView {
         getContent().getStyle().set("flex-grow", "1");
 
         //Header
-        this.createHeader("Body of Knowledge");
+        this.createHeaderHTML(
+                String.format("<div><h1>Body of Knowledge</h1><p>Extracted from %s primary sources.</p></div>", this.paperReferenceService.findAll().size()));
         //Content
         pageContent = this.createContentLayout();
         getContent().add(pageContent);
@@ -141,8 +144,8 @@ public class BoardView extends BaseView {
         box04.getStyle().set("flex-grow", "1");
 
         box01.add(this.createIoTDomainChart("IoT Domains"));
-        box02.add(this.createQualityRequirementChart("Quality Requirements"));
-        box03.add(this.createArchitectureSolutionChart("Architectural Solutions"));
+        box02.add(this.createArchitectureSolutionChart("Architectural Solutions"));
+        box03.add(this.createQualityRequirementChart("Quality Requirements"));
         box04.add(this.createTechnologyChart("Technologies"));
         //box05.add(this.createCountRegistersBarChart());
 
@@ -163,7 +166,7 @@ public class BoardView extends BaseView {
         this.chart.addData("Architecture Solutions", (long) this.architectureSolutionService.findAll().size(), 0L);
         this.chart.addData("Quality Requirements", (long) this.qualityReqService.getQualityRequirementCountGroupedByName().size(), 0L);
         this.chart.addData("Technologies", (long) this.technologyService.findAll().size(), 0L);
-        this.chart.addData("References", (long) this.paperReferenceService.findAll().size(), 0L);
+        //this.chart.addData("References", (long) this.paperReferenceService.findAll().size(), 0L);
 
         return chart.createBarChart("Data Summary", false);
     }

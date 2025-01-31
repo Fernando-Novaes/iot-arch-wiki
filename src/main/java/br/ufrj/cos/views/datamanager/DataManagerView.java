@@ -17,6 +17,7 @@ import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
 import org.vaadin.crudui.crud.impl.GridCrud;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 
 @PageTitle("IoT-Arch - Data Manager")
 @Route(value = "datamanager-view", layout = MainLayout.class)
+@RolesAllowed("ADMIN")
 public class DataManagerView extends BaseView {
 
     private final IoTDomainService domainService;
