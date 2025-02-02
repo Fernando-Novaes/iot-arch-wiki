@@ -454,13 +454,12 @@ public class IoTArchView extends BaseView {
         this.treeView.setTreeViewData(filteredDomains);
     }
 
-
     /***
      * Creates the search panel at the bottom of the page
      */
     private void createDetailSliderPanel() {
         sliderPanel.setButtonTexts("Hide Details", "Show Details");
         sliderPanel.setExpanded(false);
-        treeView.setDetailsSliderPanel(sliderPanel);
+        treeView.setSliderPanel(sliderPanel);
     }
 }

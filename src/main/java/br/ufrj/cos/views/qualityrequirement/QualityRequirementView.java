@@ -162,10 +162,10 @@ public class QualityRequirementView extends BaseView {
                 this.createBoxItem("Appropriateness Recognizability", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "Appropriateness_recognizability")),
                 this.createBoxItem("Learnability", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "Learnability")),
                 this.createBoxItem("Operability", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "Operability")),
-                this.createBoxItem("User Error Protection", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "User_error_protection")),
-                this.createBoxItem("User Engagement", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "User_engagement")),
+                this.createBoxItem("UserApplication Error Protection", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "User_error_protection")),
+                this.createBoxItem("UserApplication Engagement", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "User_engagement")),
                 this.createBoxItem("Inclusivity", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "Inclusivity")),
-                this.createBoxItem("User Assistance", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "User_assistance")),
+                this.createBoxItem("UserApplication Assistance", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "User_assistance")),
                 this.createBoxItem("Self Descriptiveness", this.getValueFromPropertiesFile(PROPERTY_FILE_QR, "Self_descriptiveness"))
         );
 

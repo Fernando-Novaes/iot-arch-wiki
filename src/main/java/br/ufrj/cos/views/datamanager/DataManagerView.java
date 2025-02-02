@@ -183,7 +183,7 @@ public class DataManagerView extends BaseView {
         GridCrud<Technology> gridTechs = new GridCrud<>(Technology.class);
         gridTechs.setShowNotifications(false);
         gridTechs.setSizeFull();
-//        gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
+        gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridTechs.getGrid().getColumnByKey("description").setAutoWidth(true);
         gridTechs.getCrudFormFactory().setVisibleProperties("architectureSolution", "qualityRequirement", "description");
         gridTechs.getGrid().setDetailsVisibleOnClick(true);
@@ -251,6 +251,8 @@ public class DataManagerView extends BaseView {
             return paper;
         });
 
+        GridCRUDUtils.setColumnsOrder(gridPapers,"id", "title", "publishYear", "doi", "link", "architectureSolution");
+
         gridPapers.setUpdateOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
@@ -310,13 +312,13 @@ public class DataManagerView extends BaseView {
         gridQualityRequirements.setShowNotifications(false);
         gridQualityRequirements.getGrid().setDetailsVisibleOnClick(true);
         gridQualityRequirements.getCrudFormFactory().setVisibleProperties("name", "architectureSolution");
-        gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name");
-        gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name");
+        gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name", "description");
+        gridQualityRequirements.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name", "description");
         gridQualityRequirements.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridQualityRequirements.getGrid().getColumnByKey("name").setAutoWidth(true);
         //gridQualityRequirements.getGrid().getColumnByKey("technology").setAutoWidth(true);
 
-        GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "associations", "architectureSolutions", "technologies");
+        GridCRUDUtils.setColumnsOrder(gridQualityRequirements, "id", "name", "description", "associations", "architectureSolutions", "technologies");
         gridQualityRequirements.setFindAllOperation(this.qualityRequirementService::findAllOrderedByName);
 
         gridQualityRequirements.setAddOperation(
@@ -384,7 +386,7 @@ public class DataManagerView extends BaseView {
         GridCrud<Architecture> gridArchs = new GridCrud<>(Architecture.class);
         gridArchs.setSizeFull();
         gridArchs.setShowNotifications(false);
-        gridArchs.getGrid().getColumnByKey("id").setWidth("60px").setFlexGrow(0);
+        gridArchs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridArchs.getGrid().getColumnByKey("name").setAutoWidth(true);
         gridArchs.setDeleteOperation(
                 arch -> {
@@ -452,6 +454,8 @@ public class DataManagerView extends BaseView {
             return archs;
         });
 
+        GridCRUDUtils.setColumnsOrder(gridArchs, "id", "name", "architectureSolutions");
+
         return gridArchs;
     }
 
@@ -459,6 +463,7 @@ public class DataManagerView extends BaseView {
         GridCrud<IoTDomain> gridDomains = new GridCrud<>(IoTDomain.class);
         gridDomains.setSizeFull();
         gridDomains.setShowNotifications(false);
+        gridDomains.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridDomains.getCrudFormFactory().setVisibleProperties("id", "name");
         gridDomains.getGrid().removeColumnByKey("architectureSolutions");
         gridDomains.setShowNotifications(true);
@@ -508,6 +513,8 @@ public class DataManagerView extends BaseView {
             }
             return domains;
         });
+
+        GridCRUDUtils.setColumnsOrder(gridDomains, "id", "name", "description");
 
         return gridDomains;
     }

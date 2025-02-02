@@ -3,6 +3,7 @@ package br.ufrj.cos.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.sql.Clob;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -20,6 +21,10 @@ public class QualityRequirement extends DomainBase {
     private Long id;
 
     private String name;
+
+    @Lob
+    @Column(columnDefinition = "CLOB")
+    private String description;
 
     @OneToMany(mappedBy = "qualityRequirement", fetch = FetchType.EAGER)
     private List<QualityRequirementTechnology> associations;

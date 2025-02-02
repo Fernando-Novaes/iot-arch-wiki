@@ -20,8 +20,16 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         domain.getArchitectureSolutions().stream()
                 .sorted(Comparator.comparing(solution -> solution.getArchitecture().getName()))
                 .forEach(solution -> {
-                    TreeNode<ArchitectureSolution> solutionNode = buildArchitectureSolutionNode(solution);
-                    domainNode.addChild(solutionNode);
+                    Optional<TreeNode<?>> existsNode =
+                            domainNode.getChildren().stream().filter(s ->
+                                    ((ArchitectureSolution)s.getData()).getArchitecture().getId().equals(solution.getArchitecture().getId())).findAny();
+
+                    if (existsNode.isPresent()) {
+                        addQualityRequirementsToNode(solution, (TreeNode<ArchitectureSolution>) existsNode.get());
+                    } else {
+                        TreeNode<ArchitectureSolution> solutionNode = buildArchitectureSolutionNode(solution);
+                        domainNode.addChild(solutionNode);
+                    }
                 });
 
         return domainNode;
@@ -33,12 +41,24 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         solution.getQualityRequirementTechnologies().stream()
                 .sorted(Comparator.comparing(qrt -> qrt.getQualityRequirement().getName()))
                 .forEach(qrt -> {
-                    TreeNode<QualityRequirement> reqNode = new TreeNode<>(qrt.getQualityRequirement());
-                    TreeNode<Technology> techNode = new TreeNode<>(qrt.getTechnology());
 
-                    techNode.addChild(new TreeNode<>(solution.getIoTDomain()));
-                    reqNode.addChild(techNode);
-                    solutionNode.addChild(reqNode);
+                    Optional<TreeNode<?>> existingNode = solutionNode.getChildren().stream()
+                            .filter(node -> ((QualityRequirement)node.getData()).getId().equals(qrt.getId()))
+                            .findAny();
+
+                    if (existingNode.isPresent()) {
+                        @SuppressWarnings("unchecked")
+                        TreeNode<QualityRequirement> qrNode = (TreeNode<QualityRequirement>) existingNode.get();
+                        TreeNode<Technology> techNode = new TreeNode<>(qrt.getTechnology());
+                        qrNode.addChild(techNode);
+                    } else {
+                        TreeNode<QualityRequirement> reqNode = new TreeNode<>(qrt.getQualityRequirement());
+                        TreeNode<Technology> techNode = new TreeNode<>(qrt.getTechnology());
+
+                        techNode.addChild(new TreeNode<>(solution.getIoTDomain()));
+                        reqNode.addChild(techNode);
+                        solutionNode.addChild(reqNode);
+                    }
                 });
 
         return solutionNode;
@@ -90,7 +110,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                     .sorted(Comparator.comparing(s -> s.getArchitecture().getName()))
                     .forEach(s -> {
                         Optional<TreeNode<?>> existingNode = root.getChildren().stream()
-                                .filter(node -> ((ArchitectureSolution)node.getData()).getArchitecture().equals(s.getArchitecture()))
+                                .filter(node -> ((ArchitectureSolution)node.getData()).getArchitecture().getId().equals(s.getArchitecture().getId()))
                                 .findAny();
 
                         if (existingNode.isPresent()) {
@@ -119,18 +139,6 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                             root.addChild(buildQualityRequirementNode(r));
                         }
                     });
-//
-//            Optional<TreeNode<?>> existingRootNode =
-//                    root.getChildren().stream().filter(qr -> ((QualityRequirement)qr.getData()).getId().equals(requirement.getId())).findAny();
-//
-//            if (existingRootNode.isPresent()) {
-//                existingRootNode.get().getChildren().add(buildQualityRequirementNode(requirement));
-//            } else {
-//                list.stream()
-//                        .map(r -> (QualityRequirement) r)
-//                        .sorted(Comparator.comparing(QualityRequirement::getId))
-//                        .forEach(r -> root.addChild(buildQualityRequirementNode(r)));
-//            }
         }
 
         return root;

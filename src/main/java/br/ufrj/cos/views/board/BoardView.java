@@ -1,5 +1,6 @@
 package br.ufrj.cos.views.board;
 
+import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.components.chart.ChartComponent;
 import br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord;
 import br.ufrj.cos.components.chart.data.IoTDomainChartRecord;
@@ -45,7 +46,7 @@ public class BoardView extends BaseView {
             ArchitectureSolutionService architectureSolutionService,
             TechnologyService technologyService, PaperReferenceService paperReferenceService,
             ChartComponent chart,
-            DiagramComponent diagramComponent) {
+            DiagramComponent diagramComponent, AvatarComponent avatarComponent) {
 
         this.domainService = domainService;
         this.qualityReqService = qualityReqService;

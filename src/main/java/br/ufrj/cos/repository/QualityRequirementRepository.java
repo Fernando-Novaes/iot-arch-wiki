@@ -30,7 +30,12 @@ public interface QualityRequirementRepository extends JpaRepository<QualityRequi
     @Query(value = "select q from QualityRequirement as q")
     List<QualityRequirement> searchAll();
 
-    @Query(value = "SELECT new br.ufrj.cos.components.chart.data.QualityRequirementChartRecord(i.name, COUNT(i), (SELECT COUNT(*) FROM QualityRequirement i2)) FROM QualityRequirement i GROUP BY i.name")
+    @Query(value = "SELECT new br.ufrj.cos.components.chart.data.QualityRequirementChartRecord(qr.name, COUNT(DISTINCT ast), " +
+            "(SELECT COUNT(qr2) FROM QualityRequirement qr2)) " +
+            "FROM QualityRequirement qr " +
+            "JOIN QualityRequirementTechnology qrt ON qrt.qualityRequirement = qr " +
+            "JOIN qrt.architectureSolution ast " +
+            "GROUP BY qr.name")
     List<QualityRequirementChartRecord> countQualityRequirementGroupedByName();
 
     @Query(value = "SELECT new br.ufrj.cos.views.record.QualityRequirementRecord(i.name) FROM QualityRequirement i GROUP BY i.name")

@@ -7,11 +7,8 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.spring.annotation.SpringComponent;
-import com.vaadin.flow.spring.annotation.UIScope;
 
-@SpringComponent
-@UIScope
+@org.springframework.stereotype.Component
 @CssImport("./styles/slider-panel.css")
 public class SliderPanel extends Div {
     private final Div content;

@@ -38,7 +38,7 @@ public class NotificationUtils {
 
     public static void showErrorNotification(String message){
         Notification notification = new Notification();
-        notification.setPosition(Notification.Position.TOP_CENTER);
+        notification.setPosition(Notification.Position.BOTTOM_CENTER);
         notification.addThemeVariants(NotificationVariant.LUMO_ERROR);
 
         Div text = new Div(new Text(message));

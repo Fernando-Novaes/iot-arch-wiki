@@ -1,6 +1,5 @@
 package br.ufrj.cos.utils;
 
-import br.ufrj.cos.domain.DomainBase;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.textfield.TextField;
@@ -24,7 +23,9 @@ public class GridCRUDUtils {
         filter.setPlaceholder(filterText);
         filter.setClearButtonVisible(true);
         filter.setMinWidth(textFieldSize);
-        filter.addValueChangeListener(e -> gridCRUD.refreshGrid());
+        filter.addValueChangeListener(e -> {
+            gridCRUD.refreshGrid();
+        });
         gridCRUD.getCrudLayout().addFilterComponent(filter);
 
         return filter;
@@ -52,12 +53,17 @@ public class GridCRUDUtils {
     }
 
     public static void setColumnsOrder(GridCrud gridCRUD, String... columnsNames) {
-        List<Grid.Column<?>> columns = new ArrayList<>();
-        Arrays.stream(columnsNames).forEach(c -> {
-            columns.add(gridCRUD.getGrid().getColumnByKey(c));
-        });
+        try {
+            List<Grid.Column<?>> columns = new ArrayList<>();
 
-        gridCRUD.getGrid().setColumnOrder(columns);
+            Arrays.stream(columnsNames).forEach(c -> {
+                columns.add(gridCRUD.getGrid().getColumnByKey(c));
+            });
+
+            gridCRUD.getGrid().setColumnOrder(columns);
+        } catch (Exception e) {
+            System.out.println("####" + e.getMessage());
+        }
     }
 
     /***
