@@ -15,6 +15,7 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -28,6 +29,7 @@ import jakarta.annotation.security.PermitAll;
 import jakarta.annotation.security.RolesAllowed;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.vaadin.addons.joelpop.changepassword.ChangePassword;
@@ -37,7 +39,7 @@ import org.vaadin.addons.joelpop.changepassword.ChangePasswordRule;
 import static org.reflections.Reflections.log;
 
 @PageTitle("User Profile")
-@Route(value = "profile-dialog/:userName", layout = MainLayout.class)
+@Route(value = "profile-dialog/:username", layout = MainLayout.class)
 @PermitAll
 public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
@@ -158,19 +160,13 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
     private void showChangePasswordDialog() {
         ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog(ChangePassword.ChangePasswordMode.CHANGE_KNOWN);
-        changePasswordDialog.addPasswordRules(ChangePasswordRule.length(8, 20));
-        changePasswordDialog.addPasswordRules(ChangePasswordRule.hasSpecials(1));
-        changePasswordDialog.addPasswordRules(ChangePasswordRule.hasUppercaseLetters(1));
 
-//        changePasswordDialog.setInfoText(new Html("""
-//            <div>
-//                 <h2>Password Requirements</h2>
-//                 <ol>
-//                     <li>Password must be 8 to 20 characters long</li>
-//                     <li>Must include at least one special character (e.g., @, #, $, !)</li>
-//                     <li>Must include at least one uppercase letter</li>
-//                 </ol>
-//             </div>"""));
+        // Add password rules
+        changePasswordDialog.addPasswordRules(
+                ChangePasswordRule.length(8, 20),
+                ChangePasswordRule.hasSpecials(1),
+                ChangePasswordRule.hasUppercaseLetters(1)
+        );
 
         changePasswordDialog.addCancelListener(cancel -> {
             changePasswordDialog.reset();
@@ -178,26 +174,36 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
         });
 
         changePasswordDialog.addOkListener(ok -> {
-            if (changePasswordDialog.isValid() && validateOldPassword(changePasswordDialog.getCurrentPassword())) {
-                this.updatePassword(changePasswordDialog.getDesiredPassword());
+            String currentPassword = changePasswordDialog.getCurrentPassword();
+            String newPassword = changePasswordDialog.getDesiredPassword();
+
+            if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+                NotificationUtils.showErrorNotification("Wrong current password!");
+                changePasswordDialog.reset();
+            } else if (currentPassword.equals(newPassword)) {
+                NotificationUtils.showErrorNotification("New password must be different from the old password.");
+                changePasswordDialog.reset();
+            } else {
+                updatePassword(passwordEncoder.encode(newPassword));
+                changePasswordDialog.close();
             }
         });
 
         changePasswordDialog.open();
     }
 
-    private boolean validateOldPassword(String oldPassword) {
-        try {
-            return passwordEncoder.matches(oldPassword, user.getPassword());
-        } catch (Exception e) {
-            log.error("Error validating password", e);
-            return false;
-        }
-    }
+//    private boolean validateOldPassword(String oldPassword) {
+//        try {
+//            return passwordEncoder.matches(oldPassword, user.getPassword());
+//        } catch (Exception e) {
+//            log.error("Error validating password", e);
+//            return false;
+//        }
+//    }
 
     private boolean updatePassword(String newPassword) {
         try {
-            user.setPassword(passwordEncoder.encode(newPassword));
+            user.setPassword(newPassword);
             userService.saveAndUpdate(user);
             NotificationUtils.showSuccessNotification("Password updated successfully");
             return true;
@@ -210,7 +216,7 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
     @Override
     public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        userName = beforeEnterEvent.getRouteParameters().get("userName").
+        userName = beforeEnterEvent.getRouteParameters().get("username").
                 orElse(null);
     }
 }

@@ -33,7 +33,6 @@ public class HomeView extends Composite<VerticalLayout> {
     private void createPresentationBox() {
         // Main container for vertical centering
         Div centerContainer = new Div();
-        //centerContainer.setSizeFull();
         centerContainer.getStyle()
                 .set("display", "flex")
                 .set("align-items", "center")
@@ -44,13 +43,11 @@ public class HomeView extends Composite<VerticalLayout> {
         mainLayout.setSpacing(true);
         mainLayout.setPadding(true);
         mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        //mainLayout.setWidthFull();
         mainLayout.getStyle()
                 .set("background-color", "#373a3f")
                 .set("border", "1px solid grey")
                 .set("border-radius", "8px")
                 .set("padding", "clamp(1em, 5vw, 2em)")
-                //.set("margin", "0 auto")
                 .set("max-height", "90vh")
                 .set("overflow-y", "auto");
 
@@ -70,13 +67,10 @@ public class HomeView extends Composite<VerticalLayout> {
 
         H1 mainTitle = new H1("Welcome to the IoT Design Decision Assistant");
         mainTitle.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
-        //configureHeaderText(mainTitle);
 
         H2 subtitle = new H2("Empowering your IoT Software System Design Process");
-        //configureHeaderText(subtitle);
 
         H3 subheader = new H3("Unlock the Power of Informed Decision-Making");
-        //configureHeaderText(subheader);
 
         headerContainer.add(mainTitle, new Hr(), subtitle, new Span(), subheader);
 
@@ -90,7 +84,6 @@ public class HomeView extends Composite<VerticalLayout> {
         );
 
         H3 featuresTitle = new H3("Key Features:");
-        //configureResponsiveText(featuresTitle);
 
         UnorderedList featuresList = createResponsiveList(
                 "Interactive Design Explorer: Visually navigate through IoT domains, solutions, and technologies.",
@@ -101,10 +94,8 @@ public class HomeView extends Composite<VerticalLayout> {
         );
 
         Paragraph closing = new Paragraph("Embark on your IoT design journey with confidence. Let our Book of Knowledge be your guide to creating robust, efficient, and innovative IoT software systems.");
-        //configureResponsiveText(closing);
 
         Emphasis callToAction = new Emphasis("Start exploring now and transform the way you design IoT solutions!");
-        //configureResponsiveText(callToAction);
         callToAction.getStyle()
                 .set("display", "block")
                 .set("margin-top", "1em");
@@ -121,13 +112,6 @@ public class HomeView extends Composite<VerticalLayout> {
         mainLayout.add(headerContainer, contentContainer);
         centerContainer.add(mainLayout);
         getContent().add(centerContainer);
-    }
-
-    private void configureResponsiveText(Component component) {
-        component.getStyle()
-                .set("text-align", "center")
-                .set("font-size", "clamp(0.9em, 2vw, 1em)")
-                .set("width", "100%");
     }
 
     private UnorderedList createResponsiveList(String... items) {

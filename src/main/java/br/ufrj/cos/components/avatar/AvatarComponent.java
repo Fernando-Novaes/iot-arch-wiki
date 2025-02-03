@@ -1,24 +1,16 @@
 package br.ufrj.cos.components.avatar;
 
 import br.ufrj.cos.utils.SecurityUtils;
-import br.ufrj.cos.views.login.LoginView;
-import com.vaadin.flow.component.UI;
+import br.ufrj.cos.views.login.LogoutView;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.router.RouterLink;
-import com.vaadin.flow.spring.annotation.UIScope;
-import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
@@ -26,8 +18,8 @@ import org.springframework.stereotype.Component;
 @PermitAll
 public class AvatarComponent {
 
-    private final String USER_ICON = "images/homem.png";
-    private final String ADMIN_ICON = "images/admin.png";
+    private final String USER_ICON = "/images/homem.png";
+    private final String ADMIN_ICON = "/images/admin.png";
 
     public AvatarComponent() {}
 
@@ -52,10 +44,11 @@ public class AvatarComponent {
         MenuItem menuItem = menuBar.addItem(avatar);
         SubMenu subMenu = menuItem.getSubMenu();
         if (SecurityUtils.isUserLoggedIn()) {
-            subMenu.addItem(new RouterLink("Edit user details",
-                    ProfileDialogView.class, new RouteParameters("userName", SecurityUtils.getUsername())));
+            subMenu.addItem(new RouterLink("Profile",
+                    ProfileDialogView.class, new RouteParameters("username", SecurityUtils.getUsername())));
         }
-        subMenu.addItem(new RouterLink("Logout", LoginView.class));
+        subMenu.addItem(new RouterLink("Logout",
+                LogoutView.class));
 
         div.add(menuBar);
         return div;

@@ -12,6 +12,7 @@ import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import br.ufrj.cos.views.record.IoTDomainRecord;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
 import br.ufrj.cos.views.record.TechnologyRecord;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -21,6 +22,7 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
+import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@PageTitle("IoT-Arch Knowledge Base")
+@PageTitle("IoT-Architecture Knowledge Base")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
 @PermitAll
 public class IoTArchView extends BaseView {
@@ -92,7 +94,7 @@ public class IoTArchView extends BaseView {
 
     private void initializeView() {
         setupTreeViewNavigation();
-        createHeader("IoT-Arch Knowledge Base");
+        createHeader("Knowledge Base");
         getContent().add(createFilterDiv(), treeView, sliderPanel);
         loadDataToComboBoxes(ActionType.NONE);
         createDetailSliderPanel();

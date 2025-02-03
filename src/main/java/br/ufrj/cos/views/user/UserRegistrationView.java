@@ -11,6 +11,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.vaadin.crudui.crud.impl.GridCrud;
 
 import java.util.Date;
@@ -21,10 +22,11 @@ import java.util.Date;
 public class UserRegistrationView extends BaseView {
 
     private final UserApplicationService userApplicationService;
+    private final PasswordEncoder passwordEncoder;
 
     GridCrud<UserApplication> gridUsers;
 
-    public UserRegistrationView(UserApplicationService userApplicationService) {
+    public UserRegistrationView(UserApplicationService userApplicationService, PasswordEncoder passwordEncoder) {
         this.userApplicationService = userApplicationService;
 
         getContent().setSizeFull();
@@ -34,6 +36,7 @@ public class UserRegistrationView extends BaseView {
 
         gridUsers = createUserGridCrud();
         getContent().add(gridUsers);
+        this.passwordEncoder = passwordEncoder;
     }
 
     private GridCrud<UserApplication> createUserGridCrud() {
@@ -50,6 +53,7 @@ public class UserRegistrationView extends BaseView {
         // Create and configure the Add operation
         gridUsers.setAddOperation(userApplication -> {
             userApplication.setDateOfCreation(new Date());
+            passwordEncoder.encode(userApplication.getPassword());
             userApplicationService.save(userApplication);
             refreshAllData();
             NotificationUtils.showSuccessNotification("User registered.");

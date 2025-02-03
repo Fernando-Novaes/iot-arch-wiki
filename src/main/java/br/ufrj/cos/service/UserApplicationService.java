@@ -13,23 +13,18 @@ import java.util.List;
 @Service
 public class UserApplicationService {
 
-    private final PasswordEncoder passwordEncoder;
     private final UserApplicationRepository userApplicationRepository;
 
     @Autowired
-    public UserApplicationService(PasswordEncoder passwordEncoder, UserApplicationRepository userApplicationRepository) {
-        this.passwordEncoder = passwordEncoder;
+    public UserApplicationService(UserApplicationRepository userApplicationRepository) {
         this.userApplicationRepository = userApplicationRepository;
     }
 
     public UserApplication save(UserApplication userApplication) {
-        userApplication.setDateOfCreation(new Date());
-        userApplication.setPassword(passwordEncoder.encode(userApplication.getPassword()));
         return userApplicationRepository.save(userApplication);
     }
 
     public UserApplication saveAndUpdate(UserApplication userApplication) {
-        userApplication.setPassword(passwordEncoder.encode(userApplication.getPassword()));
         return userApplicationRepository.save(userApplication);
     }
 
