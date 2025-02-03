@@ -43,7 +43,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                 .forEach(qrt -> {
 
                     Optional<TreeNode<?>> existingNode = solutionNode.getChildren().stream()
-                            .filter(node -> ((QualityRequirement)node.getData()).getId().equals(qrt.getId()))
+                            .filter(node -> ((QualityRequirement)node.getData()).getName().equals(qrt.getQualityRequirement().getName()))
                             .findAny();
 
                     if (existingNode.isPresent()) {
@@ -55,7 +55,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
                         TreeNode<QualityRequirement> reqNode = new TreeNode<>(qrt.getQualityRequirement());
                         TreeNode<Technology> techNode = new TreeNode<>(qrt.getTechnology());
 
-                        techNode.addChild(new TreeNode<>(solution.getIoTDomain()));
+                        //techNode.addChild(new TreeNode<>(solution.getIoTDomain()));
                         reqNode.addChild(techNode);
                         solutionNode.addChild(reqNode);
                     }

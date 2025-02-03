@@ -5,11 +5,11 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: 25%; /* Default width */
+    width: clamp(250px, 25vw, 400px); /* Responsive width */
     z-index: 1000;
     background-color: var(--lumo-base-color);
-    'box-shadow: -4px 0 8px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease-in-out;
+    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.4);
+    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
     transform: translateX(100%); /* Hide to the right */
     border-color: #4a4d52;
     border-style: solid;
@@ -20,6 +20,7 @@
     transform: translateX(0); /* Show panel */
 }
 
+/* Toggle button for opening/closing the panel */
 .slider-toggle {
     position: absolute;
     left: -40px;
@@ -37,23 +38,28 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
+    writing-mode: vertical-lr;
+    text-orientation: mixed;
 }
 
 .slider-toggle vaadin-icon {
     font-size: var(--lumo-font-size-l);
+    transform: rotate(180deg); /* Ensure correct orientation */
 }
 
+/* Content inside the slider panel */
 .slider-content {
     padding: var(--lumo-space-m);
     overflow-y: auto;
     height: 95%;
+    width: 100%;
     box-sizing: border-box;
 }
 
-/* Optional: Add some responsive styling */
-@media (max-width: 600px) {
+/* Responsive adjustments */
+@media (max-width: 768px) {
     .slider-panel {
-        width: 85vw; /* Use percentage of viewport width on mobile */
+        width: clamp(60px, 70vw, 85vw); /* Use viewport width on smaller screens */
     }
 
     .slider-content {
@@ -65,6 +71,7 @@
     }
 }
 
+/* Adjusting Vaadin overlays inside the slider panel */
 vaadin-combo-box-overlay {
     z-index: 1000 !important;
 }
