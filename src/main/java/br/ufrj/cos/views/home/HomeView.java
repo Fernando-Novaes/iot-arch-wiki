@@ -66,7 +66,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 .set("margin-bottom", "2em");
 
         H1 mainTitle = new H1("Welcome to the IoT Design Decision Assistant");
-        mainTitle.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
+        //mainTitle.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
 
         H2 subtitle = new H2("Empowering your IoT Software System Design Process");
 

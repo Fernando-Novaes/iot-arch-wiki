@@ -1,5 +1,7 @@
 package br.ufrj.cos.components.sliderpanel;
 
+import br.ufrj.cos.components.treeview.record.DataDetails;
+import br.ufrj.cos.domain.*;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
@@ -7,6 +9,11 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.context.event.EventListener;
+
+import java.util.Optional;
 
 @org.springframework.stereotype.Component
 @CssImport("./styles/slider-panel.css")
@@ -23,6 +30,9 @@ public class SliderPanel extends Div {
     private final HorizontalLayout qrHL = new HorizontalLayout();
     private final HorizontalLayout techHL = new HorizontalLayout();
     private final HorizontalLayout referenceHL = new HorizontalLayout();
+
+    @Getter @Setter
+    private DataDetails dataDetails;
 
     public SliderPanel() {
         this.removeAll();
@@ -87,28 +97,67 @@ public class SliderPanel extends Div {
         }
     }
 
-    public void setIoTDomainContent(Component component) {
+    private String formatSlidePanelDetails(String title, String name, String description) {
+        return String.format("<div><h3>%s:</h3><b>%s</b></br><div style='font-style: italic; margin-bottom: 5px;'>%s</div></div>",
+                title, name, Optional.ofNullable(description).orElse("No description"));
+    }
+
+    public void setDataDetailsContent(DataDetails dataDetails) {
+        if (dataDetails != null) {
+            if (dataDetails.getIotDomain() != null) {
+                this.setIoTDomainContent(dataDetails.getIotDomain());
+            }
+
+            if (dataDetails.getArchitectureSolution() != null) {
+                this.setArchitectureContent(dataDetails.getArchitectureSolution());
+            }
+
+            if (dataDetails.getQualityRequirement() != null) {
+                this.setQualityRequirementContent(dataDetails.getQualityRequirement());
+            }
+
+            if (dataDetails.getTechnology() != null) {
+                this.setTechnologyContent(dataDetails.getTechnology());
+            }
+
+            if (dataDetails.getReference() != null) {
+                this.setReferenceDetails(dataDetails.getReference());
+            }
+        }
+    }
+
+    private void setIoTDomainContent(IoTDomain domain) {
         //iotDomainHL.removeAll();
-        iotDomainHL.add(component);
+        iotDomainHL.add(
+                new HorizontalLayout(
+                        new Html(formatSlidePanelDetails("IoT Domain", domain.getName(), domain.getDescription()))));
     }
 
-    public void setArchitectureContent(Component component) {
+    private void setArchitectureContent(ArchitectureSolution solution) {
         //archHL.removeAll();
-        archHL.add(component);
+        archHL.add(new HorizontalLayout(
+                new Html(formatSlidePanelDetails("Architecture", solution.getArchitecture().getName(), solution.getDescription()))));
     }
 
-    public void setQualityRequirementContent(Component component) {
-        //qrHL.removeAll();
-        qrHL.add(component);
+    private void setQualityRequirementContent(QualityRequirement qr) {
+        qrHL.add(new HorizontalLayout(
+                new Html(formatSlidePanelDetails("Quality Requirement", qr.getName(),
+                        Optional.ofNullable(qr.getDescription()).orElse("No description")))
+        ));
     }
 
-    public void setTechnologyContent(Component component) {
-        //techHL.removeAll();
-        techHL.add(component);
+    private void setTechnologyContent(Technology tech) {
+        techHL.add(new HorizontalLayout(
+                new Html(formatSlidePanelDetails("Technology", tech.getDescription(),
+                        Optional.ofNullable(tech.getNotes()).orElse("No description")))
+
+                ));
     }
 
-    public void setReferenceDetails(Component component) {
-        referenceHL.add(component);
+    private void setReferenceDetails(PaperReference reference) {
+        referenceHL.add(new Html(
+                String.format("<div style='font-style: italic;'><center><b>%s, %s</b></center></div>",
+                        reference.getTitle(), reference.getPublishYear())));
     }
 
     private Div createHeader() {
@@ -118,11 +167,11 @@ public class SliderPanel extends Div {
                 .set("justify-content", "center")
                 .set("background-color", "#373a3f")
                 .set("border", "1px solid #4a4d52")
-                //.set("border-radius", "12px")
+                .set("border-radius", "12px")
                 //.set("margin-top", "px")
                 .set("width", "100%") // Increased width
-                .set("max-width", "1800px") // Increased max-width
-                .set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
+                .set("max-width", "1800px"); // Increased max-width
+                //.set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
 
         header.add(new Html("<h3><center>Details</center></h3>"));
 
@@ -183,4 +232,16 @@ public class SliderPanel extends Div {
             toggle();
         }
     }
+
+    @EventListener
+    public void handleDataDetailsUpdate(DataDetailsUpdateEvent event) {
+        // Use UI.access() to ensure we're updating the UI from the correct thread
+        UI.getCurrent().access(() -> {
+            DataDetails newDetails = event.getDataDetails();
+            setDataDetails(newDetails);
+            clearContents();  // Clear existing content before updating
+            this.setDataDetailsContent(newDetails);
+        });
+    }
+
 }

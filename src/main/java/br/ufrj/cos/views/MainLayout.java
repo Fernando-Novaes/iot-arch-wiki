@@ -97,9 +97,9 @@ public class MainLayout extends AppLayout {
 
         H1 appName = new H1("IoT Architecture Solution Knowledge Base");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
-        appName.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
+        //appName.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
         layout.add(
-                new Html("<div style='width: 100%'><h3 style='text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5)'>IoT Architecture Solution Knowledge Base</h3><p style='text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5)'>IoT Design Decision Assistant</p></div>"),
+                new Html("<div style='width: 100%'><h3>IoT Architecture Solution Knowledge Base</h3><p >IoT Design Decision Assistant</p></div>"),
                 this.avatarComponent.createAvatar());
 
         Nav nav = new Nav();
@@ -111,7 +111,7 @@ public class MainLayout extends AppLayout {
         nav.add(list);
 
         for (MenuItemInfo menuItem : createMenuItems()) {
-            menuItem.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
+            //menuItem.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
             list.add(menuItem);
         }
 

@@ -1,5 +1,6 @@
 package br.ufrj.cos.views.iotarch;
 
+import br.ufrj.cos.components.sliderpanel.DataDetailsUpdateEvent;
 import br.ufrj.cos.components.sliderpanel.SliderPanel;
 import br.ufrj.cos.components.treeview.TreeRootSelectionComponent;
 import br.ufrj.cos.components.treeview.TreeViewComponent;
@@ -12,7 +13,6 @@ import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import br.ufrj.cos.views.record.IoTDomainRecord;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
 import br.ufrj.cos.views.record.TechnologyRecord;
-import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -26,13 +26,15 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.security.PermitAll;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@PermitAll
+@UIScope
 @PageTitle("IoT-Architecture Knowledge Base")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
-@PermitAll
 public class IoTArchView extends BaseView {
     private final TreeViewComponent treeView;
     private final TreeRootSelectionComponent treeRootSelection;
@@ -43,7 +45,6 @@ public class IoTArchView extends BaseView {
     private final ArchitectureSolutionService architectureSolutionService;
     private final QualityRequirementService qualityRequirementService;
     private final TechnologyService technologyService;
-    private final PaperReferenceService paperReferenceService;
 
     private enum ActionType {
         NONE, IOTDOMAIN, ARCHITECTURESOLUTION, QUALITYREQUIREMENT, TECHNOLOGY
@@ -51,14 +52,14 @@ public class IoTArchView extends BaseView {
     private ActionType currentAction = ActionType.NONE;
 
     // ComboBoxes
-    private final ComboBox<IoTDomainRecord> iotDomainCombo;
-    private final ComboBox<ArchitectureSolutionRecord> architectureCombo;
-    private final ComboBox<QualityRequirementRecord> qualityCombo;
-    private final ComboBox<TechnologyRecord> technologiesCombo;
+    private ComboBox<IoTDomainRecord> iotDomainCombo;
+    private ComboBox<ArchitectureSolutionRecord> architectureCombo;
+    private ComboBox<QualityRequirementRecord> qualityCombo;
+    private ComboBox<TechnologyRecord> technologiesCombo;
 
-    private final HorizontalLayout comboBoxLayout;
-    private final Button filterButton;
-    private final Button cancelButton;
+    private HorizontalLayout comboBoxLayout;
+    private Button filterButton;
+    private Button cancelButton;
 
     @Autowired
     public IoTArchView(TreeViewComponent treeView,
@@ -67,17 +68,21 @@ public class IoTArchView extends BaseView {
                        IoTDomainService ioTDomainService,
                        ArchitectureSolutionService architectureSolutionService,
                        QualityRequirementService qualityRequirementService,
-                       TechnologyService technologyService,
-                       PaperReferenceService paperReferenceService) {
+                       TechnologyService technologyService) {
 
-        this.treeView = treeView;
-        this.treeRootSelection = treeRootSelection;
+        this.treeView = treeView; // Create new instance
+        this.treeRootSelection = treeRootSelection; // Create new instance
         this.sliderPanel = sliderPanel;
         this.ioTDomainService = ioTDomainService;
         this.architectureSolutionService = architectureSolutionService;
         this.qualityRequirementService = qualityRequirementService;
         this.technologyService = technologyService;
-        this.paperReferenceService = paperReferenceService;
+
+        initializeView();
+    }
+
+    private void initializeView() {
+        safelyRemoveTreeView();
 
         // Initialize UI components
         this.iotDomainCombo = createComboBox("IoT Domains", ActionType.IOTDOMAIN);
@@ -89,13 +94,9 @@ public class IoTArchView extends BaseView {
         this.cancelButton = createCancelButton();
         this.comboBoxLayout = createComboBoxLayout();
 
-        initializeView();
-    }
-
-    private void initializeView() {
-        setupTreeViewNavigation();
+        initTreeView();
         createHeader("Knowledge Base");
-        getContent().add(createFilterDiv(), treeView, sliderPanel);
+        getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
         loadDataToComboBoxes(ActionType.NONE);
         createDetailSliderPanel();
 
@@ -103,13 +104,10 @@ public class IoTArchView extends BaseView {
         getContent().getStyle().set("flex-grow", "1");
     }
 
-    private void setupTreeViewNavigation() {
-        treeRootSelection.addChangeLeftButtonClickListener(e -> changeRoot(Direction.LEFT));
-        treeRootSelection.addChangeRightButtonClickListener(e -> changeRoot(Direction.RIGHT));
-
-        treeView.addTreeRootSelection(treeRootSelection);
-        treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
-        treeView.load();
+    private void initTreeView() {
+            safelyRemoveTreeView();
+            this.treeView.setTreeViewType(TreeViewType.IoTDomain);
+            this.treeView.load();
     }
 
     private enum Direction {
@@ -207,14 +205,22 @@ public class IoTArchView extends BaseView {
 
     private void handleFilterClick() {
         if (isAnyFilterSelected()) {
+            // Remove existing tree view first
             safelyRemoveTreeView();
+
+            // Setup new filtered view
             cancelButton.setVisible(true);
             treeView.setIsFiltering(true);
-            treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);
+
+            //treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);
+            this.treeView.setTreeViewType(TreeViewType.IoTDomain_Filtered);
             filterTreeViewDataSource();
-            treeView.load();
-            getContent().add(treeView);
+
+            // Load and add the new tree view
+            this.treeView.load();
+
             lockFilterPanel(true);
+            getContent().add(this.treeView);
         }
     }
 
@@ -229,7 +235,8 @@ public class IoTArchView extends BaseView {
         safelyRemoveTreeView();
         currentAction = ActionType.NONE;
         treeView.setIsFiltering(false);
-        treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
+        //treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
+        treeView.setTreeViewType(TreeViewType.IoTDomain);
         treeView.load();
         getContent().add(treeView);
         loadDataToComboBoxes(ActionType.NONE);
@@ -238,9 +245,19 @@ public class IoTArchView extends BaseView {
     }
 
     private void safelyRemoveTreeView() {
-        try {
-            getContent().remove(treeView);
-        } catch (Exception ignored) {}
+        // First check if the content layout exists and contains the tree view
+        if (getContent() != null) {
+            getContent().getChildren()
+                    .filter(component -> component.equals(treeView))
+                    .findFirst()
+                    .ifPresent(component -> getContent().remove(component));
+
+            // Ensure treeRootSelectionComponent is never removed
+
+//            if ((getContent().getChildren().findAny().isPresent()) && (!getContent().getChildren().anyMatch(component -> component.equals(treeRootSelection)))) {
+//                getContent().addComponentAtIndex(1, this.createTreeRootSelectionDiv());
+//            }
+        }
     }
 
     private HorizontalLayout createComboBoxLayout() {
@@ -287,14 +304,32 @@ public class IoTArchView extends BaseView {
         return centerContainer;
     }
 
+    private Div createTreeRootSelectionDiv() {
+        Div centerContainer = new Div();
+        centerContainer.getStyle()
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("justify-content", "left");
+                //.set("width", "100%");
+
+        VerticalLayout mainLayout = new VerticalLayout();
+        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        styleMainLayout(mainLayout);
+
+        mainLayout.add(treeRootSelection);
+        centerContainer.add(mainLayout);
+
+        return centerContainer;
+    }
+
     private void styleMainLayout(VerticalLayout layout) {
         layout.getStyle()
                 .set("background-color", "#373a3f")
                 .set("border", "1px solid #4a4d52")
                 .set("border-radius", "12px")
                 .set("width", "100%")
-                .set("max-width", "1800px")
-                .set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
+                .set("max-width", "1800px");
+                //.set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
     }
 
     private void lockFilterPanel(boolean lock) {
@@ -462,6 +497,10 @@ public class IoTArchView extends BaseView {
     private void createDetailSliderPanel() {
         sliderPanel.setButtonTexts("Hide Details", "Show Details");
         sliderPanel.setExpanded(false);
-        treeView.setSliderPanel(sliderPanel);
+    }
+
+    @EventListener
+    public void handleDataDetailsUpdate(DataDetailsUpdateEvent event) {
+        sliderPanel.setDataDetailsContent(event.getDataDetails());
     }
 }

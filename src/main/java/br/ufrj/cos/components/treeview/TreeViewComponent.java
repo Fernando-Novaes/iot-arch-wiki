@@ -1,25 +1,20 @@
 package br.ufrj.cos.components.treeview;
 
 
-import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
-import br.ufrj.cos.components.qrcode.QRCodeComponent;
-import br.ufrj.cos.components.sliderpanel.SliderPanel;
+import br.ufrj.cos.components.diagram.event.DiagramUpdateEvent;
+import br.ufrj.cos.components.diagram.event.ReferenceDetailsEvent;
+import br.ufrj.cos.components.treeview.events.TreeRootSelectionChangeEvent;
 import br.ufrj.cos.components.treeview.factory.TreeNodeDetailsFactory;
+import br.ufrj.cos.components.treeview.record.DataDetails;
 import br.ufrj.cos.domain.*;
-import br.ufrj.cos.service.IoTDomainService;
 import br.ufrj.cos.service.TreeViewService;
-import com.vaadin.flow.component.ComponentEventListener;
 import com.vaadin.flow.component.DetachEvent;
-import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -28,13 +23,13 @@ import com.vaadin.flow.component.treegrid.TreeGrid;
 import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @UIScope
 @Component
@@ -42,31 +37,33 @@ import java.util.Optional;
 public class TreeViewComponent extends VerticalLayout {
 
     private TreeGrid<TreeNode<?>> treeGrid;
-    private final QRCodeComponent qrCodeComponent;
-    private final DiagramComponent diagramComponent;
+//    private final QRCodeComponent qrCodeComponent;
+//    private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
     @Getter private Boolean loaded = Boolean.FALSE;
     @Getter @Setter
     private Boolean isFiltering = Boolean.FALSE;
-    private TreeRootSelectionComponent treeRootSelectionComponent;
     StringBuilder pathString;
     @Getter
     private List<? extends DomainBase> treeViewData;
     private final TreeNodeDetailsFactory treeNodeDetailsFactory;
     @Getter @Setter
-    private SliderPanel sliderPanel;
-    @Autowired
-    public TreeViewComponent(QRCodeComponent qrCodeComponent,
-                             IoTDomainService ioTDomainService,
-                             DiagramComponent diagramComponent,
-                             TreeViewService treeViewService,
-                             TreeRootSelectionComponent treeRootSelectionComponent, TreeNodeDetailsFactory treeNodeDetailsFactory) {
+    private TreeViewType treeViewType;
+    @Getter @Setter
+    private DataDetails dataDetails;
 
-        this.qrCodeComponent = qrCodeComponent;
-        this.diagramComponent = diagramComponent;
+    private final ApplicationEventPublisher eventPublisher;
+
+    public TreeViewComponent(
+//            QRCodeComponent qrCodeComponent,
+//                             DiagramComponent diagramComponent,
+                             TreeViewService treeViewService, TreeNodeDetailsFactory treeNodeDetailsFactory, ApplicationEventPublisher eventPublisher) {
+
+//        this.qrCodeComponent = qrCodeComponent;
+//        this.diagramComponent = diagramComponent;
         this.treeViewService = treeViewService;
-        this.treeRootSelectionComponent = treeRootSelectionComponent;
         this.treeNodeDetailsFactory = treeNodeDetailsFactory;
+        this.eventPublisher = eventPublisher;
     }
 
     public void setTreeViewData(List<? extends DomainBase> treeViewData) {
@@ -74,6 +71,9 @@ public class TreeViewComponent extends VerticalLayout {
         this.treeViewData = treeViewData;
     }
 
+    /***
+     * Load the TreeView with all data from the knowledge base
+     */
     public void load() {
         treeGrid = new TreeGrid<>();
         // Define columns (e.g., displaying IoT Domain names)
@@ -97,18 +97,18 @@ public class TreeViewComponent extends VerticalLayout {
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
-        }).setHeader(this.treeRootSelectionComponent.create());
+        });
         //add set header above
 
         treeGrid.getStyle().setBorderRadius("8px");
 
         TreeNode<Object> root;
         if (this.isFiltering) {
-            root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
+            root = treeViewService.getTree(this.treeViewType);
             this.setTreeViewData(treeViewService.getTreeViewData());
             if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
         } else {
-            root = treeViewService.getTree(this.treeRootSelectionComponent.getTreeViewType());
+            root = treeViewService.getTree(this.treeViewType);
             if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
             this.setTreeViewData(treeViewService.getTreeViewData());
         }
@@ -165,7 +165,7 @@ public class TreeViewComponent extends VerticalLayout {
             if (data instanceof Technology) {
                 Technology technology = (Technology) data;
 
-                // Find the specific association that links this technology
+                 //Find the specific association that links this technology
                 QualityRequirementTechnology association =
                         technology.getAssociations().stream()
                                 .findFirst()
@@ -237,15 +237,20 @@ public class TreeViewComponent extends VerticalLayout {
      * @param diagramNames Names of the items of the selected Node
      * @return DiagramComponent
      */
-    private DiagramComponent createDiagram(String diagramNames) {
+    private void createDiagram(String diagramNames) {
+//        List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
+//        List<EdgeDiagram> edges = getEdgesDiagrams(nodes.size());
+//
+//        this.diagramComponent.setNodes(nodes);
+//        this.diagramComponent.setEdges(edges);
+//        this.diagramComponent.execute();
+//
+//        return this.diagramComponent;
+
         List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
         List<EdgeDiagram> edges = getEdgesDiagrams(nodes.size());
 
-        this.diagramComponent.setNodes(nodes);
-        this.diagramComponent.setEdges(edges);
-        this.diagramComponent.execute();
-
-        return this.diagramComponent;
+        eventPublisher.publishEvent(new DiagramUpdateEvent(this, nodes, edges));
     }
 
     /***
@@ -289,42 +294,44 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     private void createReferenceDetailsDialog(String paperTitle, String paperLink) {
-        Dialog dialog = new Dialog();
-        dialog.setModal(true);
-        dialog.setDraggable(true);
-        dialog.setResizable(true);
-        dialog.setHeaderTitle("Details");
-        dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
+//        Dialog dialog = new Dialog();
+//        dialog.setModal(true);
+//        dialog.setDraggable(true);
+//        dialog.setResizable(true);
+//        dialog.setHeaderTitle("Details");
+//        dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
+//
+//        HorizontalLayout hl = new HorizontalLayout();
+//        hl.setAlignItems(Alignment.CENTER);
+//        //hl.setSpacing(true);
+//
+//        VerticalLayout vl = new VerticalLayout();
+//        vl.setAlignItems(Alignment.CENTER);
+//
+//        H2 paperTitleH2 = new H2(paperTitle);
+//        paperTitleH2.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
+//        Anchor link = new Anchor(paperLink, paperLink);
+//        link.setTarget("_blank"); // Opens the link in a new tab
+//
+//        Div divDiagram = new Div();
+//        divDiagram.setId("diagram");
+//        divDiagram.setWidthFull();
+//
+//        vl.add(paperTitleH2, link, this.qrCodeComponent.generateQRCode(paperLink, 100, 100), divDiagram, new Text(this.pathString.toString()));
+//
+//        dialog.add(vl, this.diagramComponent);
+//
+//        Button closeXButton = new Button(new Icon("lumo", "cross"),
+//                (e) -> dialog.close());
+//        closeXButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+//        dialog.getHeader().add(closeXButton);
+//
+//        Button close = new Button("Close", (e) -> dialog.close());
+//        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+//        dialog.getFooter().add(close);
+//        dialog.open();
 
-        HorizontalLayout hl = new HorizontalLayout();
-        hl.setAlignItems(Alignment.CENTER);
-        //hl.setSpacing(true);
-
-        VerticalLayout vl = new VerticalLayout();
-        vl.setAlignItems(Alignment.CENTER);
-
-        H2 paperTitleH2 = new H2(paperTitle);
-        paperTitleH2.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
-        Anchor link = new Anchor(paperLink, paperLink);
-        link.setTarget("_blank"); // Opens the link in a new tab
-
-        Div divDiagram = new Div();
-        divDiagram.setId("diagram");
-        divDiagram.setWidthFull();
-
-        vl.add(paperTitleH2, link, this.qrCodeComponent.generateQRCode(paperLink, 100, 100), divDiagram, new Text(this.pathString.toString()));
-
-        dialog.add(vl, this.diagramComponent);
-
-        Button closeXButton = new Button(new Icon("lumo", "cross"),
-                (e) -> dialog.close());
-        closeXButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        dialog.getHeader().add(closeXButton);
-
-        Button close = new Button("Close", (e) -> dialog.close());
-        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        dialog.getFooter().add(close);
-        dialog.open();
+        eventPublisher.publishEvent(new ReferenceDetailsEvent(this, paperTitle, paperLink, pathString.toString()));
     }
 
     private void selectRow(TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {
@@ -348,13 +355,17 @@ public class TreeViewComponent extends VerticalLayout {
         return path;
     }
 
-    public void addTreeRootSelection(TreeRootSelectionComponent rootSelection) {
-        this.treeRootSelectionComponent = rootSelection;
+    private void loadTree(TreeViewType type) {
+        this.removeAll();  // Remove existing tree
+        this.setTreeViewType(type);
+        this.load();
     }
 
-    private ComponentEventListener clickListener;
-    public void addNodeClickEvent(ComponentEventListener clickEvent) {
-        this.clickListener = clickEvent;
+    @EventListener
+    public void handleTreeRootChange(TreeRootSelectionChangeEvent event) {
+        getUI().ifPresent(ui -> ui.access(() -> {
+            loadTree(event.getNewType());
+        }));
     }
 
     @Override

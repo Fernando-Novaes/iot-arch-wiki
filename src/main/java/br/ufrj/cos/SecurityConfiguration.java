@@ -3,7 +3,6 @@ package br.ufrj.cos;
 import br.ufrj.cos.domain.UserApplication;
 import br.ufrj.cos.service.UserApplicationService;
 import br.ufrj.cos.views.login.LoginView;
-import com.vaadin.flow.server.VaadinServiceInitListener;
 import com.vaadin.flow.spring.security.VaadinWebSecurity;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,13 +11,9 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @EnableWebSecurity
 @Configuration
