@@ -13,6 +13,7 @@ import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import br.ufrj.cos.views.record.IoTDomainRecord;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
 import br.ufrj.cos.views.record.TechnologyRecord;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
@@ -32,7 +33,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @PermitAll
-@UIScope
 @PageTitle("IoT-Architecture Knowledge Base")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
 public class IoTArchView extends BaseView {
@@ -82,7 +82,8 @@ public class IoTArchView extends BaseView {
     }
 
     private void initializeView() {
-        safelyRemoveTreeView();
+        //safelyRemoveTreeView();
+        getContent().removeAll();
 
         // Initialize UI components
         this.iotDomainCombo = createComboBox("IoT Domains", ActionType.IOTDOMAIN);
@@ -94,18 +95,20 @@ public class IoTArchView extends BaseView {
         this.cancelButton = createCancelButton();
         this.comboBoxLayout = createComboBoxLayout();
 
-        initTreeView();
-        createHeader("Knowledge Base");
-        getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
-        loadDataToComboBoxes(ActionType.NONE);
-        createDetailSliderPanel();
+
+                    initTreeView();
+                    createHeader("Knowledge Base");
+                    getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
+                    loadDataToComboBoxes(ActionType.NONE);
+                    createDetailSliderPanel();
+
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
     }
 
     private void initTreeView() {
-            safelyRemoveTreeView();
+            //safelyRemoveTreeView();
             this.treeView.setTreeViewType(TreeViewType.IoTDomain);
             this.treeView.load();
     }
@@ -250,7 +253,11 @@ public class IoTArchView extends BaseView {
             getContent().getChildren()
                     .filter(component -> component.equals(treeView))
                     .findFirst()
-                    .ifPresent(component -> getContent().remove(component));
+                    .ifPresent(component -> {
+
+                        getContent().remove(component);
+
+                    });
 
             // Ensure treeRootSelectionComponent is never removed
 

@@ -111,7 +111,7 @@ public class BoardView extends BaseView {
         container.add(box01);
         getContent().add(container);
 
-        this.diagramComponent.execute();
+        //this.diagramComponent.execute();
     }
 
     private void createBarGraphLayout() {

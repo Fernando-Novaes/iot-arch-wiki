@@ -1,10 +1,10 @@
 package br.ufrj.cos.components.treeview;
 
 
+import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
-import br.ufrj.cos.components.diagram.event.DiagramUpdateEvent;
-import br.ufrj.cos.components.diagram.event.ReferenceDetailsEvent;
+import br.ufrj.cos.components.qrcode.QRCodeComponent;
 import br.ufrj.cos.components.treeview.events.TreeRootSelectionChangeEvent;
 import br.ufrj.cos.components.treeview.factory.TreeNodeDetailsFactory;
 import br.ufrj.cos.components.treeview.record.DataDetails;
@@ -13,8 +13,13 @@ import br.ufrj.cos.service.TreeViewService;
 import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
+import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
+import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -37,8 +42,8 @@ import java.util.List;
 public class TreeViewComponent extends VerticalLayout {
 
     private TreeGrid<TreeNode<?>> treeGrid;
-//    private final QRCodeComponent qrCodeComponent;
-//    private final DiagramComponent diagramComponent;
+    private final QRCodeComponent qrCodeComponent;
+    private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
     @Getter private Boolean loaded = Boolean.FALSE;
     @Getter @Setter
@@ -55,12 +60,12 @@ public class TreeViewComponent extends VerticalLayout {
     private final ApplicationEventPublisher eventPublisher;
 
     public TreeViewComponent(
-//            QRCodeComponent qrCodeComponent,
-//                             DiagramComponent diagramComponent,
+            QRCodeComponent qrCodeComponent,
+                             DiagramComponent diagramComponent,
                              TreeViewService treeViewService, TreeNodeDetailsFactory treeNodeDetailsFactory, ApplicationEventPublisher eventPublisher) {
 
-//        this.qrCodeComponent = qrCodeComponent;
-//        this.diagramComponent = diagramComponent;
+        this.qrCodeComponent = qrCodeComponent;
+        this.diagramComponent = diagramComponent;
         this.treeViewService = treeViewService;
         this.treeNodeDetailsFactory = treeNodeDetailsFactory;
         this.eventPublisher = eventPublisher;
@@ -237,20 +242,15 @@ public class TreeViewComponent extends VerticalLayout {
      * @param diagramNames Names of the items of the selected Node
      * @return DiagramComponent
      */
-    private void createDiagram(String diagramNames) {
-//        List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
-//        List<EdgeDiagram> edges = getEdgesDiagrams(nodes.size());
-//
-//        this.diagramComponent.setNodes(nodes);
-//        this.diagramComponent.setEdges(edges);
-//        this.diagramComponent.execute();
-//
-//        return this.diagramComponent;
-
+    private DiagramComponent createDiagram(String diagramNames) {
         List<NodeDiagram> nodes = this.getNodesToDiagram(diagramNames);
         List<EdgeDiagram> edges = getEdgesDiagrams(nodes.size());
 
-        eventPublisher.publishEvent(new DiagramUpdateEvent(this, nodes, edges));
+        this.diagramComponent.setNodes(nodes);
+        this.diagramComponent.setEdges(edges);
+        this.diagramComponent.execute();
+
+        return this.diagramComponent;
     }
 
     /***
@@ -294,44 +294,44 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     private void createReferenceDetailsDialog(String paperTitle, String paperLink) {
-//        Dialog dialog = new Dialog();
-//        dialog.setModal(true);
-//        dialog.setDraggable(true);
-//        dialog.setResizable(true);
-//        dialog.setHeaderTitle("Details");
-//        dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
-//
-//        HorizontalLayout hl = new HorizontalLayout();
-//        hl.setAlignItems(Alignment.CENTER);
-//        //hl.setSpacing(true);
-//
-//        VerticalLayout vl = new VerticalLayout();
-//        vl.setAlignItems(Alignment.CENTER);
-//
-//        H2 paperTitleH2 = new H2(paperTitle);
-//        paperTitleH2.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
-//        Anchor link = new Anchor(paperLink, paperLink);
-//        link.setTarget("_blank"); // Opens the link in a new tab
-//
-//        Div divDiagram = new Div();
-//        divDiagram.setId("diagram");
-//        divDiagram.setWidthFull();
-//
-//        vl.add(paperTitleH2, link, this.qrCodeComponent.generateQRCode(paperLink, 100, 100), divDiagram, new Text(this.pathString.toString()));
-//
-//        dialog.add(vl, this.diagramComponent);
-//
-//        Button closeXButton = new Button(new Icon("lumo", "cross"),
-//                (e) -> dialog.close());
-//        closeXButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//        dialog.getHeader().add(closeXButton);
-//
-//        Button close = new Button("Close", (e) -> dialog.close());
-//        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//        dialog.getFooter().add(close);
-//        dialog.open();
+        Dialog dialog = new Dialog();
+        dialog.setModal(true);
+        dialog.setDraggable(true);
+        dialog.setResizable(true);
+        dialog.setHeaderTitle("Details");
+        dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
 
-        eventPublisher.publishEvent(new ReferenceDetailsEvent(this, paperTitle, paperLink, pathString.toString()));
+        HorizontalLayout hl = new HorizontalLayout();
+        hl.setAlignItems(Alignment.CENTER);
+        //hl.setSpacing(true);
+
+        VerticalLayout vl = new VerticalLayout();
+        vl.setAlignItems(Alignment.CENTER);
+
+        H2 paperTitleH2 = new H2(paperTitle);
+        paperTitleH2.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
+        Anchor link = new Anchor(paperLink, paperLink);
+        link.setTarget("_blank"); // Opens the link in a new tab
+
+        Div divDiagram = new Div();
+        divDiagram.setId("diagram");
+        divDiagram.setWidthFull();
+
+        vl.add(paperTitleH2, link, this.qrCodeComponent.generateQRCode(paperLink, 100, 100), divDiagram, new Text(this.pathString.toString()));
+
+        dialog.add(vl, this.diagramComponent);
+
+        Button closeXButton = new Button(new Icon("lumo", "cross"),
+                (e) -> dialog.close());
+        closeXButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        dialog.getHeader().add(closeXButton);
+
+        Button close = new Button("Close", (e) -> dialog.close());
+        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        dialog.getFooter().add(close);
+        dialog.open();
+
+        //eventPublisher.publishEvent(new ReferenceDetailsEvent(this, paperTitle, paperLink, pathString.toString()));
     }
 
     private void selectRow(TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {

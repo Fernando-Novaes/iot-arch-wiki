@@ -9,12 +9,14 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.context.event.EventListener;
 
 import java.util.Optional;
 
+@UIScope
 @org.springframework.stereotype.Component
 @CssImport("./styles/slider-panel.css")
 public class SliderPanel extends Div {
