@@ -246,4 +246,16 @@ public class SliderPanel extends Div {
         });
     }
 
+    @EventListener
+    public void openClose(OpenCloseEvent event) {
+        if (event.getAction() == OpenCloseEvent.Action.OPEN) {
+                addClassName("expanded");
+                updateButtonContent(true);
+            } else {
+                removeClassName("expanded");
+                updateButtonContent(false);
+            }
+
+    }
+
 }

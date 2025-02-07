@@ -95,12 +95,11 @@ public class IoTArchView extends BaseView {
         this.cancelButton = createCancelButton();
         this.comboBoxLayout = createComboBoxLayout();
 
-
-                    initTreeView();
-                    createHeader("Knowledge Base");
-                    getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
-                    loadDataToComboBoxes(ActionType.NONE);
-                    createDetailSliderPanel();
+        initTreeView();
+        createHeader("Knowledge Base");
+        getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
+        loadDataToComboBoxes(ActionType.NONE);
+        createDetailSliderPanel();
 
 
         getContent().setSizeFull();

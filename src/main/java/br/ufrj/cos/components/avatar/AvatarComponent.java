@@ -37,6 +37,7 @@ public class AvatarComponent {
         String imagePath = SecurityUtils.hasRole("ADMIN") ? ADMIN_ICON : USER_ICON;
         avatar.setImage(imagePath);
         avatar.setTooltipEnabled(true);
+        avatar.getStyle().set("cursor", "pointer");
 
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY_INLINE);
