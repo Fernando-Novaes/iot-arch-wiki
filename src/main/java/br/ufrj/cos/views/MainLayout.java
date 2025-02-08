@@ -2,7 +2,6 @@ package br.ufrj.cos.views;
 
 
 import br.ufrj.cos.components.avatar.AvatarComponent;
-import br.ufrj.cos.components.avatar.ProfileDialogView;
 import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.about.AboutViewView;
 import br.ufrj.cos.views.board.BoardView;
@@ -38,9 +37,6 @@ import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import jakarta.annotation.security.PermitAll;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.ArrayList;
@@ -49,6 +45,7 @@ import java.util.List;
 /**
  * The main view is a top-level placeholder for other views.
  */
+@PermitAll
 public class MainLayout extends AppLayout {
 
     public AvatarComponent avatarComponent = new AvatarComponent();
@@ -126,8 +123,7 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo("Knowledge Base", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class),
                 new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
                 new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
-                new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class),
-                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class)
+                new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class)
         ));
 
         // Dynamically add the "Knowledge Manager" menu item if the user is an ADMIN
@@ -135,6 +131,8 @@ public class MainLayout extends AppLayout {
             menu.add(new MenuItemInfo("Knowledge Manager", LineAwesomeIcon.DATABASE_SOLID.create(), DataManagerView.class));
             menu.add(new MenuItemInfo("User Manager", LineAwesomeIcon.USER_ALT_SOLID.create(), UserRegistrationView.class));
         }
+
+        menu.add(new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class));
 
         // Convert list to an array and return it
         return menu.toArray(new MenuItemInfo[0]);

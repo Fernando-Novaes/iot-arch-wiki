@@ -97,9 +97,10 @@ public class IoTArchView extends BaseView {
 
         initTreeView();
         createHeader("Knowledge Base");
-        getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
+        //getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
+        getContent().add(createFilterDiv(), treeView, sliderPanel);
         loadDataToComboBoxes(ActionType.NONE);
-        createDetailSliderPanel();
+        //createDetailSliderPanel();
 
 
         getContent().setSizeFull();
@@ -109,6 +110,7 @@ public class IoTArchView extends BaseView {
     private void initTreeView() {
             //safelyRemoveTreeView();
             this.treeView.setTreeViewType(TreeViewType.IoTDomain);
+            this.treeView.setGridHeader(this.treeRootSelection);
             this.treeView.load();
     }
 
@@ -294,6 +296,7 @@ public class IoTArchView extends BaseView {
 
     private Div createFilterDiv() {
         Div centerContainer = new Div();
+        centerContainer.setWidthFull();
         centerContainer.getStyle()
                 .set("display", "flex")
                 .set("align-items", "center")
@@ -301,7 +304,7 @@ public class IoTArchView extends BaseView {
                 .set("width", "100%");
 
         VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        //mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         styleMainLayout(mainLayout);
 
         mainLayout.add(comboBoxLayout);
@@ -310,23 +313,23 @@ public class IoTArchView extends BaseView {
         return centerContainer;
     }
 
-    private Div createTreeRootSelectionDiv() {
-        Div centerContainer = new Div();
-        centerContainer.getStyle()
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "left");
-                //.set("width", "100%");
-
-        VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        styleMainLayout(mainLayout);
-
-        mainLayout.add(treeRootSelection);
-        centerContainer.add(mainLayout);
-
-        return centerContainer;
-    }
+//    private Div createTreeRootSelectionDiv() {
+//        Div centerContainer = new Div();
+//        centerContainer.getStyle()
+//                .set("display", "flex")
+//                .set("align-items", "center")
+//                .set("justify-content", "left");
+//                //.set("width", "100%");
+//
+//        VerticalLayout mainLayout = new VerticalLayout();
+//        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+//        styleMainLayout(mainLayout);
+//
+//        //mainLayout.add(treeRootSelection);
+//        centerContainer.add(mainLayout);
+//
+//        return centerContainer;
+//    }
 
     private void styleMainLayout(VerticalLayout layout) {
         layout.getStyle()
@@ -500,10 +503,10 @@ public class IoTArchView extends BaseView {
     /***
      * Creates the search panel at the bottom of the page
      */
-    private void createDetailSliderPanel() {
-        sliderPanel.setButtonTexts("Hide Details", "Show Details");
-        sliderPanel.setExpanded(false);
-    }
+//    private void createDetailSliderPanel() {
+//        sliderPanel.setButtonTexts("Hide Details", "Show Details");
+//        sliderPanel.setExpanded(false);
+//    }
 
     @EventListener
     public void handleDataDetailsUpdate(DataDetailsUpdateEvent event) {

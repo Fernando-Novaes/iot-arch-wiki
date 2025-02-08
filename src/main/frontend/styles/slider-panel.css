@@ -5,7 +5,7 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: clamp(250px, 25vw, 400px); /* Responsive width */
+    width: clamp(600px, 25vw, 1200px); /* Responsive width */
     z-index: 1000;
     background-color: var(--lumo-base-color);
     box-shadow: -4px 0 8px rgba(0, 0, 0, 0.4);
@@ -14,6 +14,7 @@
     border-color: #4a4d52;
     border-style: solid;
     border-width: 1px;
+    'overflow: hidden; /* Prevents content overflow during resize */
 }
 
 .slider-panel.expanded {
@@ -26,10 +27,10 @@
     left: -40px;
     top: 50%;
     transform: translateY(-50%);
-    border-radius: var(--lumo-border-radius-l) var(--lumo-border-radius-l) 0 0 !important;
+    border-radius: 0 0 0 0 !important;
     margin: 0 !important;
-    min-width: 40px;
-    min-height: 120px;
+    min-width: 25px !important;
+    min-height: 150px;
     padding: 12px 8px !important;
     background-color: var(--lumo-primary-color) !important;
     color: var(--lumo-primary-contrast-color) !important;
@@ -81,4 +82,16 @@ vaadin-combo-box-overlay {
     background-color: var(--lumo-base-color);
     border-radius: var(--lumo-border-radius-l);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Resizer styles */
+.slider-resizer {
+    position: absolute;
+    top: 0;
+    left: 0; /* Position on the left border */
+    width: 5px; /* Resizer width */
+    height: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    cursor: ew-resize; /* East-West resize cursor */
+    z-index: 1; /* Ensure it's above the content */
 }

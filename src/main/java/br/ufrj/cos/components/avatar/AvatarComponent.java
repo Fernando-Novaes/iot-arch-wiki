@@ -6,8 +6,11 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.router.RouterLink;
 import jakarta.annotation.security.PermitAll;
@@ -31,19 +34,45 @@ public class AvatarComponent {
         }
 
         Div div = new Div();
-        Avatar avatar = new Avatar(userDetails.getUsername());
 
-        // Set avatar image based on user role
+        // Avatar with Styling
+        Avatar avatar = new Avatar(userDetails.getUsername());
         String imagePath = SecurityUtils.hasRole("ADMIN") ? ADMIN_ICON : USER_ICON;
         avatar.setImage(imagePath);
         avatar.setTooltipEnabled(true);
-        avatar.getStyle().set("cursor", "pointer");
 
+        // Embedded Styling for Avatar
+        avatar.getStyle()
+                .set("cursor", "pointer")
+                .set("border-radius", "50%") // Circular avatar
+                .set("width", "36px")
+                .set("height", "36px")
+                .set("margin-right", "8px") //Spacing between avatar and username
+                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.2)"); // Add a subtle shadow
+
+        // User Name Span with Styling
+        Span userNameSpan = new Span(userDetails.getUsername().toUpperCase()); // Display username
+        userNameSpan.getStyle()
+                .set("font-weight", "bold")
+                .set("font-size", "1.1em")
+                .set("color", "var(--lumo-primary-text-color)") //Use theme primary text color
+                .set("margin-right", "16px"); // Spacing before menu
+
+        // Horizontal Layout to hold Avatar and Username
+        HorizontalLayout avatarLayout = new HorizontalLayout(userNameSpan, avatar);
+        avatarLayout.setAlignItems(FlexComponent.Alignment.CENTER); // Vertically align items
+
+        // MenuBar
         MenuBar menuBar = new MenuBar();
         menuBar.addThemeVariants(MenuBarVariant.LUMO_TERTIARY_INLINE);
 
-        MenuItem menuItem = menuBar.addItem(avatar);
-        SubMenu subMenu = menuItem.getSubMenu();
+        // Embedded Styling for Menu Bar
+        menuBar.getStyle()
+                .set("margin-left", "auto"); // Push to the right
+
+        MenuItem avatarMenuItem = menuBar.addItem(avatarLayout);
+        SubMenu subMenu = avatarMenuItem.getSubMenu();
+
         if (SecurityUtils.isUserLoggedIn()) {
             subMenu.addItem(new RouterLink("Profile",
                     ProfileDialogView.class, new RouteParameters("username", SecurityUtils.getUsername())));

@@ -13,6 +13,7 @@ import br.ufrj.cos.components.treeview.record.DataDetails;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.TreeViewService;
 import com.vaadin.flow.component.DetachEvent;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
@@ -58,6 +59,8 @@ public class TreeViewComponent extends VerticalLayout {
     private TreeViewType treeViewType;
     @Getter @Setter
     private DataDetails dataDetails;
+    @Getter @Setter
+    private com.vaadin.flow.component.Component gridHeader;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -104,7 +107,10 @@ public class TreeViewComponent extends VerticalLayout {
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
             return new Text("");
-        }).setHeader("Knowledge Tree Data");
+        }).setHeader(
+                (this.getGridHeader() != null)?
+                        this.getGridHeader() :
+                        new Html("<center><h3>Knowledge Tree</h3></center>"));
         //add set header above
 
         treeGrid.getStyle().setBorderRadius("8px");

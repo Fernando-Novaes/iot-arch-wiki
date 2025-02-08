@@ -6,47 +6,38 @@ import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
-import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.icon.VaadinIcon;
-import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.router.BeforeEnterEvent;
-import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.security.PermitAll;
-import jakarta.annotation.security.RolesAllowed;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+
+import static org.reflections.Reflections.log;
 import org.vaadin.addons.joelpop.changepassword.ChangePassword;
 import org.vaadin.addons.joelpop.changepassword.ChangePasswordDialog;
 import org.vaadin.addons.joelpop.changepassword.ChangePasswordRule;
 
-import static org.reflections.Reflections.log;
-
 @PageTitle("User Profile")
 @Route(value = "profile-dialog/:username", layout = MainLayout.class)
 @PermitAll
-public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
+public class ProfileDialogView extends BaseView {
+
+    private static final Logger logger = LoggerFactory.getLogger(ProfileDialogView.class);
 
     private final UserApplicationService userService;
     private final PasswordEncoder passwordEncoder;
     private UserApplication user = null;
-    private String userName;
 
     public ProfileDialogView(UserApplicationService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
@@ -56,6 +47,11 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
         Div box = new Div();
         box.addClassName("centered-aboutbox");
+        box.getStyle()
+                .set("background-color", "var(--lumo-contrast-5pct)")
+                .set("border-radius", "var(--lumo-border-radius)")
+                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
+                .set("padding", "20px");
 
         // Create a HorizontalLayout to center the box horizontally
         HorizontalLayout hLayout = new HorizontalLayout();
@@ -72,20 +68,33 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
         // User info form with responsive layout
         FormLayout formLayout = createResponsiveFormLayout();
+        formLayout.getStyle().set("width", "100%"); // Make the form take up the full width of its container
 
-        this.user = this.userService.findByUserName(SecurityUtils.getUsername());
-        // Profile section
-        if (this.user != null) {
-            createProfileSection(formLayout);
-            // Action buttons with responsive layout
-            HorizontalLayout buttonLayout = createButtonLayout();
-            // Add components to main layout
-            content.add(formLayout, buttonLayout);
-            // Footer
-            //createFooter();
+        try {
+            this.user = this.userService.findByUserName(SecurityUtils.getUsername());
+            if (this.user != null) {
+                // Profile Section Header
+                H3 profileHeader = new H3("Profile Information");
+                profileHeader.getStyle().set("margin-bottom", "10px"); // Space below the header
 
-            box.add(content);
-            hLayout.add(box);
+                createProfileSection(formLayout);
+                // Action buttons with responsive layout
+                HorizontalLayout buttonLayout = createButtonLayout();
+                // Add components to main layout
+                content.add(profileHeader, formLayout, buttonLayout);
+                // Footer
+                //createFooter();
+
+                box.add(content);
+                hLayout.add(box);
+            } else {
+                logger.warn("User not found for username: {}", SecurityUtils.getUsername());
+                // Handle the case where the user is not found (e.g., display an error message)
+                content.add(new Div("User profile not found.")); // Simple error message
+            }
+        } catch (Exception e) {
+            logger.error("Error retrieving user profile.", e);
+            content.add(new Div("Error retrieving user profile.  Please contact support.")); // Generic error message
         }
 
         getContent().add(hLayout);
@@ -121,8 +130,8 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
         // Add some styling
         field.getStyle()
-                //.set("background-color", "var(--lumo-contrast-5pct)")
-                .set("border-radius", "var(--lumo-border-radius)");
+                .set("border-radius", "var(--lumo-border-radius)")
+                .set("margin-bottom", "10px"); // Add some spacing between fields
 
         return field;
     }
@@ -135,6 +144,7 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
         );
         changePasswordBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         changePasswordBtn.addClickListener(e -> showChangePasswordDialog());
+        changePasswordBtn.getStyle().set("margin-top", "15px"); // Move button slightly down
 
         // Layout for buttons
         HorizontalLayout buttonLayout = new HorizontalLayout(changePasswordBtn);
@@ -145,18 +155,6 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
 
         return buttonLayout;
     }
-
-//    private void createFooter() {
-//        // Close button in footer
-//        Button closeButton = new Button("Close", e -> close());
-//        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//
-//        HorizontalLayout footer = new HorizontalLayout(closeButton);
-//        footer.setJustifyContentMode(FlexComponent.JustifyContentMode.END);
-//        footer.setPadding(true);
-//
-//        getFooter().add(footer);
-//    }
 
     private void showChangePasswordDialog() {
         ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog(ChangePassword.ChangePasswordMode.CHANGE_KNOWN);
@@ -192,15 +190,6 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
         changePasswordDialog.open();
     }
 
-//    private boolean validateOldPassword(String oldPassword) {
-//        try {
-//            return passwordEncoder.matches(oldPassword, user.getPassword());
-//        } catch (Exception e) {
-//            log.error("Error validating password", e);
-//            return false;
-//        }
-//    }
-
     private boolean updatePassword(String newPassword) {
         try {
             user.setPassword(newPassword);
@@ -208,15 +197,9 @@ public class ProfileDialogView extends BaseView implements BeforeEnterObserver {
             NotificationUtils.showSuccessNotification("Password updated successfully");
             return true;
         } catch (Exception e) {
-            log.error("Error updating password", e);
+            logger.error("Error updating password", e);
             NotificationUtils.showErrorNotification("Failed to update password");
             return false;
         }
-    }
-
-    @Override
-    public void beforeEnter(BeforeEnterEvent beforeEnterEvent) {
-        userName = beforeEnterEvent.getRouteParameters().get("username").
-                orElse(null);
     }
 }
