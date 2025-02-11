@@ -29,6 +29,9 @@ public class Technology extends DomainBase {
     @OneToMany(mappedBy = "technology", fetch = FetchType.EAGER)
     private List<QualityRequirementTechnology> associations;
 
+    @ManyToMany(mappedBy = "technologies")
+    private List<Annotation> annotations;
+
     public List<QualityRequirement> getQualityRequirements() {
         return associations.stream()
                 .map(QualityRequirementTechnology::getQualityRequirement)

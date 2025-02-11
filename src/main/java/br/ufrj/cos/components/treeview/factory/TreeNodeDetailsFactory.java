@@ -1,41 +1,33 @@
 package br.ufrj.cos.components.treeview.factory;
 
+import br.ufrj.cos.components.annotation.AnnotationComponent;
 import br.ufrj.cos.components.sliderpanel.DataDetailsUpdateEvent;
-import br.ufrj.cos.components.sliderpanel.SliderPanel;
 import br.ufrj.cos.components.treeview.TreeNode;
 import br.ufrj.cos.components.treeview.record.DataDetails;
 import br.ufrj.cos.domain.*;
-import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.spring.annotation.UIScope;
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
-
+@UIScope
 @Setter
 @Getter
 @Component
 public class TreeNodeDetailsFactory {
 
-//    @Setter
-//    private SliderPanel detailsSliderPanel;
-
+    private final AnnotationComponent annotationComponent;
     private DataDetails dataDetails;
 
     private final ApplicationEventPublisher eventPublisher;
 
-    public TreeNodeDetailsFactory(ApplicationEventPublisher eventPublisher) {
+    public TreeNodeDetailsFactory(ApplicationEventPublisher eventPublisher, AnnotationComponent annotationComponent) {
         this.eventPublisher = eventPublisher;
+        this.annotationComponent = annotationComponent;
     }
-
-//    @Autowired
-//    public TreeNodeDetailsFactory(SliderPanel detailsSliderPanel) {
-//        this.detailsSliderPanel = detailsSliderPanel;
-//    }
 
     public Button createButtonForNode(TreeNode<?> node, String className) {
         //detailsSliderPanel.clearContents();
@@ -60,6 +52,7 @@ public class TreeNodeDetailsFactory {
         }
 
         btn.getElement().addEventListener("mouseout", event -> this.publishEmptyDetails());
+        this.annotationComponent.create(btn, UI.getCurrent(), (DomainBase) node.getData());
 
         return btn;
     }

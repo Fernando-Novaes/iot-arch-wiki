@@ -1,18 +1,17 @@
 package br.ufrj.cos.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Date;
+import java.util.List;
 
 @Entity
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = false, exclude = "annotations")
 public class UserApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,6 +33,9 @@ public class UserApplication {
     @Column(columnDefinition = "CLOB")
     @Basic(fetch = FetchType.LAZY)
     private String notes;
+
+    @OneToMany(mappedBy = "userApplication", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Annotation> annotations;
 
     public enum Role {
         USER, ADMIN

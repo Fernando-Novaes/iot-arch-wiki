@@ -4,6 +4,7 @@ import br.ufrj.cos.domain.UserApplication;
 import br.ufrj.cos.service.UserApplicationService;
 import br.ufrj.cos.utils.GridCRUDUtils;
 import br.ufrj.cos.utils.NotificationUtils;
+import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
@@ -11,6 +12,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.vaadin.crudui.crud.impl.GridCrud;
 
@@ -52,12 +54,17 @@ public class UserRegistrationView extends BaseView {
 
         // Create and configure the Add operation
         gridUsers.setAddOperation(userApplication -> {
-            userApplication.setDateOfCreation(new Date());
-            passwordEncoder.encode(userApplication.getPassword());
-            userApplicationService.save(userApplication);
-            refreshAllData();
-            NotificationUtils.showSuccessNotification("User registered.");
-            return userApplication;
+            if (this.userApplicationService.findByUserName(userApplication.getUserName()) != null) {
+                NotificationUtils.showErrorNotification("The username has been already registered!");
+                return null;
+            } else {
+                userApplication.setDateOfCreation(new Date());
+                passwordEncoder.encode(userApplication.getPassword());
+                userApplicationService.save(userApplication);
+                refreshAllData();
+                NotificationUtils.showSuccessNotification("User registered.");
+                return userApplication;
+            }
         });
 
         gridUsers.getCrudFormFactory().setFieldProvider("password", i -> new PasswordField());
