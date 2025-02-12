@@ -46,20 +46,28 @@ public class AnnotationService {
         return annotationRepository.findByUserApplication(userApplication);
     }
 
-    public List<Annotation> getAnnotationsByUserApplicationAndIoTDomain(UserApplication userApplication, IoTDomain ioTDomain) {
-        return annotationRepository.findByUserApplicationAndIoTDomainsContainingOrderByLastUpdateDesc(userApplication, ioTDomain);
+    public Optional<Annotation> getAnnotationsByUserApplicationAndIoTDomain(UserApplication userApplication, IoTDomain ioTDomain) {
+        List<Annotation> list = annotationRepository.findFirstByUserApplicationAndIoTDomainOrderByLastUpdateDesc(userApplication, ioTDomain);
+
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
-    public List<Annotation> getAnnotationsByUserApplicationAndArchitecture(UserApplication userApplication, Architecture architecture) {
-        return annotationRepository.findByUserApplicationAndArchitecturesContainingOrderByLastUpdateDesc(userApplication, architecture);
+    public Optional<Annotation> getAnnotationsByUserApplicationAndArchitecture(UserApplication userApplication, Architecture architecture) {
+        List<Annotation> list = annotationRepository.findByUserApplicationAndArchitecturesContainingOrderByLastUpdateDesc(userApplication, architecture);
+
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
-    public List<Annotation> getAnnotationsByUserApplicationAndQualityRequirement(UserApplication userApplication, QualityRequirement qualityRequirement) {
-        return annotationRepository.findByUserApplicationAndQualityRequirementsContainingOrderByLastUpdateDesc(userApplication, qualityRequirement);
+    public Optional<Annotation> getAnnotationsByUserApplicationAndQualityRequirement(UserApplication userApplication, QualityRequirement qualityRequirement) {
+        List<Annotation> list = annotationRepository.findByUserApplicationAndQualityRequirementsContainingOrderByLastUpdateDesc(userApplication, qualityRequirement);
+
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
-    public List<Annotation> getAnnotationsByUserApplicationAndTechnology(UserApplication userApplication, Technology technology) {
-        return annotationRepository.findByUserApplicationAndTechnologiesContainingOrderByLastUpdateDesc(userApplication, technology);
+    public Optional<Annotation> getAnnotationsByUserApplicationAndTechnology(UserApplication userApplication, Technology technology) {
+        List<Annotation> list = annotationRepository.findByUserApplicationAndTechnologiesContainingOrderByLastUpdateDesc(userApplication, technology);
+
+        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
     }
 
 }

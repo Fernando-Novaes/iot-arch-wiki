@@ -2,9 +2,11 @@ package br.ufrj.cos.repository;
 
 import br.ufrj.cos.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AnnotationRepository  extends JpaRepository<Annotation, Long> {
@@ -12,8 +14,12 @@ public interface AnnotationRepository  extends JpaRepository<Annotation, Long> {
     // 01 - Find all by userApplication
     List<Annotation> findByUserApplication(UserApplication userApplication);
 
-    // 02 - Find all by userApplication and ioTDomain
-    List<Annotation> findByUserApplicationAndIoTDomainsContainingOrderByLastUpdateDesc(UserApplication userApplication, IoTDomain ioTDomain);
+    @Query("SELECT a FROM Annotation a " +
+            "WHERE a.userApplication = :userApplication AND :iotDomain MEMBER OF a.ioTDomains " +
+            "ORDER BY a.lastUpdate DESC")
+    List<Annotation> findFirstByUserApplicationAndIoTDomainOrderByLastUpdateDesc(
+            UserApplication userApplication,
+            IoTDomain iotDomain);
 
     // 03 - Find all by userApplication and architecture
     List<Annotation> findByUserApplicationAndArchitecturesContainingOrderByLastUpdateDesc(UserApplication userApplication, Architecture architecture);

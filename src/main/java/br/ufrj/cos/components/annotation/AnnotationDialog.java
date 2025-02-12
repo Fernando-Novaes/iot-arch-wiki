@@ -28,6 +28,7 @@ import org.springframework.context.event.EventListener;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @UIScope
 @org.springframework.stereotype.Component
@@ -41,16 +42,14 @@ public class AnnotationDialog extends Dialog {
     private DomainBase domainBase;
 
     private Date lastUpdate;
-    private HorizontalLayout lastUpdateMessage;
+    private final HorizontalLayout lastUpdateMessage;
 
     private EnhancedRichTextEditor textEditor;
-    private final UserApplicationService userApplicationService;
     private AnnotationData annotationData;
 
     @Autowired
     public AnnotationDialog(AnnotationService annotationService, UserApplicationService userApplicationService) {
         this.annotationService = annotationService;
-        this.userApplicationService = userApplicationService;
         this.lastUpdateMessage = new HorizontalLayout();
 
         this.setWidth("50%");
@@ -88,9 +87,9 @@ public class AnnotationDialog extends Dialog {
             } else {
                 notes.setText(this.textEditor.getValue());
             }
-            this.annotationService.updateAnnotation(notes);
             notes.setLastUpdate(new Date());
             this.lastUpdate = notes.getLastUpdate();
+            this.annotationService.updateAnnotation(notes);
             this.updateLastUpdateMessage();
             NotificationUtils.showSuccessNotification("Annotation updated.");
         });
@@ -173,30 +172,31 @@ public class AnnotationDialog extends Dialog {
 
         if (domainBase instanceof IoTDomain domain) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", domain.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            List<Annotation> annotations = this.annotationService.getAnnotationsByUserApplicationAndIoTDomain(user, domain);
-            if (!annotations.isEmpty()) {
-               notes = annotations.
+            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndIoTDomain(user, domain);
+            if (annotation.isPresent()) {
+                notes.setText(annotation.get().getText());
+                notes.setLastUpdate(annotation.get().getLastUpdate());
             }
         } else if (domainBase instanceof Architecture architecture) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", architecture.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            List<Annotation> annotations = this.annotationService.getAnnotationsByUserApplicationAndArchitecture(user, architecture);
-            if (!annotations.isEmpty()) {
-                notes.setText(annotations.getFirst().getText());
-                notes.setLastUpdate(annotations.getFirst().getLastUpdate());
+            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndArchitecture(user, architecture);
+            if (annotation.isPresent()) {
+                notes.setText(annotation.get().getText());
+                notes.setLastUpdate(annotation.get().getLastUpdate());
             }
         } else if (domainBase instanceof QualityRequirement qr) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", qr.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            List<Annotation> annotations = this.annotationService.getAnnotationsByUserApplicationAndQualityRequirement(user, qr);
-            if (!annotations.isEmpty()) {
-                notes.setText(annotations.getFirst().getText());
-                notes.setLastUpdate(annotations.getFirst().getLastUpdate());
+            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndQualityRequirement(user, qr);
+            if (annotation.isPresent()) {
+                notes.setText(annotation.get().getText());
+                notes.setLastUpdate(annotation.get().getLastUpdate());
             }
         } else if (domainBase instanceof Technology tech) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", tech.getDescription(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            List<Annotation> annotations = this.annotationService.getAnnotationsByUserApplicationAndTechnology(user, tech);
-            if (!annotations.isEmpty()) {
-                notes.setText(annotations.getFirst().getText());
-                notes.setLastUpdate(annotations.getFirst().getLastUpdate());
+            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndTechnology(user, tech);
+            if (annotation.isPresent()) {
+                notes.setText(annotation.get().getText());
+                notes.setLastUpdate(annotation.get().getLastUpdate());
             }
         }
 
