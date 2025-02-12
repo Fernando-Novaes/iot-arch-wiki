@@ -25,6 +25,7 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 
@@ -40,6 +41,7 @@ public class AnnotationDialog extends Dialog {
     private DomainBase domainBase;
 
     private Date lastUpdate;
+    private HorizontalLayout lastUpdateMessage;
 
     private EnhancedRichTextEditor textEditor;
     private final UserApplicationService userApplicationService;
@@ -49,6 +51,7 @@ public class AnnotationDialog extends Dialog {
     public AnnotationDialog(AnnotationService annotationService, UserApplicationService userApplicationService) {
         this.annotationService = annotationService;
         this.userApplicationService = userApplicationService;
+        this.lastUpdateMessage = new HorizontalLayout();
 
         this.setWidth("50%");
         this.setHeight("42%");
@@ -77,24 +80,26 @@ public class AnnotationDialog extends Dialog {
         add(dialogLayout);
 
         // Close Button
-        Button closeButton = new Button("Cancel", event -> close());
+        Button closeButton = new Button("Close", event -> close());
         Button saveButton = new Button("Save", buttonClickEvent -> {
             Annotation notes = this.annotationData.getAnnotation();
-            notes.setText(this.textEditor.getValue());
+            if (this.textEditor.getValue().isEmpty()) {
+                notes.setText("");
+            } else {
+                notes.setText(this.textEditor.getValue());
+            }
             this.annotationService.updateAnnotation(notes);
+            notes.setLastUpdate(new Date());
+            this.lastUpdate = notes.getLastUpdate();
+            this.updateLastUpdateMessage();
             NotificationUtils.showSuccessNotification("Annotation updated.");
         });
         saveButton.setThemeName(ButtonVariant.LUMO_PRIMARY.getVariantName());
 
-        HorizontalLayout hl = new HorizontalLayout(
-                new Html(String.format("<b><i>Last update: %s.</i></b>",
-                        (this.lastUpdate != null)? this.lastUpdate : "-")));
-        hl.setAlignItems(FlexComponent.Alignment.START);
-        hl.setAlignSelf(FlexComponent.Alignment.START);
-        hl.setWidth("72%");
+        this.updateLastUpdateMessage();
 
         HorizontalLayout hl2 = new HorizontalLayout(saveButton, closeButton);
-        getFooter().add(hl, hl2);
+        getFooter().add(this.lastUpdateMessage, hl2);
 
         // Add a CSS class to the dialog itself for styling
         addClassName("custom-dialog");
@@ -102,6 +107,17 @@ public class AnnotationDialog extends Dialog {
         this.textEditor = createRichText();
 
         setContent(this.textEditor); // Now passing Component
+    }
+
+    private void updateLastUpdateMessage() {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+        this.lastUpdateMessage.removeAll();
+        this.lastUpdateMessage.add(
+                new Html(String.format("<b><i>Last update: %s.</i></b>",
+                        (this.lastUpdate != null)? formatter.format(this.lastUpdate) : "-")));
+        this.lastUpdateMessage.setAlignItems(FlexComponent.Alignment.START);
+        this.lastUpdateMessage.setAlignSelf(FlexComponent.Alignment.START);
+        this.lastUpdateMessage.setWidth("72%");
     }
 
     // Method to set content
@@ -159,8 +175,7 @@ public class AnnotationDialog extends Dialog {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", domain.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
             List<Annotation> annotations = this.annotationService.getAnnotationsByUserApplicationAndIoTDomain(user, domain);
             if (!annotations.isEmpty()) {
-               notes.setText(annotations.getFirst().getText());
-               notes.setLastUpdate(annotations.getFirst().getLastUpdate());
+               notes = annotations.
             }
         } else if (domainBase instanceof Architecture architecture) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", architecture.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
@@ -187,6 +202,7 @@ public class AnnotationDialog extends Dialog {
 
         this.textEditor.setValue(notes.getText());
         this.lastUpdate = notes.getLastUpdate();
+        this.updateLastUpdateMessage();
         this.annotationData = notes;
 
         open();

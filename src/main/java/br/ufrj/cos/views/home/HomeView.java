@@ -1,15 +1,10 @@
 package br.ufrj.cos.views.home;
 
 import br.ufrj.cos.views.MainLayout;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Composite;
-import com.vaadin.flow.component.HasText;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
-import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.RouteAlias;
@@ -22,59 +17,54 @@ import jakarta.annotation.security.PermitAll;
 public class HomeView extends Composite<VerticalLayout> {
 
     public HomeView() {
-        getContent().setSpacing(true);
-        getContent().setSizeFull();
-        getContent().getStyle().set("flex-grow", "1");
-        getContent().setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
+        VerticalLayout content = getContent();
+        content.setSpacing(true);
+        content.setSizeFull();
+        content.getStyle().set("flex-grow", "1");
+        content.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
+        content.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        this.createPresentationBox();
+        createPresentationBox(content);
     }
 
-    private void createPresentationBox() {
-        // Main container for vertical centering
-        Div centerContainer = new Div();
-        centerContainer.getStyle()
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("justify-content", "center")
-                .set("min-height", "80vh");
-
+    private void createPresentationBox(VerticalLayout rootLayout) {
         VerticalLayout mainLayout = new VerticalLayout();
         mainLayout.setSpacing(true);
         mainLayout.setPadding(true);
         mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         mainLayout.getStyle()
-                .set("background-color", "#373a3f")
-                .set("border", "1px solid grey")
-                .set("border-radius", "8px")
+                .set("background-color", "var(--lumo-contrast-5pct)")
+                .set("border", "1px solid var(--lumo-contrast-20pct)")
+                .set("border-radius", "var(--lumo-border-radius)")
                 .set("padding", "clamp(1em, 5vw, 2em)")
-                .set("max-height", "90vh")
-                .set("overflow-y", "auto");
+                .set("max-height", "92vh")
+                .set("overflow-y", "none");
+        mainLayout.setWidth("95%"); // Make the box wider
+        mainLayout.setMaxWidth("1200px"); // Define a maximum width for larger screens
 
         Div contentContainer = new Div();
         contentContainer.getStyle()
-                .set("max-width", "800px")
                 .set("width", "100%")
                 .set("padding", "0 clamp(1em, 3vw, 2em)")
-                .set("margin-left", "2em"); // Add left margin for tab effect
+                .set("margin-left", "0"); // Remove the left margin
 
-        // Centered header section with tab effect
         Div headerContainer = new Div();
         headerContainer.getStyle()
                 .set("text-align", "center")
                 .set("width", "100%")
                 .set("margin-bottom", "2em");
 
-        H1 mainTitle = new H1("Welcome to the IoT Design Decision Assistant");
-        //mainTitle.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
+        H3 mainTitle = new H3("Welcome to the IoT Design Decision Assistant");
+        mainTitle.getStyle().setFontSize("clamp(2.0em, 3.5vw, 3.0em)");  // Responsive Font Size
+//        H3 subtitle = new H3("Empowering your IoT Software System Design Process");
+//        subtitle.getStyle().setFontSize("clamp(1.5em, 3.0vw, 2.0em)"); // Responsive Font Size
+//        H4 subheader = new H4("Unlock the Power of Informed Decision-Making");
+//        subheader.getStyle().setFontSize("clamp(1.2em, 2.5vw, 1.8em)"); // Responsive Font Size
 
-        H2 subtitle = new H2("Empowering your IoT Software System Design Process");
+        headerContainer.add(mainTitle, new Hr());//, subtitle, new Span(), subheader);
 
-        H3 subheader = new H3("Unlock the Power of Informed Decision-Making");
-
-        headerContainer.add(mainTitle, new Hr(), subtitle, new Span(), subheader);
-
-        H3 whyChooseTitle = new H3("Why Choose Our Tool?");
+        H4 whyChooseTitle = new H4("Why Choose Our Tool?");
+        whyChooseTitle.getStyle().setFontSize("clamp(1.2em, 2.5vw, 1.8em)"); // Responsive Font Size
 
         UnorderedList whyChooseList = createResponsiveList(
                 "Comprehensive Knowledge Base: Access a base of knowledge of IoT domains, architectural solutions, quality requirements, and technologies, all curated from peer-reviewed research and industry best practices.",
@@ -83,7 +73,8 @@ public class HomeView extends Composite<VerticalLayout> {
                 "Stay Current: Benefit from regularly updated content from the literature, reflecting the latest advancements in IoT technology and design methodologies."
         );
 
-        H3 featuresTitle = new H3("Key Features:");
+        H4 featuresTitle = new H4("Key Features:");
+        featuresTitle.getStyle().setFontSize("clamp(1.2em, 2.5vw, 1.8em)"); // Responsive Font Size
 
         UnorderedList featuresList = createResponsiveList(
                 "Interactive Design Explorer: Visually navigate through IoT domains, solutions, and technologies.",
@@ -94,11 +85,13 @@ public class HomeView extends Composite<VerticalLayout> {
         );
 
         Paragraph closing = new Paragraph("Embark on your IoT design journey with confidence. Let our Book of Knowledge be your guide to creating robust, efficient, and innovative IoT software systems.");
+        closing.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)"); // Responsive Font Size
 
         Emphasis callToAction = new Emphasis("Start exploring now and transform the way you design IoT solutions!");
         callToAction.getStyle()
                 .set("display", "block")
                 .set("margin-top", "1em");
+        callToAction.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)"); // Responsive Font Size
 
         contentContainer.add(
                 whyChooseTitle,
@@ -110,8 +103,7 @@ public class HomeView extends Composite<VerticalLayout> {
         );
 
         mainLayout.add(headerContainer, contentContainer);
-        centerContainer.add(mainLayout);
-        getContent().add(centerContainer);
+        rootLayout.add(mainLayout);
     }
 
     private UnorderedList createResponsiveList(String... items) {
@@ -119,7 +111,7 @@ public class HomeView extends Composite<VerticalLayout> {
         list.getStyle()
                 .set("max-width", "100%")
                 .set("padding-left", "clamp(1.5em, 4vw, 2.5em)")
-                .set("font-size", "clamp(1em, 2.2vw, 1.3em)");
+                .setFontSize("clamp(1.0em, 2.0vw, 1.2em)"); //Responsive Font Size
 
         for (String item : items) {
             ListItem listItem = new ListItem(item);
@@ -130,24 +122,5 @@ public class HomeView extends Composite<VerticalLayout> {
         }
 
         return list;
-    }
-
-    private void configureHeaderText(Component component) {
-        if (component instanceof H1) {
-            component.getStyle()
-                    .set("text-align", "center")
-                    .set("font-size", "clamp(2em, 4vw, 3em)")
-                    .set("margin", "0.5em 0");
-        } else if (component instanceof H2) {
-            component.getStyle()
-                    .set("text-align", "center")
-                    .set("font-size", "clamp(1.5em, 3vw, 2em)")
-                    .set("margin", "0.5em 0");
-        } else if (component instanceof H3) {
-            component.getStyle()
-                    .set("text-align", "center")
-                    .set("font-size", "clamp(1.2em, 2.5vw, 1.8em)")
-                    .set("margin", "0.5em 0");
-        }
     }
 }

@@ -3,6 +3,7 @@ package br.ufrj.cos.components.annotation;
 import br.ufrj.cos.domain.*;
 import lombok.*;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -12,10 +13,10 @@ import java.util.List;
 @EqualsAndHashCode
 public class AnnotationData {
 
-        String text;
-        UserApplication userApplication;
-        Date lastUpdate;
-        DomainBase domainBase;
+        private String text;
+        private UserApplication userApplication;
+        private Date lastUpdate;
+        private DomainBase domainBase;
 
         public Annotation getAnnotation() {
             Annotation annotation = new Annotation();
