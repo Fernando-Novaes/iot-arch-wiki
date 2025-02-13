@@ -69,7 +69,7 @@ public class AnnotationComponent {
         // Actions when you click the buttons
         addAnnotationButton.addClickListener(event -> {
             UserApplication user = userApplicationService.findByUserName(SecurityUtils.getUsername());
-            Annotation a = Annotation.builder().userApplication(user).build();
+            Annotation a;
 
             if (node.getData() instanceof IoTDomain domain) {
                 a = this.annotationService.findMostRecentOnlyUserAppAndDomain(user, domain)

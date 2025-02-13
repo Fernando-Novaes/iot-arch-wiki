@@ -141,9 +141,9 @@ public class SliderPanel extends Div {
         //toggleButton.getElement().removeAllChildren();
 
         // Create icon
-        Icon icon = isExpanded ?
-                VaadinIcon.LEVEL_LEFT_BOLD.create() :
-                VaadinIcon.LEVEL_RIGHT_BOLD.create();
+        Icon icon = isExpanded ? VaadinIcon.LEVEL_RIGHT_BOLD.create() :
+                VaadinIcon.LEVEL_LEFT_BOLD.create();
+                ;
 
         // Configure icon
         icon.getElement().getStyle()
@@ -361,6 +361,7 @@ public class SliderPanel extends Div {
         if (event.getAction() == OpenCloseEvent.Action.OPEN) {
             addClassName("expanded");
             updateButtonContent(true);
+            expanded = !expanded;
         } else {
             removeClassName("expanded");
             updateButtonContent(false);

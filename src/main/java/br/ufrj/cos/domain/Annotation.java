@@ -34,13 +34,13 @@ public class Annotation {
 
     public DomainBase getAnnotationDomainType(AnnotationDomain annotationDomain) {
         if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() == null) && (annotationDomain.getQualityRequirement() == null) && (annotationDomain.getTechnology() == null)) {
-            return new IoTDomain();
+            return annotationDomain.getIoTDomain();
         } else if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() != null) && (annotationDomain.getQualityRequirement() == null) && (annotationDomain.getTechnology() == null)) {
-            return new Architecture();
+            return annotationDomain.getArchitecture();
         } else if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() != null) && (annotationDomain.getQualityRequirement() != null) && (annotationDomain.getTechnology() == null)) {
-            return new QualityRequirement();
+            return annotationDomain.getQualityRequirement();
         } else if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() != null) && (annotationDomain.getQualityRequirement() != null) && (annotationDomain.getTechnology() != null)) {
-            return new Technology();
+            return annotationDomain.getTechnology();
         } else {
             return null;
         }
