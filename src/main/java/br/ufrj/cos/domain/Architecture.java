@@ -13,7 +13,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper=false, exclude = "annotations")
+@EqualsAndHashCode(callSuper=false)
 public class Architecture extends DomainBase {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,9 +23,6 @@ public class Architecture extends DomainBase {
 
     @OneToMany(mappedBy = "architecture", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<ArchitectureSolution> architectureSolutions;
-
-    @ManyToMany(mappedBy = "architectures")
-    private List<Annotation> annotations;
 
     @Override
     public String toString() {

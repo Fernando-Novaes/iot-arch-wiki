@@ -4,7 +4,6 @@ import br.ufrj.cos.components.annotation.events.AnnotationDialogRequestedEvent;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.utils.NotificationUtils;
-import br.ufrj.cos.utils.SecurityUtils;
 import com.vaadin.componentfactory.EnhancedRichTextEditor;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
@@ -27,7 +26,6 @@ import org.springframework.context.event.EventListener;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 
 @UIScope
@@ -45,7 +43,7 @@ public class AnnotationDialog extends Dialog {
     private final HorizontalLayout lastUpdateMessage;
 
     private EnhancedRichTextEditor textEditor;
-    private AnnotationData annotationData;
+    private Annotation annotationData;
 
     @Autowired
     public AnnotationDialog(AnnotationService annotationService, UserApplicationService userApplicationService) {
@@ -81,7 +79,7 @@ public class AnnotationDialog extends Dialog {
         // Close Button
         Button closeButton = new Button("Close", event -> close());
         Button saveButton = new Button("Save", buttonClickEvent -> {
-            Annotation notes = this.annotationData.getAnnotation();
+            Annotation notes = this.annotationData;
             if (this.textEditor.getValue().isEmpty()) {
                 notes.setText("");
             } else {
@@ -89,7 +87,7 @@ public class AnnotationDialog extends Dialog {
             }
             notes.setLastUpdate(new Date());
             this.lastUpdate = notes.getLastUpdate();
-            this.annotationService.updateAnnotation(notes);
+            this.annotationService.saveAnnotation(notes);
             this.updateLastUpdateMessage();
             NotificationUtils.showSuccessNotification("Annotation updated.");
         });
@@ -149,58 +147,25 @@ public class AnnotationDialog extends Dialog {
         return richTextArea;
     }
 
-    private AnnotationData fillAnnotationData(UserApplication userApplication,
-                                              DomainBase domainBase,
-                                              Date lastUpdate,
-                                              String text) {
-
-        return AnnotationData.builder().domainBase(domainBase).lastUpdate(lastUpdate).text(text).build();
-    }
-
     @EventListener
     public void handleAnnotationDialogRequestedEvent(AnnotationDialogRequestedEvent event) {
         AnnotationAction action = event.getAction();
-        DomainBase domainBase = event.getDomainBase();
-        UserApplication user = event.getUser();
+        Annotation notes = (event.getAnnotation() != null)? event.getAnnotation() : new Annotation();
 
-        AnnotationData notes = new AnnotationData(
-                "",
-                event.getUser(),
-                new Date(),
-                event.getDomainBase()
-        );
-
-        if (domainBase instanceof IoTDomain domain) {
+        if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof IoTDomain domain) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", domain.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndIoTDomain(user, domain);
-            if (annotation.isPresent()) {
-                notes.setText(annotation.get().getText());
-                notes.setLastUpdate(annotation.get().getLastUpdate());
-            }
-        } else if (domainBase instanceof Architecture architecture) {
-            setHeaderTitle(String.format("Annotation viewer [%s - %s]", architecture.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndArchitecture(user, architecture);
-            if (annotation.isPresent()) {
-                notes.setText(annotation.get().getText());
-                notes.setLastUpdate(annotation.get().getLastUpdate());
-            }
-        } else if (domainBase instanceof QualityRequirement qr) {
+        } else if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof ArchitectureSolution architecture) {
+            setHeaderTitle(String.format("Annotation viewer [%s - %s]", architecture.getArchitecture().getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
+        } else if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof QualityRequirement qr) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", qr.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndQualityRequirement(user, qr);
-            if (annotation.isPresent()) {
-                notes.setText(annotation.get().getText());
-                notes.setLastUpdate(annotation.get().getLastUpdate());
-            }
-        } else if (domainBase instanceof Technology tech) {
+        } else if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof Technology tech) {
             setHeaderTitle(String.format("Annotation viewer [%s - %s]", tech.getDescription(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-            Optional<Annotation> annotation = this.annotationService.getAnnotationsByUserApplicationAndTechnology(user, tech);
-            if (annotation.isPresent()) {
-                notes.setText(annotation.get().getText());
-                notes.setLastUpdate(annotation.get().getLastUpdate());
-            }
         }
 
-        this.textEditor.setValue(notes.getText());
+        notes.setText(notes.getText());
+        notes.setLastUpdate((notes.getLastUpdate() != null)? notes.getLastUpdate() : null);
+
+        this.textEditor.setValue((notes.getText() == null)? "" : notes.getText());
         this.lastUpdate = notes.getLastUpdate();
         this.updateLastUpdateMessage();
         this.annotationData = notes;

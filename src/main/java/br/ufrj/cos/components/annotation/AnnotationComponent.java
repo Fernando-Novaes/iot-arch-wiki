@@ -1,6 +1,7 @@
 package br.ufrj.cos.components.annotation;
 
 import br.ufrj.cos.components.annotation.events.AnnotationDialogRequestedEvent;
+import br.ufrj.cos.components.treeview.TreeNode;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.AnnotationService;
 import br.ufrj.cos.service.UserApplicationService;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Optional;
 @UIScope
 @Component
@@ -37,7 +39,7 @@ public class AnnotationComponent {
         this.eventPublisher = eventPublisher;
     }
 
-    public Popover create(com.vaadin.flow.component.Component component, com.vaadin.flow.component.UI layout, DomainBase domainBase) {
+    public Popover create(com.vaadin.flow.component.Component component, com.vaadin.flow.component.UI layout, TreeNode<?> node) {
         Popover popover = new Popover();
         popover.setTarget(component);
         popover.setWidth("120px");
@@ -47,13 +49,13 @@ public class AnnotationComponent {
         popover.setAriaLabelledBy("notifications-heading");
         popover.setOpenOnClick(true);
 
-        popover.add(this.createLayout(domainBase));
+        popover.add(this.createLayout(node));
         layout.add(popover);
 
         return popover;
     }
 
-    private Div createLayout(DomainBase domainBase) {
+    private Div createLayout(TreeNode<?> node) {
         Div div = new Div();
         div.addClassName("annotation-box"); // For CSS styling (see below)
 
@@ -67,19 +69,59 @@ public class AnnotationComponent {
         // Actions when you click the buttons
         addAnnotationButton.addClickListener(event -> {
             UserApplication user = userApplicationService.findByUserName(SecurityUtils.getUsername());
+            Annotation a = Annotation.builder().userApplication(user).build();
 
-            if (domainBase instanceof IoTDomain domain) {
-                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, user, domainBase,
-                        (this.annotationService.getAnnotationsByUserApplicationAndIoTDomain(user, (IoTDomain) domainBase).isEmpty())? AnnotationAction.ADD : AnnotationAction.EDIT));
-            } else if (domainBase instanceof Architecture architecture) {
-                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, user, domainBase,
-                        (this.annotationService.getAnnotationsByUserApplicationAndArchitecture(user, (Architecture) domainBase).isEmpty())? AnnotationAction.ADD : AnnotationAction.EDIT));
-            } else if (domainBase instanceof QualityRequirement qr) {
-                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, user, domainBase,
-                        (this.annotationService.getAnnotationsByUserApplicationAndQualityRequirement(user, (QualityRequirement) domainBase).isEmpty())? AnnotationAction.ADD : AnnotationAction.EDIT));
-            } else if (domainBase instanceof Technology tech) {
-                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, user, domainBase,
-                        (this.annotationService.getAnnotationsByUserApplicationAndTechnology(user, (Technology) domainBase).isEmpty())? AnnotationAction.ADD : AnnotationAction.EDIT));
+            if (node.getData() instanceof IoTDomain domain) {
+                a = this.annotationService.findMostRecentOnlyUserAppAndDomain(user, domain)
+                        .orElse(Annotation.builder().userApplication(user).build());
+
+                if (a.getAnnotationDomains() == null) {
+                    a.setAnnotationDomains(new ArrayList<>());
+                    a.getAnnotationDomains().add(AnnotationDomain.builder().ioTDomain(domain).annotation(a).build());
+                }
+
+                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, a,
+                            (a.getAnnotationDomains() != null) ? AnnotationAction.ADD : AnnotationAction.EDIT));
+            } else if (node.getData() instanceof ArchitectureSolution architecture) {
+                a = this.annotationService.findMostRecentAnnotation(user, architecture.getIoTDomain(), architecture.getArchitecture())
+                        .orElse(Annotation.builder().userApplication(user).build());
+
+                if (a.getAnnotationDomains() == null) {
+                    a.setAnnotationDomains(new ArrayList<>());
+                    a.getAnnotationDomains().add(AnnotationDomain.builder().ioTDomain(architecture.getIoTDomain()).architecture(architecture.getArchitecture()).annotation(a).build());
+                }
+
+                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, a,
+                        (a.getAnnotationDomains() != null)? AnnotationAction.ADD : AnnotationAction.EDIT));
+            } else if (node.getData() instanceof QualityRequirement qr) {
+                IoTDomain d = (IoTDomain) node.getParent().getParent().getData();
+                Architecture arch = ((ArchitectureSolution) node.getParent().getData()).getArchitecture();
+
+                a = this.annotationService.findMostRecentAnnotation(user, d, arch, qr)
+                        .orElse(Annotation.builder().userApplication(user).build());
+
+                if (a.getAnnotationDomains() == null) {
+                    a.setAnnotationDomains(new ArrayList<>());
+                    a.getAnnotationDomains().add(AnnotationDomain.builder().ioTDomain(d).architecture(arch).qualityRequirement(qr).annotation(a).build());
+                }
+
+                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, a,
+                        (a.getAnnotationDomains() != null)? AnnotationAction.ADD : AnnotationAction.EDIT));
+            } else if (node.getData() instanceof Technology tech) {
+                IoTDomain d = (IoTDomain) node.getParent().getParent().getParent().getData();
+                Architecture arch = ((ArchitectureSolution) node.getParent().getParent().getData()).getArchitecture();
+                QualityRequirement qr = ((QualityRequirement) node.getParent().getData());
+
+                a = this.annotationService.findMostRecentAnnotation(user, d, arch, qr, tech)
+                        .orElse(Annotation.builder().userApplication(user).build());
+
+                if (a.getAnnotationDomains() == null) {
+                    a.setAnnotationDomains(new ArrayList<>());
+                    a.getAnnotationDomains().add(AnnotationDomain.builder().ioTDomain(d).architecture(arch).qualityRequirement(qr).technology(tech).annotation(a).build());
+                }
+
+                eventPublisher.publishEvent(new AnnotationDialogRequestedEvent(this, a,
+                                (a.getAnnotationDomains() != null)? AnnotationAction.ADD : AnnotationAction.EDIT));
             }
         });
 

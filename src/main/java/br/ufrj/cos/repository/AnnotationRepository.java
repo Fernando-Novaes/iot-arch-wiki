@@ -3,31 +3,82 @@ package br.ufrj.cos.repository;
 import br.ufrj.cos.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface AnnotationRepository  extends JpaRepository<Annotation, Long> {
+public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
 
-    // 01 - Find all by userApplication
-    List<Annotation> findByUserApplication(UserApplication userApplication);
-
+    // Finds most recent annotation ONLY based on UserApplication and IoTDomain.
     @Query("SELECT a FROM Annotation a " +
-            "WHERE a.userApplication = :userApplication AND :iotDomain MEMBER OF a.ioTDomains " +
+            "JOIN a.annotationDomains ad " +
+            "WHERE a.userApplication = :userApplication " +
+            "AND ad.ioTDomain = :iotDomain " +
+            "AND ad.architecture IS NULL " +
+            "AND ad.qualityRequirement IS NULL " +
+            "AND ad.technology IS NULL " +
             "ORDER BY a.lastUpdate DESC")
-    List<Annotation> findFirstByUserApplicationAndIoTDomainOrderByLastUpdateDesc(
-            UserApplication userApplication,
-            IoTDomain iotDomain);
+    Optional<Annotation> findMostRecentByUserApplicationAndIoTDomainWhereOnlyTheseArePresent(
+            @Param("userApplication") UserApplication userApplication,
+            @Param("iotDomain") IoTDomain iotDomain
+    );
 
-    // 03 - Find all by userApplication and architecture
-    List<Annotation> findByUserApplicationAndArchitecturesContainingOrderByLastUpdateDesc(UserApplication userApplication, Architecture architecture);
 
-    // 04 - Find all by userApplication and qualityRequirement
-    List<Annotation> findByUserApplicationAndQualityRequirementsContainingOrderByLastUpdateDesc(UserApplication userApplication, QualityRequirement qualityRequirement);
+    // Finds most recent annotation based on UserApplication and IoTDomain
+    @Query("SELECT a FROM Annotation a " +
+            "JOIN a.annotationDomains ad " +
+            "WHERE a.userApplication = :userApplication " +
+            "AND ad.ioTDomain = :iotDomain " +
+            "ORDER BY a.lastUpdate DESC")
+    Optional<Annotation> findMostRecentByUserApplicationAndIoTDomain(
+            @Param("userApplication") UserApplication userApplication,
+            @Param("iotDomain") IoTDomain iotDomain
+    );
 
-    // 05 - Find all by userApplication and technology
-    List<Annotation> findByUserApplicationAndTechnologiesContainingOrderByLastUpdateDesc(UserApplication userApplication, Technology technology);
+    // Finds most recent annotation by UserApplication, IoTDomain, and Architecture
+    @Query("SELECT a FROM Annotation a " +
+            "JOIN a.annotationDomains ad " +
+            "WHERE a.userApplication = :userApplication " +
+            "AND ad.ioTDomain = :iotDomain " +
+            "AND ad.architecture = :architecture " +
+            "ORDER BY a.lastUpdate DESC")
+    Optional<Annotation> findMostRecentByUserApplicationAndIoTDomainAndArchitecture(
+            @Param("userApplication") UserApplication userApplication,
+            @Param("iotDomain") IoTDomain iotDomain,
+            @Param("architecture") Architecture architecture
+    );
 
+    // Finds most recent annotation by UserApplication, IoTDomain, Architecture, and QualityRequirement
+    @Query("SELECT a FROM Annotation a " +
+            "JOIN a.annotationDomains ad " +
+            "WHERE a.userApplication = :userApplication " +
+            "AND ad.ioTDomain = :iotDomain " +
+            "AND ad.architecture = :architecture " +
+            "AND ad.qualityRequirement = :qualityRequirement " +
+            "ORDER BY a.lastUpdate DESC")
+    Optional<Annotation> findMostRecentByUserApplicationAndIoTDomainAndArchitectureAndQualityRequirement(
+            @Param("userApplication") UserApplication userApplication,
+            @Param("iotDomain") IoTDomain iotDomain,
+            @Param("architecture") Architecture architecture,
+            @Param("qualityRequirement") QualityRequirement qualityRequirement
+    );
+
+    // Finds most recent annotation by UserApplication, IoTDomain, Architecture, QualityRequirement, and Technology
+    @Query("SELECT a FROM Annotation a " +
+            "JOIN a.annotationDomains ad " +
+            "WHERE a.userApplication = :userApplication " +
+            "AND ad.ioTDomain = :iotDomain " +
+            "AND ad.architecture = :architecture " +
+            "AND ad.qualityRequirement = :qualityRequirement " +
+            "AND ad.technology = :technology " +
+            "ORDER BY a.lastUpdate DESC")
+    Optional<Annotation> findMostRecentByUserApplicationAndIoTDomainAndArchitectureAndQualityRequirementAndTechnology(
+            @Param("userApplication") UserApplication userApplication,
+            @Param("iotDomain") IoTDomain iotDomain,
+            @Param("architecture") Architecture architecture,
+            @Param("qualityRequirement") QualityRequirement qualityRequirement,
+            @Param("technology") Technology technology
+    );
 }

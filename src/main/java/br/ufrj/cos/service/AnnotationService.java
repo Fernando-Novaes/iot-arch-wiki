@@ -5,7 +5,6 @@ import br.ufrj.cos.repository.AnnotationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,21 +17,32 @@ public class AnnotationService {
         this.annotationRepository = annotationRepository;
     }
 
-    // 06 - CRUD Operations
-
-    public List<Annotation> getAllAnnotations() {
-        return annotationRepository.findAll();
+    //This method finds the most recent annotation associated with a given UserApplication and IoTDomain,
+    // where the associated AnnotationDomain entry explicitly has NULL values for Architecture, QualityRequirement,
+    // and Technology.
+    public Optional<Annotation> findMostRecentOnlyUserAppAndDomain(UserApplication userApplication, IoTDomain iotDomain) {
+        return annotationRepository.findMostRecentByUserApplicationAndIoTDomainWhereOnlyTheseArePresent(userApplication, iotDomain);
     }
 
-    public Optional<Annotation> getAnnotationById(Long id) {
-        return annotationRepository.findById(id);
+    public Optional<Annotation> findMostRecentAnnotation(UserApplication userApplication, IoTDomain iotDomain, Architecture architecture) {
+        // Existing logic to find most recent annotation based on UserApplication, IoTDomain, and Architecture
+        // Will return NULL if no results or an Optional containing null value.
+        return annotationRepository.findMostRecentByUserApplicationAndIoTDomainAndArchitecture(userApplication, iotDomain, architecture);
     }
 
-    public Annotation createAnnotation(Annotation annotation) {
-        return annotationRepository.save(annotation);
+    public Optional<Annotation> findMostRecentAnnotation(UserApplication userApplication, IoTDomain iotDomain, Architecture architecture, QualityRequirement qualityRequirement) {
+        // Existing logic to find most recent annotation based on UserApplication, IoTDomain, Architecture and QualityRequirement
+        // Will return NULL if no results or an Optional containing null value.
+        return annotationRepository.findMostRecentByUserApplicationAndIoTDomainAndArchitectureAndQualityRequirement(userApplication, iotDomain, architecture, qualityRequirement);
     }
 
-    public Annotation updateAnnotation(Annotation annotation) {
+    public Optional<Annotation> findMostRecentAnnotation(UserApplication userApplication, IoTDomain iotDomain, Architecture architecture, QualityRequirement qualityRequirement, Technology technology) {
+        // Existing logic to find most recent annotation based on UserApplication, IoTDomain, Architecture, QualityRequirement, and Technology
+        // Will return NULL if no results or an Optional containing null value.
+        return annotationRepository.findMostRecentByUserApplicationAndIoTDomainAndArchitectureAndQualityRequirementAndTechnology(userApplication, iotDomain, architecture, qualityRequirement, technology);
+    }
+
+    public Annotation saveAnnotation(Annotation annotation) {
         return annotationRepository.save(annotation);
     }
 
@@ -40,34 +50,7 @@ public class AnnotationService {
         annotationRepository.deleteById(id);
     }
 
-    // Custom Queries
-
-    public List<Annotation> getAnnotationsByUserApplication(UserApplication userApplication) {
-        return annotationRepository.findByUserApplication(userApplication);
+    public Annotation getAnnotationById(Long id) {
+        return annotationRepository.findById(id).orElse(null); // Handle the case where the annotation is not found
     }
-
-    public Optional<Annotation> getAnnotationsByUserApplicationAndIoTDomain(UserApplication userApplication, IoTDomain ioTDomain) {
-        List<Annotation> list = annotationRepository.findFirstByUserApplicationAndIoTDomainOrderByLastUpdateDesc(userApplication, ioTDomain);
-
-        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-    }
-
-    public Optional<Annotation> getAnnotationsByUserApplicationAndArchitecture(UserApplication userApplication, Architecture architecture) {
-        List<Annotation> list = annotationRepository.findByUserApplicationAndArchitecturesContainingOrderByLastUpdateDesc(userApplication, architecture);
-
-        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-    }
-
-    public Optional<Annotation> getAnnotationsByUserApplicationAndQualityRequirement(UserApplication userApplication, QualityRequirement qualityRequirement) {
-        List<Annotation> list = annotationRepository.findByUserApplicationAndQualityRequirementsContainingOrderByLastUpdateDesc(userApplication, qualityRequirement);
-
-        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-    }
-
-    public Optional<Annotation> getAnnotationsByUserApplicationAndTechnology(UserApplication userApplication, Technology technology) {
-        List<Annotation> list = annotationRepository.findByUserApplicationAndTechnologiesContainingOrderByLastUpdateDesc(userApplication, technology);
-
-        return list.isEmpty() ? Optional.empty() : Optional.of(list.get(0));
-    }
-
 }

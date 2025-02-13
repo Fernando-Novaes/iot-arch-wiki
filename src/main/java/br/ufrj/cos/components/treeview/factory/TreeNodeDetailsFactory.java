@@ -52,7 +52,7 @@ public class TreeNodeDetailsFactory {
         }
 
         btn.getElement().addEventListener("mouseout", event -> this.publishEmptyDetails());
-        this.annotationComponent.create(btn, UI.getCurrent(), (DomainBase) node.getData());
+        this.annotationComponent.create(btn, UI.getCurrent(), node);
 
         return btn;
     }

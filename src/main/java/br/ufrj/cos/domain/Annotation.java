@@ -1,5 +1,6 @@
 package br.ufrj.cos.domain;
 
+import com.vaadin.flow.server.PwaIcon;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper=false, exclude = {"ioTDomains", "architectures", "qualityRequirements", "technologies"})
+@EqualsAndHashCode(callSuper=false, exclude = {"annotationDomains"})
 public class Annotation {
 
     @Id
@@ -24,41 +25,26 @@ public class Annotation {
 
     private Date lastUpdate;
 
-    @ManyToOne(fetch = FetchType.EAGER) // Define the relationship
-    @JoinColumn(name = "user_application_id") // Specify the foreign key column
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_application_id")
     private UserApplication userApplication;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "annotation_iot_domain",
-            joinColumns = @JoinColumn(name = "annotation_id", nullable = true),
-            inverseJoinColumns = @JoinColumn(name = "iot_domain_id", nullable = true)
-    )
-    private List<IoTDomain> ioTDomains;
+    @OneToMany(mappedBy = "annotation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<AnnotationDomain> annotationDomains;
 
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "annotation_architecture",
-            joinColumns = @JoinColumn(name = "annotation_id", nullable = true),
-            inverseJoinColumns = @JoinColumn(name = "architecture_id", nullable = true)
-    )
-    private List<Architecture> architectures;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "annotation_quality_requirement",
-            joinColumns = @JoinColumn(name = "annotation_id", nullable = true),
-            inverseJoinColumns = @JoinColumn(name = "quality_requirement_id", nullable = true)
-    )
-    private List<QualityRequirement> qualityRequirements;
-
-    @ManyToMany(fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "annotation_technology",
-            joinColumns = @JoinColumn(name = "annotation_id", nullable = true),
-            inverseJoinColumns = @JoinColumn(name = "technology_id", nullable = true)
-    )
-    private List<Technology> technologies;
+    public DomainBase getAnnotationDomainType(AnnotationDomain annotationDomain) {
+        if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() == null) && (annotationDomain.getQualityRequirement() == null) && (annotationDomain.getTechnology() == null)) {
+            return new IoTDomain();
+        } else if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() != null) && (annotationDomain.getQualityRequirement() == null) && (annotationDomain.getTechnology() == null)) {
+            return new Architecture();
+        } else if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() != null) && (annotationDomain.getQualityRequirement() != null) && (annotationDomain.getTechnology() == null)) {
+            return new QualityRequirement();
+        } else if ((annotationDomain.getIoTDomain() != null) && (annotationDomain.getArchitecture() != null) && (annotationDomain.getQualityRequirement() != null) && (annotationDomain.getTechnology() != null)) {
+            return new Technology();
+        } else {
+            return null;
+        }
+    }
 
     @Override
     public String toString() {
