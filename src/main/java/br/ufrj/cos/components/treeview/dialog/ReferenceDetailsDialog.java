@@ -47,9 +47,9 @@ public class ReferenceDetailsDialog {
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(true);
 
-        dialog.setWidth("95%");
+        dialog.setWidth("40%");
         dialog.setMaxWidth("1200px");
-        dialog.setHeight("95%");
+        dialog.setHeight("80%");
         dialog.setMaxHeight("800px");
 
         return dialog;

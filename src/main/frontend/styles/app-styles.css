@@ -112,3 +112,50 @@ vaadin-grid-tree-toggle::before {
     height: 16px;
     text-align: center;
 }
+
+.centered-aibox {
+    /* ... existing styles ... */
+    display: grid;
+    grid-template-rows: 1fr auto; /* Chat area and input */
+    grid-template-columns: 1fr;     /* Single column */
+    overflow: hidden;               /* Hide box scrollbars */
+    /* Add padding and set sizing */
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: #373a3f;
+    border: 1px solid #373a3f;
+}
+
+.message-list-item {
+    border-radius: 5px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+    width: fit-content; /* important for the bubble */
+    max-width: 75%; /* prevent overflow */
+    word-break: break-word; /* Handling long words */
+    border: 1px solid #ddd; /* Add a subtle border */
+}
+
+/* Styles for user messages (aligned to the right) */
+.current-user {
+    background-color: #373a3f; /* Greenish for user messages */
+    align-self: flex-end; /* Align to the right */
+    margin-left: auto; /* Push to the right */
+    margin-right: 0;
+}
+
+/* Styles for AI messages (aligned to the left) */
+.ai-message {
+    background-color: #FFFFFF; /* White for AI messages */
+    align-self: flex-start; /* Align to the left */
+    margin-right: auto; /* Push to the left */
+    margin-left: 0;
+}
+
+/* Adjust MessageList styles to use Flexbox */
+.v-messages {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Ensure items stretch to full width */
+    padding: 5px;
+}

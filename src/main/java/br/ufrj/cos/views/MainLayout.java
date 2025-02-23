@@ -4,6 +4,7 @@ package br.ufrj.cos.views;
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.about.AboutViewView;
+import br.ufrj.cos.views.aichat.AiChatView;
 import br.ufrj.cos.views.board.BoardView;
 import br.ufrj.cos.views.datamanager.DataManagerView;
 import br.ufrj.cos.views.home.HomeView;
@@ -121,6 +122,7 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo("Home", LineAwesomeIcon.HOME_SOLID.create(), HomeView.class),
                 new MenuItemInfo("BoK", LineAwesomeIcon.WHMCS.create(), BoardView.class),
                 new MenuItemInfo("Knowledge Base", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class),
+                new MenuItemInfo("AI-Chat", LineAwesomeIcon.BRAIN_SOLID.create(), AiChatView.class),
                 new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
                 new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
                 new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class)

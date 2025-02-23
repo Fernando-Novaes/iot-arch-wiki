@@ -1,0 +1,98 @@
+# WHAT IS THE IoT DEESIGN DECISION ASSISTANT?
+
+Comprehensive Knowledge Base: Access a base of knowledge of IoT domains, architectural solutions, quality requirements, and technologies, all curated from peer-reviewed research and industry best practices.
+Intelligent Decision Support: Leverage our advanced technology to match your project requirements with optimal architectural solutions and technologies.
+Quality-Driven Approach: Ensure your designs meet the highest standards by aligning them with established quality attributes and requirements specific to IoT systems.
+Stay Current: Benefit from regularly updated content from the literature, reflecting the latest advancements in IoT technology and design methodologies.
+Key Features:
+Interactive Design Explorer: Visually navigate through IoT domains, solutions, and technologies.
+Requirements Analyzer: Define and prioritize your project's quality requirements with ease.
+Solution Recommender: Receive tailored architectural recommendations based on your specific needs.
+Technology Evaluator: Compare and assess various IoT technologies to find the perfect fit for your project.
+Knowledge Contribution: Submit your own experiences and solutions to enrich the community's collective wisdom.
+
+# IoT Architecture Solution Knowledge Base
+
+Comprehensive Knowledge Base: Access a base of knowledge of IoT domains, architectural solutions, quality requirements, and technologies, all curated from peer-reviewed research and industry best practices.
+Intelligent Decision Support: Leverage our advanced technology to match your project requirements with optimal architectural solutions and technologies.
+Quality-Driven Approach: Ensure your designs meet the highest standards by aligning them with established quality attributes and requirements specific to IoT systems.
+Stay Current: Benefit from regularly updated content from the literature, reflecting the latest advancements in IoT technology and design methodologies.
+Key Features:
+Interactive Design Explorer: Visually navigate through IoT domains, solutions, and technologies.
+Requirements Analyzer: Define and prioritize your project's quality requirements with ease.
+Solution Recommender: Receive tailored architectural recommendations based on your specific needs.
+Technology Evaluator: Compare and assess various IoT technologies to find the perfect fit for your project.
+Knowledge Contribution: Submit your own experiences and solutions to enrich the community's collective wisdom.
+
+# WHAT IS QUALITY REQUIREMENT OR NOM-FUNCTIONAL REQURIMENTS?
+
+Based on ISO 25010:2023, quality requirements are defined by eight main quality characteristics for software products and systems. 
+
+Here's the complete list with definitions for all quality characteristics and sub-characteristics from ISO 25010:2023:
+
+1. Functional Suitability: capability of a product to provide functions that meet stated and implied needs of intended users when it is used under specified conditions. Functional suitability is concerned with whether the functions meet not only stated and implied needs, but also the functional specification.
+   - Functional completeness: Degree to which functions cover all specified tasks/objectives
+   - Functional correctness: Degree to which functions provide correct results with needed precision
+   - Functional appropriateness: Degree to which functions facilitate task accomplishment
+
+2. Performance Efficiency: capability of a product to perform its functions within specified time and throughput parameters and be efficient in the use of resources under specified conditions. Resources can be CPU, memory, storage, and network devices. It also can include other software products, the software and hardware configuration of the system, energy, and materials (e.g. print paper, storage media).  
+   - Time behavior: Response and processing times and throughput rates
+   - Resource utilization: Resources used (materials, CPU, memory, I/O devices)
+   - Capacity: Maximum limits (data storage, users, bandwidth) that meet requirements
+
+3. Compatibility: capability of a product to exchange information with other products, and/or to perform its required functions while sharing the same common environment and resources.
+   - Co-existence: Efficient performance while sharing environment with other products
+   - Interoperability: Exchange information and use information that has been exchanged
+
+4. Interaction capability: capability of a product to be interacted with by specified users to exchange information between a user and a system via the user interface to complete the intended task.
+   - Appropriateness recognizability: Users recognize if product meets their needs
+   - Learnability: Product can be used for specified learning goals
+   - Operability: Ease of operation and control
+   - User error protection: System protects against user errors
+   - User interface aesthetics: Pleasant and satisfying interaction 
+   - Accessibility: Usable by people with widest range of characteristics
+   - Technical accessibility: Meets technical accessibility standards/guidelines
+
+5. Reliability: capability of a product to perform specified functions under specified conditions for a specified period of time without interruptions and failures.
+   - Maturity: Meets reliability needs under normal operation
+   - Availability: Operational and accessible when required
+   - Fault tolerance: Operates despite hardware/software faults
+   - Recoverability: Recover data and restore state after interruption
+
+6. Security: capability of a product to protect information and data so that persons or other products have the degree of data access appropriate to their types and levels of authorization, and to defend against attack patterns by malicious actors.
+   - Confidentiality: Data accessible only to authorized access
+   - Integrity: Prevents unauthorized data modification
+   - Non-repudiation: Actions can be proven to have occurred
+   - Accountability: Actions can be traced to specific entity
+   - Authenticity: Identity of subject/resource can be proven
+   - Auditability: Records can be analyzed to investigate events
+   - Prevention: Prevents unauthorized access, attacks, data breaches
+   - Privacy: Personal/private information protected per regulations
+
+7. Maintainability: capability of a product to be modified by the intended maintainers with effectiveness and efficiency.
+   - Modularity: Component changes have minimal impact on others
+   - Reusability: Assets can be used in multiple systems
+   - Analysability: Impact assessment effectiveness for modification
+   - Modifiability: Can be modified without quality degradation
+   - Testability: Test criteria can be established and tests performed
+
+8. Flexibility: capability of a product to be adapted to changes in its requirements, contexts of use, or system environment.
+   - Adaptability: Can adapt to different environments
+   - Installability: Can be installed/uninstalled effectively
+   - Replaceability: Can replace other specified software
+   - Scalability: capability of a product to handle growing or shrinking workloads or to adapt its capacity to handle variability
+
+9. Safety: capability of a product under defined conditions to avoid a state in which human life, health, property, or the environment is endangered.
+   - Operational Constraint: capability of a product to constrain its operation to within safe parameters or states when encountering operational hazard
+   - Risk Identification: capability of a product to identify a course of events or operations that can expose life, property or environment to unacceptable risk
+   - Fail Safe: capability of a product to automatically place itself in a safe operating mode, or to revert to a safe condition in the event of a failure
+   - Hazard Warning: capability of a product to provide warnings of unacceptable risks to operations or internal controls so that they can react in sufficient time to sustain safe operations
+    - Safe Integration: capability of a product to maintain safety (3.9) during and after integration with one or more components
+
+Each characteristic should be specified with measurable criteria and acceptable thresholds when used as quality requirements.
+
+For more details, visit - https://www.iso.org/obp/ui/en/#iso:std:iso-iec:25010:ed-2:v1:en
+
+# SOLUTIONS FOUND BY THIS RESEARCH
+
+The ${SOLUTION} solution is composed by the architecture named as ${ARCHITECTURE}, in the paper ${PAPER}, with DOI ${DOI}, found in ${PAPER_LINK}. This solution addresses the following Quality Requirements: ${QR_LIST}. @LOOP[The quality requirement ${QR} is satisfied using the technology/feature ${TECH}, by: ${QR_TECH_DESCRIPTION}.]@END_LOOP The IoT domain of this solution is ${IoTDOMAIN}. You can find all information about the ${SOLUTION} in Knowledge base, filtering by ${IoTDOMAIN} and ${ARCHITECTURE}.

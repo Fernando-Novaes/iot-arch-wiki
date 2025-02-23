@@ -190,7 +190,7 @@ public class TreeViewComponent extends VerticalLayout {
 
                 // Append to diagram names
                 diagramlabels.append(iotDomain.getName()).append("!").append("IoT Domain").append("#");
-                diagramlabels.append(architectureSolution.getArchitecture().getName()).append("!").append("Architecture Solution").append("#");
+                diagramlabels.append(architectureSolution.getArchitecture().getName()).append("!").append("Architecture").append("#");
                 diagramlabels.append(qualityRequirement.getName()).append("!").append("Quality Requirement").append("#");
                 diagramlabels.append(technology.getDescription()).append("!").append("Technology").append("#");
 
@@ -302,46 +302,6 @@ public class TreeViewComponent extends VerticalLayout {
     }
 
     private void createReferenceDetailsDialog(String paperTitle, String paperLink) {
-//        Dialog dialog = new Dialog();
-//        dialog.setModal(true);
-//        dialog.setDraggable(true);
-//        dialog.setResizable(true);
-//        dialog.setHeaderTitle("Reference Details");
-//        dialog.addAttachListener(attachEvent -> this.diagramComponent.execute());
-//
-//        HorizontalLayout hl = new HorizontalLayout();
-//        hl.setAlignItems(Alignment.CENTER);
-//        //hl.setSpacing(true);
-//
-//        VerticalLayout vl = new VerticalLayout();
-//        vl.setAlignItems(Alignment.CENTER);
-//
-//        H2 paperTitleH2 = new H2(paperTitle);
-//        paperTitleH2.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
-//        Anchor link = new Anchor(paperLink, paperLink);
-//        link.setTarget("_blank"); // Opens the link in a new tab
-//
-//        Div divDiagram = new Div();
-//        divDiagram.setId("diagram");
-//        divDiagram.setWidthFull();
-//
-//        vl.add(paperTitleH2, link, this.qrCodeComponent.generateQRCode(paperLink, 100, 100), divDiagram, new Text(this.pathString.toString()));
-//
-//        dialog.add(vl, this.diagramComponent);
-//
-//        Button closeXButton = new Button(new Icon("lumo", "cross"),
-//                (e) -> dialog.close());
-//        closeXButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//        dialog.getHeader().add(closeXButton);
-//
-//        Button close = new Button("Close", (e) -> dialog.close());
-//        close.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-//        dialog.getFooter().add(close);
-//        dialog.open();
-//
-//        eventPublisher.publishEvent(new OpenCloseEvent(OpenCloseEvent.Action.CLOSE));
-        //eventPublisher.publishEvent(new ReferenceDetailsEvent(this, paperTitle, paperLink, pathString.toString()));
-
         ReferenceDetailsDialog referenceDetailsDialog = new ReferenceDetailsDialog(
                 this.diagramComponent,
                 this.qrCodeComponent,
@@ -350,7 +310,6 @@ public class TreeViewComponent extends VerticalLayout {
         );
 
         referenceDetailsDialog.open(paperTitle, paperLink);
-
     }
 
     private void selectRow(TreeNode<?> node, TreeGrid<TreeNode<?>> treeGrid) {

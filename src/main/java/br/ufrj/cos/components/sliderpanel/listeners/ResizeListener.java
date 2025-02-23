@@ -7,7 +7,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ResizeListener {
-
     @EventListener
     public void handleSliderPanelResize(SliderPanelResizeEvent event) {
         double newWidth = event.getNewWidth();

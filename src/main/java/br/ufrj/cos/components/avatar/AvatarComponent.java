@@ -6,6 +6,7 @@ import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.menubar.MenuBarVariant;
@@ -21,8 +22,8 @@ import org.springframework.stereotype.Component;
 @PermitAll
 public class AvatarComponent {
 
-    private final String USER_ICON = "/images/homem.png";
-    private final String ADMIN_ICON = "/images/admin.png";
+    public final String USER_ICON = "/images/homem.png";
+    public final String ADMIN_ICON = "/images/admin.png";
 
     public AvatarComponent() {}
 
@@ -82,5 +83,26 @@ public class AvatarComponent {
 
         div.add(menuBar);
         return div;
+    }
+
+    public Avatar getAvatar() {
+        UserDetails userDetails = SecurityUtils.getAuthenticatedUser();
+
+        // Avatar with Styling
+        Avatar avatar = new Avatar(userDetails.getUsername());
+        String imagePath = SecurityUtils.hasRole("ADMIN") ? ADMIN_ICON : USER_ICON;
+        avatar.setImage(imagePath);
+        avatar.setTooltipEnabled(true);
+
+        // Embedded Styling for Avatar
+        avatar.getStyle()
+                .set("cursor", "pointer")
+                .set("border-radius", "50%") // Circular avatar
+                .set("width", "36px")
+                .set("height", "36px")
+                .set("margin-right", "8px") //Spacing between avatar and username
+                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.2)"); // Add a subtle shadow
+
+        return avatar;
     }
 }

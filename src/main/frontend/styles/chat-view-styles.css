@@ -1,0 +1,62 @@
+/* ./frontend/styles/chat-view-styles.css */
+
+.chat-container {
+    background-color: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    'box-shadow: var(--lumo-box-shadow-s);
+}
+
+/* Message list customization */
+.chat-container vaadin-message-list {
+    background-color: var(--lumo-base-color);
+    padding: var(--lumo-space-m);
+}
+
+/* Message input area */
+.chat-container vaadin-message-input {
+    border-top: 1px solid var(--lumo-contrast-10pct);
+    padding: var(--lumo-space-s);
+}
+
+/* Custom scrollbar for the message list */
+.chat-container vaadin-message-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-container vaadin-message-list::-webkit-scrollbar-track {
+    background: var(--lumo-contrast-5pct);
+    border-radius: 4px;
+}
+
+.chat-container vaadin-message-list::-webkit-scrollbar-thumb {
+    background: var(--lumo-contrast-20pct);
+    border-radius: 4px;
+}
+
+.chat-container vaadin-message-list::-webkit-scrollbar-thumb:hover {
+    background: var(--lumo-contrast-30pct);
+}
+
+/* Style for system messages */
+.system-message {
+    font-style: italic;
+    color: var(--lumo-secondary-text-color);
+}
+
+/* Style for user messages */
+.user-message {
+    background-color: var(--lumo-primary-color-10pct);
+    align-self: flex-end; /* Align to the right */
+    margin-left: auto; /* Push to the right */
+    margin-right: 0;
+    border-width: 0;
+}
+
+/* Style for assistant messages */
+.assistant-message {
+    background-color: var(--lumo-contrast-5pct);
+    align-self: flex-start; /* Align to the left */
+    margin-right: auto; /* Push to the left */
+    margin-left: 0;
+    border-width: 0;
+}
