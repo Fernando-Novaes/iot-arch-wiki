@@ -1,4 +1,4 @@
-# WHAT IS THE IoT DEESIGN DECISION ASSISTANT?
+# WHAT IS THE IoT DESIGN DECISION ASSISTANT?
 
 Comprehensive Knowledge Base: Access a base of knowledge of IoT domains, architectural solutions, quality requirements, and technologies, all curated from peer-reviewed research and industry best practices.
 Intelligent Decision Support: Leverage our advanced technology to match your project requirements with optimal architectural solutions and technologies.
@@ -95,4 +95,55 @@ For more details, visit - https://www.iso.org/obp/ui/en/#iso:std:iso-iec:25010:e
 
 # SOLUTIONS FOUND BY THIS RESEARCH
 
-The ${SOLUTION} solution is composed by the architecture named as ${ARCHITECTURE}, in the paper ${PAPER}, with DOI ${DOI}, found in ${PAPER_LINK}. This solution addresses the following Quality Requirements: ${QR_LIST}. @LOOP[The quality requirement ${QR} is satisfied using the technology/feature ${TECH}, by: ${QR_TECH_DESCRIPTION}.]@END_LOOP The IoT domain of this solution is ${IoTDOMAIN}. You can find all information about the ${SOLUTION} in Knowledge base, filtering by ${IoTDOMAIN} and ${ARCHITECTURE}.
+----------------------------------------------------------------------------------------------------------------------------------------------
+The ${SOLUTION} solution is composed by the architecture named as ${ARCHITECTURE}, in the paper ${PAPER}, {PUBLISH_YEAR}, with DOI ${DOI}, found in ${PAPER_LINK}. This solution addresses the following Quality Requirements: ${QR_LIST}. @LOOP[The quality requirement ${QR} is satisfied using the technology/feature ${TECH}, by: ${QR_TECH_DESCRIPTION}.]@END_LOOP The IoT domain of this solution is ${IoTDOMAIN}. You can find all information about the ${SOLUTION} in Knowledge base, filtering by ${IoTDOMAIN} and ${ARCHITECTURE}.
+${SOLUTION}: ${DESCRIPTION}
+
+${ARCHITECTURE}: ${DESCRIPTION}
+
+@LOOP[
+${QR}
+]
+
+@LOOP[
+${TECH}
+]
+
+Reference: ${PAPER_TITLE},${PUBLISH_YEAR}
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+# ALL SOLUTIONS
+
+Total of ${TOTAL}
+@LOOP[
+    ${SOLUTION}: ${DESCRIPTION}
+]
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+# ALL ARCHITECTURES
+
+Total of ${TOTAL}
+@LOOP[
+    ${ARCHITECTURE}: ${DESCRIPTION}
+]
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+# ALL QUALITY REQUIREMENTS
+
+Total of ${TOTAL}
+@LOOP[
+    ${QR}: ${DESCRIPTION}
+]
+
+----------------------------------------------------------------------------------------------------------------------------------------------
+
+# ALL TECHNOLOGIES/FEATURES
+
+Total of ${TOTAL}
+@LOOP[
+    ${TECHNOLOGY}: ${DESCRIPTION}
+]
+
+----------------------------------------------------------------------------------------------------------------------------------------------
