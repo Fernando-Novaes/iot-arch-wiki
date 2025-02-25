@@ -7,10 +7,12 @@
     "@vaadin/bundles": "24.4.2",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/polymer-legacy-adapter": "24.4.2",
+    "@vaadin/popover": "24.5.0-alpha8",
     "@vaadin/react-components": "24.4.2",
     "@vaadin/react-components-pro": "24.4.2",
     "@vaadin/router": "1.7.5",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
+    "@vaadin/vaadin-license-checker": "^2.1.2",
     "@vaadin/vaadin-lumo-styles": "24.4.2",
     "@vaadin/vaadin-material-styles": "24.4.2",
     "@vaadin/vaadin-themable-mixin": "24.4.2",
@@ -68,7 +70,9 @@
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "onecolor": "$onecolor",
-    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles"
+    "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
+    "@vaadin/popover": "$@vaadin/popover",
+    "@vaadin/vaadin-license-checker": "$@vaadin/vaadin-license-checker"
   },
   "vaadin": {
     "dependencies": {
@@ -76,10 +80,12 @@
       "@vaadin/bundles": "24.4.2",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/polymer-legacy-adapter": "24.4.2",
+      "@vaadin/popover": "24.5.0-alpha8",
       "@vaadin/react-components": "24.4.2",
       "@vaadin/react-components-pro": "24.4.2",
       "@vaadin/router": "1.7.5",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
+      "@vaadin/vaadin-license-checker": "^2.1.2",
       "@vaadin/vaadin-lumo-styles": "24.4.2",
       "@vaadin/vaadin-material-styles": "24.4.2",
       "@vaadin/vaadin-themable-mixin": "24.4.2",
@@ -114,6 +120,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "1099d5dc57f72ff4dec6a2912a0e1ee82fc2922229911d33dc00fa2334e2fc1d"
+    "hash": "ba43de153a1dd491cb84dd0221dd469d8588d40bbcae302fe7b25e250e8eedd2"
   }
 }

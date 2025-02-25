@@ -5,14 +5,14 @@ import br.ufrj.cos.components.aichat.events.ChatMessageReceivedEvent;
 import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
-import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,30 +25,56 @@ import org.springframework.stereotype.Component;
 public class AIChatInputComponent extends HorizontalLayout {
     private static final Logger logger = LoggerFactory.getLogger(AIChatComponent.class);
 
-    private final TextArea messageInput;
+    private final TextField messageInput;
     private final Button sendButton;
     private final ApplicationEventPublisher eventPublisher;
     private final AsyncRagQueryService asyncRagQueryService;
     private final AvatarComponent avatar;
+    private final MessageList messageList;
 
     public AIChatInputComponent(
             ApplicationEventPublisher eventPublisher,
-            AsyncRagQueryService asyncRagQueryService, AvatarComponent avatar) {
+            AsyncRagQueryService asyncRagQueryService, AvatarComponent avatar, MessageList messageList) {
         this.eventPublisher = eventPublisher;
         this.asyncRagQueryService = asyncRagQueryService;
         this.avatar = avatar;
 
-        messageInput = new TextArea();
-        messageInput.setPlaceholder("Ask me...");
+        messageInput = new TextField();
+        messageInput.setPlaceholder("...");
         messageInput.setPrefixComponent(this.avatar.getAvatar());
         messageInput.setWidthFull();
         messageInput.setClearButtonVisible(true);
 
+
         sendButton = new Button("Send");
+        messageInput.setSuffixComponent(sendButton);
         configureSendButton();
 
         setSizeFull();
-        add(messageInput, sendButton);
+        add(messageInput);
+        this.messageList = messageList;
+    }
+
+    @PostConstruct
+    private void init() {
+        sendHelloMessage();
+    }
+
+    private void sendHelloMessage() {
+        var ui = UI.getCurrent();
+        ui.access(() -> {
+            AIChatMessage aiMessage = AIChatMessage.Builder()
+                            .text(String.format("Hello %s! Well-come to IoT Solutions Design Assistant. How can I help you?",
+                                    SecurityUtils.getUsername()))
+                            .aiMessageType(AIMessageType.ASSISTANT)
+                            .userDetails(createAIUser())
+                            .time(java.time.Instant.now())
+                            .build();
+
+
+            eventPublisher.publishEvent(new ChatMessageReceivedEvent(this, aiMessage));
+            ui.push();
+        });
     }
 
     private void configureSendButton() {

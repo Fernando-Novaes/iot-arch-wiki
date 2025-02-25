@@ -2,7 +2,6 @@ package br.ufrj.cos.components.aichat;
 
 import br.ufrj.cos.components.aichat.events.ChatMessageReceivedEvent;
 import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
-import com.vaadin.flow.spring.annotation.UIScope;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;

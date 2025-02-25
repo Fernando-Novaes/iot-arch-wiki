@@ -22,15 +22,12 @@ public class AIChatMessageDisplay extends VerticalLayout {
         add(this.configMessageList());
         setSizeFull();
 
-        // Initialize with existing messages
-        updateMessageList();
+        this.updateMessageList();
     }
 
     private MessageList configMessageList() {
         this.messageList = new MessageList();
         this.messageList.setSizeFull();
-
-
 
         return this.messageList;
     }
