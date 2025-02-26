@@ -8,8 +8,13 @@ import br.ufrj.cos.utils.SecurityUtils;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.popover.Popover;
+import com.vaadin.flow.component.popover.PopoverPosition;
+import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
@@ -27,6 +32,7 @@ public class AIChatInputComponent extends HorizontalLayout {
 
     private final TextField messageInput;
     private final Button sendButton;
+    private Button actionsBtn;
     private final ApplicationEventPublisher eventPublisher;
     private final AsyncRagQueryService asyncRagQueryService;
     private final AvatarComponent avatar;
@@ -48,10 +54,12 @@ public class AIChatInputComponent extends HorizontalLayout {
 
         sendButton = new Button("Send");
         messageInput.setSuffixComponent(sendButton);
+
         configureSendButton();
+        configActionsButton();
 
         setSizeFull();
-        add(messageInput);
+        add(messageInput, actionsBtn);
         this.messageList = messageList;
     }
 
@@ -89,6 +97,21 @@ public class AIChatInputComponent extends HorizontalLayout {
                 messageInput.clear();
             }
         });
+    }
+
+    private void configActionsButton() {
+        this.actionsBtn = new Button(new Icon("/icons/square_dots.png"));
+        this.actionsBtn.setHeight("62px");
+
+        Popover popover = new Popover();
+        popover.setTarget(actionsBtn);
+        popover.setWidth("90px");
+        popover.addThemeVariants(PopoverVariant.ARROW,
+                PopoverVariant.LUMO_NO_PADDING);
+        popover.setPosition(PopoverPosition.TOP);
+        popover.setOpenOnClick(true);
+        popover.add(new Button("Clear chat", event -> messageList.getItems().clear()));
+        add(popover);
     }
 
     private void sendMessage(String text) {
