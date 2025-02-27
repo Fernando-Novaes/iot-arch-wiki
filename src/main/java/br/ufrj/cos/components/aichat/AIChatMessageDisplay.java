@@ -2,11 +2,13 @@ package br.ufrj.cos.components.aichat;
 
 import br.ufrj.cos.components.aichat.events.ChatMessageReceivedEvent;
 import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
+import br.ufrj.cos.components.aichat.events.ClearChatEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
+import org.springframework.context.annotation.Scope;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +20,11 @@ public class AIChatMessageDisplay extends VerticalLayout {
     private final AIChatMessageService messageService;
 
     public AIChatMessageDisplay(AIChatMessageService messageService) {
+        removeAll();
         this.messageService = messageService;
+        this.messageService.clearMessages();
         add(this.configMessageList());
         setSizeFull();
-
         this.updateMessageList();
     }
 
@@ -54,6 +57,12 @@ public class AIChatMessageDisplay extends VerticalLayout {
     @EventListener
     public void handleMessageReceived(ChatMessageReceivedEvent event) {
         getUI().ifPresent(ui -> ui.access(this::updateMessageList));
+    }
+
+    @EventListener
+    public void clearChat(ClearChatEvent event) {
+        this.messageService.clearMessages();
+        this.updateMessageList();
     }
 
     private void updateMessageList() {

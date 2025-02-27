@@ -3,13 +3,17 @@ package br.ufrj.cos.components.aichat;
 import br.ufrj.cos.api.AsyncRagQueryService;
 import br.ufrj.cos.components.aichat.events.ChatMessageReceivedEvent;
 import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
+import br.ufrj.cos.components.aichat.events.ClearChatEvent;
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
+import com.vaadin.flow.component.AttachEvent;
+import com.vaadin.flow.component.KeyModifier;
+import com.vaadin.flow.component.Key;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.icon.Icon;
-import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.popover.Popover;
@@ -38,9 +42,12 @@ public class AIChatInputComponent extends HorizontalLayout {
     private final AvatarComponent avatar;
     private final MessageList messageList;
 
+    public final String CHAT_ACTIONS_ICON = "/icons/square_dots.png";
+
     public AIChatInputComponent(
             ApplicationEventPublisher eventPublisher,
-            AsyncRagQueryService asyncRagQueryService, AvatarComponent avatar, MessageList messageList) {
+            AsyncRagQueryService asyncRagQueryService, AvatarComponent avatar,
+            MessageList messageList) {
         this.eventPublisher = eventPublisher;
         this.asyncRagQueryService = asyncRagQueryService;
         this.avatar = avatar;
@@ -50,7 +57,24 @@ public class AIChatInputComponent extends HorizontalLayout {
         messageInput.setPrefixComponent(this.avatar.getAvatar());
         messageInput.setWidthFull();
         messageInput.setClearButtonVisible(true);
+        // Add a key press listener to the messageInput TextField
+        messageInput.addKeyDownListener(Key.ENTER, e -> {
+            // Debugging: Print key code
+            System.out.println("Key Code: " + e.getCode());
 
+            // Debugging: Check Ctrl key explicitly.  REDUNDANT!
+            //if (e.isCtrlKey()) {  //THIS IS THE LINE THAT WAS CAUSING THE ERROR. Remove it.
+
+            //e.preventDefault(); // Try preventing default action
+
+            String text = messageInput.getValue();
+            if (!text.isEmpty()) {
+                sendMessage(text);
+                messageInput.clear();
+            }
+            //} //Remove this closing curly brace
+
+        }, KeyModifier.CONTROL);
 
         sendButton = new Button("Send");
         messageInput.setSuffixComponent(sendButton);
@@ -61,6 +85,13 @@ public class AIChatInputComponent extends HorizontalLayout {
         setSizeFull();
         add(messageInput, actionsBtn);
         this.messageList = messageList;
+    }
+
+    @Override
+    protected void onAttach(AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        // Set focus to the text field when the view is attached.
+        messageInput.focus();
     }
 
     @PostConstruct
@@ -100,7 +131,12 @@ public class AIChatInputComponent extends HorizontalLayout {
     }
 
     private void configActionsButton() {
-        this.actionsBtn = new Button(new Icon("/icons/square_dots.png"));
+        Image icon = new Image();
+        icon.setSrc(CHAT_ACTIONS_ICON);
+        icon.setHeight("20px");
+        icon.setWidth("14px");
+
+        this.actionsBtn = new Button(icon);
         this.actionsBtn.setHeight("62px");
 
         Popover popover = new Popover();
@@ -110,7 +146,24 @@ public class AIChatInputComponent extends HorizontalLayout {
                 PopoverVariant.LUMO_NO_PADDING);
         popover.setPosition(PopoverPosition.TOP);
         popover.setOpenOnClick(true);
-        popover.add(new Button("Clear chat", event -> messageList.getItems().clear()));
+        popover.add(new Button("Clear chat", event -> {
+            eventPublisher.publishEvent(new ClearChatEvent(this));
+
+            var ui = UI.getCurrent();
+            ui.access(() -> {
+                AIChatMessage aiMessage = AIChatMessage.Builder()
+                        .text(String.format("Nice! Much better now.",
+                                SecurityUtils.getUsername()))
+                        .aiMessageType(AIMessageType.ASSISTANT)
+                        .userDetails(createAIUser())
+                        .time(java.time.Instant.now())
+                        .build();
+
+
+                eventPublisher.publishEvent(new ChatMessageReceivedEvent(this, aiMessage));
+                ui.push();
+            });
+        }));
         add(popover);
     }
 

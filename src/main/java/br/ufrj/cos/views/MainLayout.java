@@ -90,7 +90,7 @@ public class MainLayout extends AppLayout {
         header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
 
         Div layout = new Div();
-        layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE, Padding.Vertical.XSMALL);
+        layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE, Padding.Vertical.SMALL);
         layout.getStyle().setBoxShadow("0 4px 8px rgba(0, 0, 0, 0.2)");
 
         H1 appName = new H1("IoT Architecture Solution Knowledge Base");
