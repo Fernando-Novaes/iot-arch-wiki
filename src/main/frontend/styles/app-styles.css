@@ -81,6 +81,14 @@
     height: 25%;
 }
 
+.info-box {
+    border: 1px solid #ccc;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 5px; /* Optional: Rounded corners */
+    background-color: #f9f9f9; /* Optional: Background color */
+}
+
 .centered-aboutbox {
     padding: 20px;
     background-color: #373a3f;
@@ -158,4 +166,19 @@ vaadin-grid-tree-toggle::before {
     flex-direction: column;
     align-items: stretch; /* Ensure items stretch to full width */
     padding: 5px;
+}
+
+.block-container {
+    border: 1px solid #373a3f;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    width: 95%; /* Make the containers take up most of the width */
+    max-width: 1200px; /* Optional: set a maximum width */
+}
+
+@media (max-width: 768px) {
+    .block-container {
+        width: 100%; /* Full width on smaller screens */
+    }
 }

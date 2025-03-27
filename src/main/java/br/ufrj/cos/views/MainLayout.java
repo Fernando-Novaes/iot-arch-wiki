@@ -3,13 +3,12 @@ package br.ufrj.cos.views;
 
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
-import br.ufrj.cos.views.about.AboutViewView;
+import br.ufrj.cos.views.about.AboutView;
 import br.ufrj.cos.views.aichat.AiChatView;
 import br.ufrj.cos.views.board.BoardView;
 import br.ufrj.cos.views.datamanager.DataManagerView;
 import br.ufrj.cos.views.home.HomeView;
 import br.ufrj.cos.views.iotarch.IoTArchView;
-import br.ufrj.cos.views.qualityrequirement.QualityRequirementView;
 import br.ufrj.cos.views.user.UserRegistrationView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
@@ -122,19 +121,20 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo("Home", LineAwesomeIcon.HOME_SOLID.create(), HomeView.class),
                 new MenuItemInfo("BoK", LineAwesomeIcon.WHMCS.create(), BoardView.class),
                 new MenuItemInfo("Knowledge Base", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class),
-                new MenuItemInfo("AI-Chat", LineAwesomeIcon.TERMINAL_SOLID.create(), AiChatView.class),
-                new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
-                new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
-                new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class)
+                new MenuItemInfo("AI-Chat", LineAwesomeIcon.TERMINAL_SOLID.create(), AiChatView.class)
+                //new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
+                //new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
+                //new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class)
         ));
 
         // Dynamically add the "Knowledge Manager" menu item if the user is an ADMIN
         if (SecurityUtils.hasRole("ADMIN")) {
+            menu.add(new MenuItemInfo("App Config", LineAwesomeIcon.COG_SOLID.create(), AppConfigView.class));
             menu.add(new MenuItemInfo("Knowledge Manager", LineAwesomeIcon.DATABASE_SOLID.create(), DataManagerView.class));
             menu.add(new MenuItemInfo("User Manager", LineAwesomeIcon.USER_ALT_SOLID.create(), UserRegistrationView.class));
         }
 
-        menu.add(new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutViewView.class));
+        menu.add(new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutView.class));
 
         // Convert list to an array and return it
         return menu.toArray(new MenuItemInfo[0]);

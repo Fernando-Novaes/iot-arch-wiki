@@ -4,59 +4,193 @@
     background-color: var(--lumo-base-color);
     border-radius: var(--lumo-border-radius-l);
     'box-shadow: var(--lumo-box-shadow-s);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
-/* Message list customization */
-.chat-container vaadin-message-list {
+/* Message list container */
+.html-message-list {
     background-color: var(--lumo-base-color);
     padding: var(--lumo-space-m);
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-/* Message input area */
-.chat-container vaadin-message-input {
-    border-top: 1px solid var(--lumo-contrast-10pct);
+/* Message container layout */
+.message-container {
+    display: flex;
+    width: 100%;
+    margin-bottom: var(--lumo-space-s);
+    align-items: flex-end;
+}
+
+.user-message-container {
+    justify-content: flex-end;
+}
+
+.assistant-message-container {
+    justify-content: flex-start;
+}
+
+.system-message-container {
+    justify-content: center;
+    width: 45%;
+}
+
+/* Avatar styling */
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    font-weight: bold;
+    font-size: 18px;
+    color: white;
+    margin-right: 10px;
+}
+
+.user-avatar {
+    margin-left: var(--lumo-space-s);
+}
+
+.assistant-avatar {
+    margin-right: var(--lumo-space-s);
+}
+
+/* Message bubble styling */
+.message-bubble {
+    max-width: 70%;
     padding: var(--lumo-space-s);
-}
-
-/* Custom scrollbar for the message list */
-.chat-container vaadin-message-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.chat-container vaadin-message-list::-webkit-scrollbar-track {
-    background: var(--lumo-contrast-5pct);
-    border-radius: 4px;
-}
-
-.chat-container vaadin-message-list::-webkit-scrollbar-thumb {
-    background: var(--lumo-contrast-20pct);
-    border-radius: 4px;
-}
-
-.chat-container vaadin-message-list::-webkit-scrollbar-thumb:hover {
-    background: var(--lumo-contrast-30pct);
+    border-radius: var(--lumo-border-radius-m);
+    box-shadow: var(--lumo-box-shadow-xs);
 }
 
 /* Style for system messages */
 .system-message {
+    background-color: var(--lumo-contrast-10pct);
     font-style: italic;
     color: var(--lumo-secondary-text-color);
+    text-align: center;
 }
 
 /* Style for user messages */
 .user-message {
-    background-color: var(--lumo-primary-color-10pct);
-    align-self: flex-end; /* Align to the right */
-    margin-left: auto; /* Push to the right */
-    margin-right: 0;
-    border-width: 0;
+    'background-color: var(--lumo-primary-color-10pct);
+    background-color: #3f454d;
+    color: var(--lumo-primary-contrast-color);
+    border-radius: var(--lumo-border-radius-m) var(--lumo-border-radius-s) var(--lumo-border-radius-s) var(--lumo-border-radius-m);
 }
 
 /* Style for assistant messages */
 .assistant-message {
     background-color: var(--lumo-contrast-5pct);
-    align-self: flex-start; /* Align to the left */
-    margin-right: auto; /* Push to the left */
-    margin-left: 0;
-    border-width: 0;
+    color: var(--lumo-body-text-color);
+    border-radius: var(--lumo-border-radius-s) var(--lumo-border-radius-m) var(--lumo-border-radius-m) var(--lumo-border-radius-s);
+}
+
+/* Message header styling */
+.message-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--lumo-space-xs);
+    font-size: var(--lumo-font-size-xs);
+}
+
+.message-username {
+    font-weight: bold;
+    color: var(--lumo-primary-text-color);
+}
+
+.message-timestamp {
+    color: var(--lumo-tertiary-text-color);
+}
+
+/* Message content styling */
+.message-content {
+    font-family: var(--lumo-font-family);
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+/* Style for HTML elements within the content */
+.message-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.message-content pre {
+    background-color: var(--lumo-contrast-10pct);
+    padding: var(--lumo-space-xs);
+    border-radius: var(--lumo-border-radius-s);
+    overflow-x: auto;
+}
+
+.message-content code {
+    font-family: monospace;
+    background-color: var(--lumo-contrast-10pct);
+    padding: 0 var(--lumo-space-xs);
+    border-radius: var(--lumo-border-radius-s);
+}
+
+.message-content ul, .message-content ol {
+    padding-left: var(--lumo-space-m);
+}
+
+.message-content a {
+    color: var(--lumo-primary-color);
+}
+
+.message-content blockquote {
+    border-left: 3px solid var(--lumo-contrast-20pct);
+    margin-left: var(--lumo-space-xs);
+    padding-left: var(--lumo-space-s);
+    color: var(--lumo-secondary-text-color);
+}
+
+/* Custom scrollbar */
+.html-message-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.html-message-list::-webkit-scrollbar-track {
+    background: var(--lumo-contrast-5pct);
+    border-radius: 4px;
+}
+
+.html-message-list::-webkit-scrollbar-thumb {
+    background: var(--lumo-contrast-20pct);
+    border-radius: 4px;
+}
+
+.html-message-list::-webkit-scrollbar-thumb:hover {
+    background: var(--lumo-contrast-30pct);
+}
+
+.message-list-box {
+    position: relative;
+    flex-grow: 1;
+    overflow-y: auto;
+    height: 70%!important;
+}
+
+.input-box-fixed {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--lumo-base-color);
+    padding: var(--lumo-space-m);
+    box-sizing: border-box;
+    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.2);
+    /* Define a fixed height for the input box */
+    height: 8%; /* Adjust this value as needed */
+}
+
+/* Adjust the inputComponent within the fixed input box */
+.input-box-fixed vaadin-horizontal-layout {
+    width: 100%;
 }

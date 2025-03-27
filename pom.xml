@@ -11,7 +11,7 @@
 
     <properties>
         <java.version>21</java.version>
-        <vaadin.version>24.4.6</vaadin.version>
+        <vaadin.version>24.5.0</vaadin.version>
     </properties>
 
     <parent>
@@ -52,17 +52,15 @@
     <dependencies>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-core</artifactId>
-            <version>24.4.6</version>
+            <artifactId>vaadin</artifactId>  <!-- Use this for all Vaadin components -->
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <!-- Replace artifactId with vaadin-core to use only free components -->
-            <artifactId>vaadin</artifactId>
+            <artifactId>vaadin-spring-boot-starter</artifactId>  <!-- Essential for Spring Boot integration -->
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-spring-boot-starter</artifactId>
+            <artifactId>flow-server</artifactId>  <!-- Ensure this is present and managed -->
         </dependency>
         <dependency>
             <groupId>org.parttio</groupId>
@@ -158,12 +156,6 @@
             <version>3.4.2</version>
         </dependency>
         <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>flow-server</artifactId>
-            <version>24.4.4</version>
-        </dependency>
-
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-core</artifactId>
             <version>2.17.0</version>
@@ -187,8 +179,8 @@
         </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
-            <artifactId>kernel</artifactId>
-            <version>7.2.5</version>
+            <artifactId>commons</artifactId>
+            <version>8.0.4</version>
         </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
@@ -200,6 +192,12 @@
             <artifactId>io</artifactId>
             <version>7.2.5</version>
         </dependency>
+        <dependency>
+             <groupId>com.vladsch.flexmark</groupId>
+             <artifactId>flexmark-all</artifactId>
+             <version>0.64.8</version>
+         </dependency>
+
     </dependencies>
 
     <build>
@@ -229,19 +227,6 @@
         <profile>
             <!-- Production mode is activated using -Pproduction -->
             <id>production</id>
-            <dependencies>
-                <!-- Exclude development dependencies from production -->
-                <dependency>
-                    <groupId>com.vaadin</groupId>
-                    <artifactId>vaadin-core</artifactId>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>com.vaadin</groupId>
-                            <artifactId>vaadin-dev</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-            </dependencies>
             <build>
                 <plugins>
                     <plugin>

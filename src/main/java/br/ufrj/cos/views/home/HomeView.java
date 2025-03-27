@@ -11,7 +11,6 @@ import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
 
 @PageTitle("Home View")
-@RouteAlias(value = "", layout = MainLayout.class)
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
 public class HomeView extends Composite<VerticalLayout> {

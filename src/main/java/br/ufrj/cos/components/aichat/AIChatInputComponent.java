@@ -6,14 +6,10 @@ import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
 import br.ufrj.cos.components.aichat.events.ClearChatEvent;
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
-import com.vaadin.flow.component.AttachEvent;
-import com.vaadin.flow.component.KeyModifier;
-import com.vaadin.flow.component.Key;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Image;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.popover.Popover;
@@ -57,24 +53,6 @@ public class AIChatInputComponent extends HorizontalLayout {
         messageInput.setPrefixComponent(this.avatar.getAvatar());
         messageInput.setWidthFull();
         messageInput.setClearButtonVisible(true);
-        // Add a key press listener to the messageInput TextField
-        messageInput.addKeyDownListener(Key.ENTER, e -> {
-            // Debugging: Print key code
-            System.out.println("Key Code: " + e.getCode());
-
-            // Debugging: Check Ctrl key explicitly.  REDUNDANT!
-            //if (e.isCtrlKey()) {  //THIS IS THE LINE THAT WAS CAUSING THE ERROR. Remove it.
-
-            //e.preventDefault(); // Try preventing default action
-
-            String text = messageInput.getValue();
-            if (!text.isEmpty()) {
-                sendMessage(text);
-                messageInput.clear();
-            }
-            //} //Remove this closing curly brace
-
-        }, KeyModifier.CONTROL);
 
         sendButton = new Button("Send");
         messageInput.setSuffixComponent(sendButton);
@@ -103,7 +81,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         var ui = UI.getCurrent();
         ui.access(() -> {
             AIChatMessage aiMessage = AIChatMessage.Builder()
-                            .text(String.format("Hello %s! Well-come to IoT Solutions Design Assistant. How can I help you?",
+                            .text(String.format("Hello %s! Well-come to IoT Solutions Design Assistant. How can I help you today?",
                                     SecurityUtils.getUsername()))
                             .aiMessageType(AIMessageType.ASSISTANT)
                             .userDetails(createAIUser())
@@ -117,6 +95,8 @@ public class AIChatInputComponent extends HorizontalLayout {
     }
 
     private void configureSendButton() {
+        Shortcuts.addShortcutListener(messageInput, sendButton::click, Key.ENTER, KeyModifier.CONTROL);
+
         sendButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         sendButton.setHeight("54px");
         sendButton.setAutofocus(true);
@@ -152,7 +132,7 @@ public class AIChatInputComponent extends HorizontalLayout {
             var ui = UI.getCurrent();
             ui.access(() -> {
                 AIChatMessage aiMessage = AIChatMessage.Builder()
-                        .text(String.format("Nice! Much better now.",
+                        .text(String.format("Nice, %s! Much better now.",
                                 SecurityUtils.getUsername()))
                         .aiMessageType(AIMessageType.ASSISTANT)
                         .userDetails(createAIUser())
@@ -190,8 +170,10 @@ public class AIChatInputComponent extends HorizontalLayout {
                         error -> {
                             ui.access(() ->
                                     handleError(error));
+
                         }
                 );
+        ui.getPage().executeJs("window.scrollBy(0, -200);");
         logger.info("### Message sent.... end.");
     }
 
@@ -220,7 +202,8 @@ public class AIChatInputComponent extends HorizontalLayout {
         getUI().ifPresent(ui -> ui.access(() -> {
             logger.info("### Error received....");
                 AIChatMessage errorMessage = AIChatMessage.Builder()
-                        .text("Error: " + error.getMessage())
+                        //.text("Error: " + error.getMessage())
+                        .text("Something went wrong. Please, try again.")
                         .aiMessageType(AIMessageType.ASSISTANT)
                         .userDetails(createAIUser())
                         .time(java.time.Instant.now())
