@@ -14,6 +14,9 @@ import java.time.Instant;
 @Aspect
 @Component
 public class AfterSaveKnowledgeDatabase {
+    /***
+     * This AOP class executes after save in knowledge database
+     */
     private static final Logger logger = LoggerFactory.getLogger(AfterSaveKnowledgeDatabase.class);
 
     @Autowired
