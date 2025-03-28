@@ -1,10 +1,12 @@
-package br.ufrj.cos.views;
+package br.ufrj.cos.views.appconfig;
 
 import br.ufrj.cos.domain.AppConfig;
 import br.ufrj.cos.domain.ScrapWebSite;
 import br.ufrj.cos.domain.ServiceName;
 import br.ufrj.cos.service.AppConfigService;
 import br.ufrj.cos.utils.NotificationUtils;
+import br.ufrj.cos.views.BaseView;
+import br.ufrj.cos.views.MainLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
@@ -19,7 +21,6 @@ import jakarta.annotation.security.RolesAllowed;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.orderedlayout.FlexLayout;
-import com.vaadin.flow.component.textfield.IntegerField;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,24 +32,27 @@ import java.util.ArrayList;
 @CssImport("./styles/app-styles.css")
 public class AppConfigView extends BaseView {
 
-    private AppConfig appConfig;
-    private Grid<ScrapWebSite> scrapWebsiteGrid = new Grid<>(ScrapWebSite.class);
-    private TextField urlField = new TextField("URL");
-    private TextField descriptionField = new TextField("Description");
-    private Button addButton = new Button("Add");
-    private Grid<ServiceName> serviceNameGrid = new Grid<>(ServiceName.class);
-    private TextField serviceNameField = new TextField("Service Name");
-    private TextField serviceDescriptionField = new TextField("Service Description");
-    private Button addServiceButton = new Button("Add");
+    private final AppConfig appConfig;
+    private final Grid<ScrapWebSite> scrapWebsiteGrid = new Grid<>(ScrapWebSite.class);
+    private final TextField urlField = new TextField("URL");
+    private final TextField descriptionField = new TextField("Description");
+    private final Button addButton = new Button("Add");
+    private final Grid<ServiceName> serviceNameGrid = new Grid<>(ServiceName.class);
+    private final TextField serviceNameField = new TextField("Service Name");
+    private final TextField serviceDescriptionField = new TextField("Service Description");
+    private final Button addServiceButton = new Button("Add");
     private final AppConfigService appConfigService;
-    private Button saveButton = new Button("Save Configuration");
-    private FlexLayout contentLayout = new FlexLayout();
-    private TextField apiAddressField = new TextField("API Address");
-    private Button testConnectionButton = new Button("Test Connection");
+    private final Button saveButton = new Button("Save Configuration");
+    private final FlexLayout contentLayout = new FlexLayout();
+    private final TextField apiAddressField = new TextField("API Address");
+    private final Button testConnectionButton = new Button("Test Connection");
 
-    public AppConfigView(AppConfigService appConfigService) {
+    private final APIServiceConnection apiServiceConnection;
+
+    public AppConfigView(AppConfigService appConfigService, APIServiceConnection apiServiceConnection) {
         this.appConfig = appConfigService.getAppConfig();
         this.appConfigService = appConfigService;
+        this.apiServiceConnection = apiServiceConnection;
         this.createHeader("Application Config");
         configureApiAddressBlock();
         configureScrapWebsiteBlock();
@@ -66,19 +70,15 @@ public class AppConfigView extends BaseView {
 
         testConnectionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         testConnectionButton.addClickListener(event -> {
-            try {
-                InetAddress.getByName(apiAddressField.getValue());
-                NotificationUtils.showSuccessNotification("Connection successful.");
-            } catch (UnknownHostException e) {
-                NotificationUtils.showErrorNotification("Connection failed: Invalid IP Address.");
-            }
+            apiServiceConnection.connectionTest(
+                    String.format("%s/test_connection", apiAddressField.getValue()));
         });
 
         HorizontalLayout apiAddressLayout = new HorizontalLayout(apiAddressField, testConnectionButton);
         apiAddressLayout.setWidthFull();
         apiAddressLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
 
-        Div apiAddressDiv = new Div(new H3("API Address Configuration"), apiAddressLayout);
+        Div apiAddressDiv = new Div(new H3("AI Chat - API Address Configuration"), apiAddressLayout);
         apiAddressDiv.addClassName("block-container");
         apiAddressDiv.setWidth("80%");
         apiAddressDiv.setMaxWidth("1200px");
@@ -163,7 +163,7 @@ public class AppConfigView extends BaseView {
         serviceInputLayout.setFlexGrow(1, serviceNameField, serviceDescriptionField);
         serviceInputLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
 
-        Div serviceNameDiv = new Div(new H3("AI Service Names"), serviceInputLayout, serviceNameGrid);
+        Div serviceNameDiv = new Div(new H3("AI API Service Names"), serviceInputLayout, serviceNameGrid);
         serviceNameDiv.addClassName("block-container");
         serviceNameDiv.setWidth("80%");
         serviceNameDiv.setMaxWidth("1200px");

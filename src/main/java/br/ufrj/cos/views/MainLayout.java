@@ -5,6 +5,7 @@ import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.about.AboutView;
 import br.ufrj.cos.views.aichat.AiChatView;
+import br.ufrj.cos.views.appconfig.AppConfigView;
 import br.ufrj.cos.views.board.BoardView;
 import br.ufrj.cos.views.datamanager.DataManagerView;
 import br.ufrj.cos.views.home.HomeView;
