@@ -80,6 +80,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 "Requirements Analyzer: Define and prioritize your project's quality requirements with ease.",
                 "Solution Recommender: Receive tailored architectural recommendations based on your specific needs.",
                 "Technology Evaluator: Compare and assess various IoT technologies to find the perfect fit for your project.",
+                "AI Assistant: Engage in dynamic conversations with an intelligent assistant to receive instant guidance, explore concepts, and troubleshoot challenges within the IoT domain.",
                 "Knowledge Contribution: Submit your own experiences and solutions to enrich the community's collective wisdom."
         );
 

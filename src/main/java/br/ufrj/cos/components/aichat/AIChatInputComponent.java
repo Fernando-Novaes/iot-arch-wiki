@@ -173,7 +173,6 @@ public class AIChatInputComponent extends HorizontalLayout {
 
                         }
                 );
-        ui.getPage().executeJs("window.scrollBy(0, -200);");
         logger.info("### Message sent.... end.");
     }
 

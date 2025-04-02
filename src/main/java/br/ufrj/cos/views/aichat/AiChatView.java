@@ -36,6 +36,7 @@ public class AiChatView extends BaseView {
 
         // Add container to the view's content
         chatContainer.setSizeFull();
+        getContent().getStyle().set("flex-grow", "1");
         getContent().add(chatContainer);
     }
 

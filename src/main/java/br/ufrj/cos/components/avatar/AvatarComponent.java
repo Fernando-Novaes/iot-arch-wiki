@@ -1,7 +1,10 @@
 package br.ufrj.cos.components.avatar;
 
 import br.ufrj.cos.utils.SecurityUtils;
+import br.ufrj.cos.views.appconfig.AppConfigView;
+import br.ufrj.cos.views.datamanager.DataManagerView;
 import br.ufrj.cos.views.login.LogoutView;
+import br.ufrj.cos.views.user.UserRegistrationView;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.contextmenu.SubMenu;
@@ -73,11 +76,21 @@ public class AvatarComponent {
 
         MenuItem avatarMenuItem = menuBar.addItem(avatarLayout);
         SubMenu subMenu = avatarMenuItem.getSubMenu();
-
+        //Profile
         if (SecurityUtils.isUserLoggedIn()) {
             subMenu.addItem(new RouterLink("Profile",
                     ProfileDialogView.class, new RouteParameters("username", SecurityUtils.getUsername())));
         }
+        //When user is ADMIN
+        if (SecurityUtils.hasRole("ADMIN")) {
+            subMenu.addItem(new RouterLink("Knowledge Manager",
+                    DataManagerView.class));
+            subMenu.addItem(new RouterLink("User Manager",
+                    UserRegistrationView.class));
+            subMenu.addItem(new RouterLink("App Config",
+                    AppConfigView.class));
+        }
+        //Logout
         subMenu.addItem(new RouterLink("Logout",
                 LogoutView.class));
 

@@ -2,7 +2,9 @@ package br.ufrj.cos.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.bouncycastle.asn1.dvcs.ServiceType;
 
+import java.time.Instant;
 import java.util.List;
 
 @EqualsAndHashCode(callSuper = true)
@@ -24,4 +26,8 @@ public class AppConfig extends DomainBase {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ServiceName> serviceNames;
+
+    private Instant knowledgeDatabaseLastUpdate;
+
+    private Instant aiRagDocumentsLastUpdate;
 }

@@ -129,11 +129,11 @@ public class MainLayout extends AppLayout {
         ));
 
         // Dynamically add the "Knowledge Manager" menu item if the user is an ADMIN
-        if (SecurityUtils.hasRole("ADMIN")) {
-            menu.add(new MenuItemInfo("App Config", LineAwesomeIcon.COG_SOLID.create(), AppConfigView.class));
-            menu.add(new MenuItemInfo("Knowledge Manager", LineAwesomeIcon.DATABASE_SOLID.create(), DataManagerView.class));
-            menu.add(new MenuItemInfo("User Manager", LineAwesomeIcon.USER_ALT_SOLID.create(), UserRegistrationView.class));
-        }
+//        if (SecurityUtils.hasRole("ADMIN")) {
+//            menu.add(new MenuItemInfo("App Config", LineAwesomeIcon.COG_SOLID.create(), AppConfigView.class));
+//            menu.add(new MenuItemInfo("Knowledge Manager", LineAwesomeIcon.DATABASE_SOLID.create(), DataManagerView.class));
+//            menu.add(new MenuItemInfo("User Manager", LineAwesomeIcon.USER_ALT_SOLID.create(), UserRegistrationView.class));
+//        }
 
         menu.add(new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutView.class));
 
