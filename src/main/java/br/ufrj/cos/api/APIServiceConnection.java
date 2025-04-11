@@ -7,6 +7,7 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
@@ -95,6 +96,52 @@ public class APIServiceConnection {
                 .post()
                 .uri(uri)
                 .bodyValue(scrapingUrls)
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, response -> { // Corrected line using method reference
+                    logger.error("API returned error status: {}", response.statusCode());
+                    return response.bodyToMono(String.class)
+                            .flatMap(errorBody -> Mono.error(new RuntimeException("API error: " + errorBody)));
+                })
+                .bodyToMono(String.class)
+                .map(String::toString)
+                .timeout(TIMEOUT)
+                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1))) // retry 3 times.
+                .onErrorResume(WebClientResponseException.class, e -> {
+                    logger.error("WebClient error: {}", e.getMessage(), e);
+                    return Mono.error(new RuntimeException("Failed to query API: " + e.getMessage()));
+                })
+                .onErrorResume(e -> {
+                    logger.error("General error: {}", e.getMessage(), e);
+                    return Mono.error(new RuntimeException("An unexpected error occurred: " + e.getMessage()));
+                });
+    }
+
+    public Mono<String> callTextToRAGAndStore(String data) {
+        if (this.appConfigService.getAppConfig().getApiAddress() == null) {
+            return Mono.error(new RuntimeException("There is no API address configured."));
+        }
+
+        if (this.appConfigService.getServiceNameByType(APIServiceType.RAG_TEXT_AND_STORE) == null) {
+            return Mono.error(new RuntimeException("There is no AI Chat service name configured."));
+        }
+
+        String baseUrl = this.appConfigService.getAppConfig().getApiAddress();
+        String serviceName = this.appConfigService.getServiceNameByType(APIServiceType.RAG_TEXT_AND_STORE).getName();
+
+        String uri = UriComponentsBuilder.fromUriString(baseUrl)
+                .pathSegment(serviceName)
+                .build()
+                .toUriString();
+
+        logger.info("Connecting to API service: {}", uri);
+
+        WebClient webClient = webClientBuilder.baseUrl(baseUrl).build();
+
+        return webClient
+                .post()
+                .uri(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .bodyValue(data)
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, response -> { // Corrected line using method reference
                     logger.error("API returned error status: {}", response.statusCode());

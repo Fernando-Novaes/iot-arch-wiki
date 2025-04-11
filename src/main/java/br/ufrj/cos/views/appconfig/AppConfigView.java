@@ -8,6 +8,7 @@ import br.ufrj.cos.domain.AppConfig;
 import br.ufrj.cos.domain.ScrapWebSite;
 import br.ufrj.cos.domain.ServiceName;
 import br.ufrj.cos.service.AppConfigService;
+import br.ufrj.cos.service.RAGService;
 import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
@@ -63,12 +64,14 @@ public class AppConfigView extends BaseView {
     private final FlexLayout contentLayout = new FlexLayout();
     private final TextField apiAddressField = new TextField("API Address");
     private final Button testConnectionButton = new Button("Test Connection");
+    private final RAGService ragService;
 
     private final APIServiceConnection apiServiceConnection;
 
-    public AppConfigView(AppConfigService appConfigService, APIServiceConnection apiServiceConnection) {
+    public AppConfigView(AppConfigService appConfigService, RAGService ragService, APIServiceConnection apiServiceConnection) {
         this.appConfig = appConfigService.getAppConfig();
         this.appConfigService = appConfigService;
+        this.ragService = ragService;
         this.apiServiceConnection = apiServiceConnection;
         this.createHeader("Application Config");
         configureApiAddressBlock();
@@ -378,6 +381,7 @@ public class AppConfigView extends BaseView {
             NotificationUtils.showSuccessNotification("Configurations saved.");
         });
     }
+
     private String formatInstant(Instant instant) {
         if (instant == null) {
             return "N/A";
@@ -389,6 +393,7 @@ public class AppConfigView extends BaseView {
     }
 
     private void configureLastUpdateLabels() {
+        var ui = getUI();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
         Text knowledgeDatabaseLabel = new Text("Knowledge Database: ");
@@ -405,7 +410,26 @@ public class AppConfigView extends BaseView {
         lastUpdateLayout.setWidthFull();
         lastUpdateLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        Div div = new Div(new H3("Last update Knowledge Database and AI RAG Documents"), lastUpdateLayout);
+        Button saveRagData = new Button("Update IA Knowledge");
+        saveRagData.setWidthFull();
+        saveRagData.addClickListener(click -> {
+            String allData = ragService.generateStringData();
+            logger.info(allData);
+            apiServiceConnection.callTextToRAGAndStore(allData)
+                    .subscribe(
+                            answer -> {
+                                ui.get().access(() ->
+                                        NotificationUtils.showSuccessNotification(answer));
+                            },
+                            error -> {
+                                ui.get().access(() ->
+                                        NotificationUtils.showErrorNotification(error.getMessage()));
+
+                            }
+                    );
+        });
+
+        Div div = new Div(new H3("Last update Knowledge Database and AI RAG Documents"), lastUpdateLayout, saveRagData);
         div.addClassName("block-container");
         div.setWidth("80%");
         div.setMaxWidth("1200px");

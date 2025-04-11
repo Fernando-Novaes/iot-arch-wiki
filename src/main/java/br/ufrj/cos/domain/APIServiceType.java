@@ -4,8 +4,8 @@ public enum APIServiceType {
 
     WEB_SCRAPING,
     CHAT_QUERY,
-    DOCUMENT_FOR_RAG,
-    TEXT_FOR_RAG,
+    RAG_DOCUMENT_AND_STORE,
+    RAG_TEXT_AND_STORE,
     TEST_CONNECTION,
     DEFAULT
 

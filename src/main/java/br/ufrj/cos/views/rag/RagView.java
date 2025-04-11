@@ -9,7 +9,6 @@ import jakarta.annotation.security.PermitAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.awt.*;
 import java.io.IOException;
 
 @Route(value = "rag-view", layout = MainLayout.class)
@@ -28,7 +27,7 @@ public class RagView extends BaseView {
         this.generateDataBtn.addClickListener(click -> {
             try {
                 logger.info("### Starting data generator....");
-                this.ragService.generateData();
+                this.ragService.generateDocumentData();
                 logger.info("### Data generator done.");
             } catch (IOException e) {
                 throw new RuntimeException(e);

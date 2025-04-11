@@ -1,5 +1,6 @@
 package br.ufrj.cos.service;
 
+import br.ufrj.cos.domain.ArchitectureSolution;
 import br.ufrj.cos.domain.QualityRequirement;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -9,7 +10,6 @@ import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.element.AreaBreak;
 import com.itextpdf.layout.properties.AreaBreakType;
-import com.itextpdf.layout.element.List;
 import com.itextpdf.layout.element.ListItem;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
@@ -17,16 +17,16 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.Comparator;
+import java.util.List;
 
 @Service
 public class RAGService {
 
-    private IoTDomainService domainService;
-    private ArchitectureSolutionService architectureSolutionService;
-    private ArchitectureService architectureService;
-    private QualityRequirementService qualityRequirementService;
-    private TechnologyService technologyService;
-    private PaperReferenceService paperReferenceService;
+    private final IoTDomainService domainService;
+    private final ArchitectureSolutionService architectureSolutionService;
+    private final QualityRequirementService qualityRequirementService;
+    private final TechnologyService technologyService;
+    private final PaperReferenceService paperReferenceService;
     
     private final int SIZE_OF_TITLE = 10;
     private final int SIZE_OF_CONTENT = 8;
@@ -34,14 +34,13 @@ public class RAGService {
     public RAGService(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, ArchitectureService architectureService, QualityRequirementService qualityRequirementService, TechnologyService technologyService, PaperReferenceService paperReferenceService) throws IOException {
         this.domainService = domainService;
         this.architectureSolutionService = architectureSolutionService;
-        this.architectureService = architectureService;
         this.qualityRequirementService = qualityRequirementService;
         this.technologyService = technologyService;
         this.paperReferenceService = paperReferenceService;
-        this.generateData();
+        this.generateDocumentData();
     }
 
-    public void generateData() throws IOException {
+    public void generateDocumentData() throws IOException {
         String dest = "iot_design_assistant.pdf";
         PdfWriter writer = new PdfWriter(dest);
         PdfDocument pdf = new PdfDocument(writer);
@@ -74,7 +73,7 @@ public class RAGService {
                 .setFontSize(SIZE_OF_TITLE);
         document.add(keyFeaturesTitle);
 
-        List keyFeaturesList = new List()
+        com.itextpdf.layout.element.List keyFeaturesList = new com.itextpdf.layout.element.List()
                 .setFont(normalFont)
                 .setFontSize(SIZE_OF_CONTENT)
                 .setListSymbol("\u2022"); // Bullet point
@@ -109,7 +108,7 @@ public class RAGService {
                 .setFontSize(SIZE_OF_TITLE);
         document.add(keyFeaturesTitle2);
 
-        List keyFeaturesList2 = new List()
+        com.itextpdf.layout.element.List keyFeaturesList2 = new com.itextpdf.layout.element.List()
                 .setFont(normalFont)
                 .setFontSize(SIZE_OF_CONTENT)
                 .setListSymbol("\u2022"); // Bullet point
@@ -490,5 +489,111 @@ public class RAGService {
 
         document.close();
         System.out.println("PDF generated successfully!");
+    }
+
+    public String generateStringData() {
+        StringBuilder allSolutions =new StringBuilder();
+        List<ArchitectureSolution> solutions = this.architectureSolutionService.findAll();
+
+        allSolutions.append("###CHUNK###");
+        solutions.forEach(architectureSolution -> {
+            String paperTitle = architectureSolution.getPaperReference().getTitle();
+            String paperLink = architectureSolution.getPaperReference().getLink();
+            String paperDOI = architectureSolution.getPaperReference().getDoi();
+            String paperRef = architectureSolution.getPaperReference().getReference();
+            String paperYear = architectureSolution.getPaperReference().getPublishYear().toString();
+
+            String arch = architectureSolution.getArchitecture().getName();
+            String archDesc = architectureSolution.getDescription();
+
+            String iotDomain = architectureSolution.getIoTDomain().getName();
+
+            StringBuilder qrBlock = new StringBuilder();
+            architectureSolution.getQualityRequirementTechnologies().forEach(qrTech -> {
+                qrBlock.append(
+                        this.setQRandTech(qrTech.getQualityRequirement().getName(), qrTech.getTechnology().getDescription(), qrTech.getTechnology().getNotes(), qrTech.getNotes())
+                );
+            });
+
+            allSolutions.append(
+                    String.format("""                                    
+                                    Paper Title: %s
+                                    Paper Year: %s
+                                    Paper Link and D.O.I.: %s - %s
+                                    Paper Reference: %s
+                                                            
+                                    Architecture: %s
+                                    Architecture description: %s
+                                                            
+                                    IoT Domain: %s
+                                                            
+                                    Quality Requirements and its addressed technologies or features:
+                                    %s
+                                    ###CHUNK###
+                                    """,
+                            paperTitle, paperYear, paperLink, paperDOI, paperRef,
+                            arch, archDesc,
+                            iotDomain,
+                            qrBlock.toString()
+                    )
+            );
+        });
+
+        return allSolutions.toString();
+    }
+
+    public String generateStringData(ArchitectureSolution architectureSolution) {
+        String paperTitle = architectureSolution.getPaperReference().getTitle();
+        String paperLink = architectureSolution.getPaperReference().getLink();
+        String paperDOI = architectureSolution.getPaperReference().getDoi();
+        String paperRef = architectureSolution.getPaperReference().getReference();
+        String paperYear = architectureSolution.getPaperReference().getPublishYear().toString();
+
+        String arch = architectureSolution.getArchitecture().getName();
+        String archDesc = architectureSolution.getDescription();
+
+        String iotDomain = architectureSolution.getIoTDomain().getName();
+
+        StringBuilder qrBlock = new StringBuilder();
+        architectureSolution.getQualityRequirementTechnologies().forEach(qrTech -> {
+            qrBlock.append(
+                  this.setQRandTech(qrTech.getQualityRequirement().getName(), qrTech.getTechnology().getDescription(), qrTech.getTechnology().getNotes(), qrTech.getNotes())
+            );
+        });
+
+        return String.format("""                
+                ###CHUNK###
+                Paper Title: %s\\n
+                Paper Year: %s\\n
+                Paper Link and D.O.I.: %s - %s\\n
+                Paper Reference: %s\\n\\n
+                
+                Architecture: %s\\n
+                Architecture description: %s\\n\\n
+                
+                IoT Domain: %s\\n\\n
+                
+                Quality Requirements and its addressed technologies or features:\\n
+                %s\\n\\n
+                ###CHUNK###
+                """,
+                paperTitle, paperYear, paperLink, paperDOI, paperRef,
+                arch, archDesc,
+                iotDomain,
+                qrBlock.toString()
+                );
+
+    }
+
+    private String setQRandTech(String qr, String tech, String techDesc, String qrTechComments) {
+       String qrsTechs = "";
+       return qrsTechs = String.format("""
+                Quality Requirement:%s
+                Technology or Feature:%s
+                Technology or Feature comments:%s
+                How Quality Requirement is archived by the Technology or Feature:%s
+                """,
+                qr, tech, techDesc, qrTechComments
+                );
     }
 }

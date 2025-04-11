@@ -24,6 +24,9 @@ public class PaperReference extends DomainBase {
         private String link;
         @Column(nullable = true)
         private Integer publishYear;
+        @Lob
+        @Column(columnDefinition = "CLOB", nullable = true)
+        private String reference;
 
         @OneToOne(mappedBy = "paperReference", cascade = CascadeType.ALL, orphanRemoval = true)
         private ArchitectureSolution architectureSolution;
@@ -31,6 +34,6 @@ public class PaperReference extends DomainBase {
 
         @Override
         public String toString() {
-            return title;
+            return reference;
         }
 }
