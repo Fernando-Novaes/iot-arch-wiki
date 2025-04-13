@@ -1,9 +1,6 @@
 package br.ufrj.cos.domain;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 @EqualsAndHashCode(callSuper = true)
@@ -18,5 +15,6 @@ public class ServiceName extends DomainBase {
     private Long id;
     private String name;
     private String description;
+    @Enumerated(EnumType.STRING)
     private APIServiceType type;
 }

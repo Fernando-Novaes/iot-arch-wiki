@@ -22,19 +22,19 @@ public class RagView extends BaseView {
 
     public RagView(RAGService ragService) {
         this.ragService = ragService;
-        this.generateDataBtn = new com.vaadin.flow.component.button.Button("Generate Data");
-
-        this.generateDataBtn.addClickListener(click -> {
-            try {
-                logger.info("### Starting data generator....");
-                this.ragService.generateDocumentData();
-                logger.info("### Data generator done.");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        });
-
-        getContent().add(generateDataBtn);
+//        this.generateDataBtn = new com.vaadin.flow.component.button.Button("Generate Data");
+//
+//        this.generateDataBtn.addClickListener(click -> {
+//            try {
+//                logger.info("### Starting data generator....");
+//                this.ragService.generateDocumentData();
+//                logger.info("### Data generator done.");
+//            } catch (IOException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
+//
+//        getContent().add(generateDataBtn);
     }
 
 }

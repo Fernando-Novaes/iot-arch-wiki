@@ -16,7 +16,7 @@ public class AppConfigService {
     }
 
     public void save(AppConfig appConfig) {
-        appConfigRepository.save(appConfig);
+        appConfigRepository.saveAndFlush(appConfig);
     }
 
     public AppConfig getAppConfig() {

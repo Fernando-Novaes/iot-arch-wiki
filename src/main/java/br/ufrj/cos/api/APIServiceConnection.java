@@ -116,7 +116,7 @@ public class APIServiceConnection {
                 });
     }
 
-    public Mono<String> callTextToRAGAndStore(String data) {
+    public Mono<String> callTextToRAGAndStore(TextToRagStoreRequest data) {
         if (this.appConfigService.getAppConfig().getApiAddress() == null) {
             return Mono.error(new RuntimeException("There is no API address configured."));
         }
@@ -145,7 +145,7 @@ public class APIServiceConnection {
                 .retrieve()
                 .onStatus(HttpStatusCode::isError, response -> { // Corrected line using method reference
                     logger.error("API returned error status: {}", response.statusCode());
-                    return response.bodyToMono(String.class)
+                    return response.bodyToMono(TextToRagStoreResponse.class)
                             .flatMap(errorBody -> Mono.error(new RuntimeException("API error: " + errorBody)));
                 })
                 .bodyToMono(String.class)
@@ -159,6 +159,50 @@ public class APIServiceConnection {
                 .onErrorResume(e -> {
                     logger.error("General error: {}", e.getMessage(), e);
                     return Mono.error(new RuntimeException("An unexpected error occurred: " + e.getMessage()));
+                });
+    }
+
+    public Mono<String> callClearVectorStore() {
+        // Ensure necessary configurations are present (similar checks as other methods)
+        if (this.appConfigService.getAppConfig().getApiAddress() == null) {
+            return Mono.error(new RuntimeException("There is no API address configured."));
+        }
+
+        String baseUrl = this.appConfigService.getAppConfig().getApiAddress();
+        String serviceName = this.appConfigService.getServiceNameByType(APIServiceType.CLEAR_AI_DATA).getName();
+
+        String uri = UriComponentsBuilder.fromUriString(baseUrl)
+                .path(serviceName)
+                .build()
+                .toUriString();
+
+        logger.info("Connecting to API service to clear vector store: {}", uri);
+
+        WebClient webClient = webClientBuilder.baseUrl(baseUrl).build();
+
+        ClearDataRequest data = new ClearDataRequest();
+        data.setMessage("Clear data");
+
+        // Use POST as defined in the Flask endpoint
+        return webClient
+                .post() // Keep POST as defined in Flask
+                .uri(uri) // Use the corrected URI
+                // .contentType(MediaType.APPLICATION_JSON) // Probably not needed if body is empty
+                .bodyValue(data) // Sending empty body is likely fine for this endpoint
+                .retrieve()
+
+                .bodyToMono(String.class)
+                .defaultIfEmpty("{\"message\": \"Vector store cleared successfully.\"}") // Default success if body is empty
+                .map(String::toString)
+                .timeout(TIMEOUT) // Use appropriate timeout
+                .retryWhen(Retry.backoff(2, Duration.ofSeconds(1)))
+                .onErrorResume(WebClientResponseException.class, e -> {
+                    logger.error("WebClient error (clear store): Status {}, Body {}", e.getStatusCode(), e.getResponseBodyAsString(), e); // Log more details
+                    return Mono.error(new RuntimeException("Failed to call clear API: " + e.getStatusCode() + " - " + e.getResponseBodyAsString()));
+                })
+                .onErrorResume(e -> {
+                    logger.error("General error (clear store): {}", e.getMessage(), e);
+                    return Mono.error(new RuntimeException("An unexpected error occurred during clear: " + e.getMessage()));
                 });
     }
 }

@@ -1,6 +1,7 @@
 package br.ufrj.cos.views.appconfig;
 
 import br.ufrj.cos.api.APIServiceConnection;
+import br.ufrj.cos.api.TextToRagStoreRequest;
 import br.ufrj.cos.api.WebScrapingRequest;
 import br.ufrj.cos.api.WebScrapingResponse;
 import br.ufrj.cos.domain.APIServiceType;
@@ -18,6 +19,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
@@ -68,6 +70,10 @@ public class AppConfigView extends BaseView {
 
     private final APIServiceConnection apiServiceConnection;
 
+    private final String UPDATE_BUTTON_DEFAULT_TEXT = "Update AI Knowledge";
+    private final String UPDATE_BUTTON_CLEARING_TEXT = "Clearing Data...";
+    private final String UPDATE_BUTTON_UPDATING_TEXT = "Updating Knowledge...";
+
     public AppConfigView(AppConfigService appConfigService, RAGService ragService, APIServiceConnection apiServiceConnection) {
         this.appConfig = appConfigService.getAppConfig();
         this.appConfigService = appConfigService;
@@ -75,9 +81,9 @@ public class AppConfigView extends BaseView {
         this.apiServiceConnection = apiServiceConnection;
         this.createHeader("Application Config");
         configureApiAddressBlock();
-        configureScrapWebsiteBlock();
+        //configureScrapWebsiteBlock();
         configureServiceNameBlock();
-        configureSaveButton();
+        //configureSaveButton();
         configureLastUpdateLabels(); // Add this line
         configureContentLayout();
     }
@@ -108,163 +114,163 @@ public class AppConfigView extends BaseView {
         contentLayout.add(apiAddressDiv); // Add at the beginning
     }
 
-    private void configureScrapWebsiteBlock() {
-        if (appConfig.getScrapWebSites() != null) {
-            scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-        }
-        scrapWebsiteGrid.setColumns("url", "description");
-        scrapWebsiteGrid.setWidthFull();
-        scrapWebsiteGrid.setMinHeight("5%");
-
-        Map<ScrapWebSite, Checkbox> checkboxMap = new HashMap<>();
-
-        Grid.Column<ScrapWebSite> checkboxColumn = scrapWebsiteGrid.addColumn(new ComponentRenderer<>(item -> {
-            Checkbox checkbox = new Checkbox();
-            checkboxMap.put(item, checkbox);
-            return checkbox;
-        })).setHeader("Select");
-
-        Button selectAllButton = new Button("Select");
-        selectAllButton.addClickListener(event -> {
-            boolean anyUnchecked = checkboxMap.values().stream().anyMatch(checkbox -> !checkbox.getValue());
-            checkboxMap.values().forEach(checkbox -> checkbox.setValue(anyUnchecked));
-            selectAllButton.setText((selectAllButton.getText().equals("Select"))? "Deselect" : "Select");
-        });
-
-        var ui = UI.getCurrent();
-        Button getSelectedButton = new Button("Run");
-        getSelectedButton.addClickListener(event -> {
-            List<String> selectedUrls = new ArrayList<>();
-            checkboxMap.forEach((item, checkbox) -> {
-                if (checkbox.getValue()) {
-                    selectedUrls.add(item.getUrl());
-                }
-
-                if (!selectedUrls.isEmpty()) {
-                    logger.info("URLs: " + selectedUrls.toString());
-
-                    getSelectedButton.setText("Running");
-                    getSelectedButton.setEnabled(false);
-
-                    WebScrapingRequest scraping = new WebScrapingRequest();
-                    scraping.setUrls(selectedUrls);
-                    apiServiceConnection.callWebScrapingAPI(scraping)
-                            .subscribe(
-                                    answer -> {
-                                        ui.access(() ->
-                                                NotificationUtils.showSuccessNotification(answer.toString()));
-                                    },
-                                    error -> {
-                                        ui.access(() ->
-                                                NotificationUtils.showErrorNotification(error.getMessage()));
-
-                                    }
-                            );
-                    getSelectedButton.setText("Run");
-                    getSelectedButton.setEnabled(true);
-                }
-            });
-        });
-        ui.push();
-
-        HorizontalLayout headerActions = new HorizontalLayout(selectAllButton, getSelectedButton);
-        scrapWebsiteGrid.getHeaderRows().getFirst().getCell(checkboxColumn).setComponent(headerActions);
-
-        scrapWebsiteGrid.addComponentColumn(item -> {
-            HorizontalLayout actionsLayout = new HorizontalLayout();
-
-            Button deleteButton = new Button("Delete");
-            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
-            deleteButton.addClickListener(event -> {
-                Dialog dialog = new Dialog();
-                dialog.setHeaderTitle("Confirm Deletion");
-                dialog.add(String.format("Are you sure you want to delete the item [%s]?", item.getUrl()));
-
-                Button confirmButton = new Button("Confirm", confirmEvent -> {
-                    appConfig.getScrapWebSites().remove(item);
-                    scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-                    dialog.close();
-                });
-                confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-
-                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
-
-                dialog.getFooter().add(confirmButton, cancelButton);
-                dialog.open();
-            });
-
-            Button editButton = new Button("Edit");
-            editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            editButton.addClickListener(event -> {
-                Dialog dialog = new Dialog();
-                dialog.setHeaderTitle("Edit Item");
-
-                TextField urlEditorField = new TextField("URL");
-                urlEditorField.setValue(item.getUrl());
-                TextField descriptionEditorField = new TextField("Description");
-                descriptionEditorField.setValue(item.getDescription());
-
-                VerticalLayout v1 = new VerticalLayout(urlEditorField);
-                VerticalLayout v2 = new VerticalLayout(descriptionEditorField);
-
-                dialog.add(v1, v2);
-
-                Button saveButton = new Button("Save", saveEvent -> {
-                    item.setUrl(urlEditorField.getValue());
-                    item.setDescription(descriptionEditorField.getValue());
-                    scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-                    dialog.close();
-                });
-                saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
-
-                dialog.getFooter().add(saveButton, cancelButton);
-                dialog.open();
-            });
-
-            actionsLayout.add(editButton, deleteButton);
-            return actionsLayout;
-        }).setHeader("Actions");
-
-        urlField.setWidthFull();
-        urlField.setRequired(true);
-
-        descriptionField.setWidthFull();
-
-        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addButton.addClickListener(event -> {
-            ScrapWebSite website = ScrapWebSite.builder()
-                    .url(urlField.getValue())
-                    .description(descriptionField.getValue())
-                    .build();
-
-            if (appConfig.getScrapWebSites() == null) {
-                appConfig.setScrapWebSites(new ArrayList<>());
-            }
-            appConfig.getScrapWebSites().add(website);
-            scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-
-            urlField.clear();
-            descriptionField.clear();
-        });
-
-        HorizontalLayout inputLayout = new HorizontalLayout(urlField, descriptionField, addButton);
-        inputLayout.setWidthFull();
-        inputLayout.setFlexGrow(1, urlField, descriptionField);
-        inputLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
-
-        Div scrapWebsiteDiv = new Div(new H3("AI Chat - Web scraping"), inputLayout, scrapWebsiteGrid);
-        scrapWebsiteDiv.addClassName("block-container");
-        scrapWebsiteDiv.setWidth("80%");
-        scrapWebsiteDiv.setMaxWidth("1200px");
-        scrapWebsiteDiv.getStyle().set("margin", "0 auto");
-
-        scrapWebsiteGrid.getColumnByKey("url").setAutoWidth(true);
-        scrapWebsiteGrid.getColumnByKey("description").setAutoWidth(true);
-
-        contentLayout.add(scrapWebsiteDiv);
-    }
+//    private void configureScrapWebsiteBlock() {
+//        if (appConfig.getScrapWebSites() != null) {
+//            scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
+//        }
+//        scrapWebsiteGrid.setColumns("url", "description");
+//        scrapWebsiteGrid.setWidthFull();
+//        scrapWebsiteGrid.setMinHeight("5%");
+//
+//        Map<ScrapWebSite, Checkbox> checkboxMap = new HashMap<>();
+//
+//        Grid.Column<ScrapWebSite> checkboxColumn = scrapWebsiteGrid.addColumn(new ComponentRenderer<>(item -> {
+//            Checkbox checkbox = new Checkbox();
+//            checkboxMap.put(item, checkbox);
+//            return checkbox;
+//        })).setHeader("Select");
+//
+//        Button selectAllButton = new Button("Select");
+//        selectAllButton.addClickListener(event -> {
+//            boolean anyUnchecked = checkboxMap.values().stream().anyMatch(checkbox -> !checkbox.getValue());
+//            checkboxMap.values().forEach(checkbox -> checkbox.setValue(anyUnchecked));
+//            selectAllButton.setText((selectAllButton.getText().equals("Select"))? "Deselect" : "Select");
+//        });
+//
+//        var ui = UI.getCurrent();
+//        Button getSelectedButton = new Button("Run");
+//        getSelectedButton.addClickListener(event -> {
+//            List<String> selectedUrls = new ArrayList<>();
+//            checkboxMap.forEach((item, checkbox) -> {
+//                if (checkbox.getValue()) {
+//                    selectedUrls.add(item.getUrl());
+//                }
+//
+//                if (!selectedUrls.isEmpty()) {
+//                    logger.info("URLs: " + selectedUrls.toString());
+//
+//                    getSelectedButton.setText("Running");
+//                    getSelectedButton.setEnabled(false);
+//
+//                    WebScrapingRequest scraping = new WebScrapingRequest();
+//                    scraping.setUrls(selectedUrls);
+//                    apiServiceConnection.callWebScrapingAPI(scraping)
+//                            .subscribe(
+//                                    answer -> {
+//                                        ui.access(() ->
+//                                                NotificationUtils.showSuccessNotification(answer.toString()));
+//                                    },
+//                                    error -> {
+//                                        ui.access(() ->
+//                                                NotificationUtils.showErrorNotification(error.getMessage()));
+//
+//                                    }
+//                            );
+//                    getSelectedButton.setText("Run");
+//                    getSelectedButton.setEnabled(true);
+//                }
+//            });
+//        });
+//        ui.push();
+//
+//        HorizontalLayout headerActions = new HorizontalLayout(selectAllButton, getSelectedButton);
+//        scrapWebsiteGrid.getHeaderRows().getFirst().getCell(checkboxColumn).setComponent(headerActions);
+//
+//        scrapWebsiteGrid.addComponentColumn(item -> {
+//            HorizontalLayout actionsLayout = new HorizontalLayout();
+//
+//            Button deleteButton = new Button("Delete");
+//            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
+//            deleteButton.addClickListener(event -> {
+//                Dialog dialog = new Dialog();
+//                dialog.setHeaderTitle("Confirm Deletion");
+//                dialog.add(String.format("Are you sure you want to delete the item [%s]?", item.getUrl()));
+//
+//                Button confirmButton = new Button("Confirm", confirmEvent -> {
+//                    appConfig.getScrapWebSites().remove(item);
+//                    scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
+//                    dialog.close();
+//                });
+//                confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
+//
+//                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
+//
+//                dialog.getFooter().add(confirmButton, cancelButton);
+//                dialog.open();
+//            });
+//
+//            Button editButton = new Button("Edit");
+//            editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+//            editButton.addClickListener(event -> {
+//                Dialog dialog = new Dialog();
+//                dialog.setHeaderTitle("Edit Item");
+//
+//                TextField urlEditorField = new TextField("URL");
+//                urlEditorField.setValue(item.getUrl());
+//                TextField descriptionEditorField = new TextField("Description");
+//                descriptionEditorField.setValue(item.getDescription());
+//
+//                VerticalLayout v1 = new VerticalLayout(urlEditorField);
+//                VerticalLayout v2 = new VerticalLayout(descriptionEditorField);
+//
+//                dialog.add(v1, v2);
+//
+//                Button saveButton = new Button("Save", saveEvent -> {
+//                    item.setUrl(urlEditorField.getValue());
+//                    item.setDescription(descriptionEditorField.getValue());
+//                    scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
+//                    dialog.close();
+//                });
+//                saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+//
+//                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
+//
+//                dialog.getFooter().add(saveButton, cancelButton);
+//                dialog.open();
+//            });
+//
+//            actionsLayout.add(editButton, deleteButton);
+//            return actionsLayout;
+//        }).setHeader("Actions");
+//
+//        urlField.setWidthFull();
+//        urlField.setRequired(true);
+//
+//        descriptionField.setWidthFull();
+//
+//        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+//        addButton.addClickListener(event -> {
+//            ScrapWebSite website = ScrapWebSite.builder()
+//                    .url(urlField.getValue())
+//                    .description(descriptionField.getValue())
+//                    .build();
+//
+//            if (appConfig.getScrapWebSites() == null) {
+//                appConfig.setScrapWebSites(new ArrayList<>());
+//            }
+//            appConfig.getScrapWebSites().add(website);
+//            scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
+//
+//            urlField.clear();
+//            descriptionField.clear();
+//        });
+//
+//        HorizontalLayout inputLayout = new HorizontalLayout(urlField, descriptionField, addButton);
+//        inputLayout.setWidthFull();
+//        inputLayout.setFlexGrow(1, urlField, descriptionField);
+//        inputLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
+//
+//        Div scrapWebsiteDiv = new Div(new H3("AI Chat - Web scraping"), inputLayout, scrapWebsiteGrid);
+//        scrapWebsiteDiv.addClassName("block-container");
+//        scrapWebsiteDiv.setWidth("80%");
+//        scrapWebsiteDiv.setMaxWidth("1200px");
+//        scrapWebsiteDiv.getStyle().set("margin", "0 auto");
+//
+//        scrapWebsiteGrid.getColumnByKey("url").setAutoWidth(true);
+//        scrapWebsiteGrid.getColumnByKey("description").setAutoWidth(true);
+//
+//        contentLayout.add(scrapWebsiteDiv);
+//    }
 
     private void configureServiceNameBlock() {
         if (appConfig.getServiceNames() != null) {
@@ -287,6 +293,7 @@ public class AppConfigView extends BaseView {
                 Button confirmButton = new Button("Confirm", confirmEvent -> {
                     appConfig.getServiceNames().remove(item);
                     serviceNameGrid.setItems(appConfig.getServiceNames());
+                    appConfigService.save(appConfig);
                     dialog.close();
                 });
                 confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
@@ -324,6 +331,7 @@ public class AppConfigView extends BaseView {
                     item.setDescription(descriptionEditorField.getValue());
                     item.setType(serviceTypeComboBoxField.getValue());
                     serviceNameGrid.setItems(appConfig.getServiceNames());
+                    appConfigService.save(appConfig);
                     dialog.close();
                 });
                 saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -355,7 +363,7 @@ public class AppConfigView extends BaseView {
             }
             appConfig.getServiceNames().add(service);
             serviceNameGrid.setItems(appConfig.getServiceNames());
-
+            appConfigService.save(appConfig);
             serviceNameField.clear();
             serviceDescriptionField.clear();
         });
@@ -374,13 +382,13 @@ public class AppConfigView extends BaseView {
         contentLayout.add(serviceNameDiv);
     }
 
-    private void configureSaveButton() {
-        saveButton.addClickListener(event -> {
-            appConfig.setApiAddress(apiAddressField.getValue());
-            appConfigService.save(appConfig);
-            NotificationUtils.showSuccessNotification("Configurations saved.");
-        });
-    }
+//    private void configureSaveButton() {
+//        saveButton.addClickListener(event -> {
+//            appConfig.setApiAddress(apiAddressField.getValue());
+//            appConfigService.save(appConfig);
+//            NotificationUtils.showSuccessNotification("Configurations saved.");
+//        });
+//    }
 
     private String formatInstant(Instant instant) {
         if (instant == null) {
@@ -393,8 +401,11 @@ public class AppConfigView extends BaseView {
     }
 
     private void configureLastUpdateLabels() {
-        var ui = getUI();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        String BTN_DEFAULT_TEXT = "Update AI Knowledge data";
+        String BTN_UPDATING_TEXT = "Updating AI Knowledge data...";
+        String BTN_CLEARING_TEXT = "Clearing and Updating AI Knowledge data...";
+
 
         Text knowledgeDatabaseLabel = new Text("Knowledge Database: ");
         Text knowledgeDatabaseValueLabel = new Text(
@@ -410,26 +421,128 @@ public class AppConfigView extends BaseView {
         lastUpdateLayout.setWidthFull();
         lastUpdateLayout.setAlignItems(FlexComponent.Alignment.END);
 
-        Button saveRagData = new Button("Update IA Knowledge");
-        saveRagData.setWidthFull();
-        saveRagData.addClickListener(click -> {
+        // Update button
+        Button btnSaveRagData = new Button(BTN_DEFAULT_TEXT);
+
+        // Confirm clear and update dialog
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Confirm Update Strategy");
+        dialog.setText("Clear existing AI knowledge data before adding new ones?");
+        dialog.setConfirmText("Clear and Update");
+
+        // Add a Clear and Update button
+        dialog.setConfirmButtonTheme("error primary");
+        dialog.addConfirmListener(event -> {
+            var ui = getUI().get();
             String allData = ragService.generateStringData();
             logger.info(allData);
-            apiServiceConnection.callTextToRAGAndStore(allData)
-                    .subscribe(
-                            answer -> {
-                                ui.get().access(() ->
-                                        NotificationUtils.showSuccessNotification(answer));
+
+            TextToRagStoreRequest textToRagStoreRequest = new TextToRagStoreRequest();
+            textToRagStoreRequest.setText(allData);
+            textToRagStoreRequest.setChunk_separator("###CHUNK###");
+
+            btnSaveRagData.setEnabled(false);
+            btnSaveRagData.setText(BTN_CLEARING_TEXT);
+
+            // Chain the API calls: Clear first, then Update
+            apiServiceConnection.callClearVectorStore()
+                    .doOnSubscribe(s -> ui.access(() -> {
+                        // Already set to clearing, could refine if needed
+                        logger.info("Clear operation subscribed.");
+                    }))
+                    .flatMap(clearResponse -> {
+                        // Clear succeeded, now proceed to update
+                        logger.info("Clear API call successful: {}", clearResponse);
+                        // Update button text for the next stage
+                        ui.access(() -> {
+                            btnSaveRagData.setText(BTN_UPDATING_TEXT);
+                            //NotificationUtils.showSuccessNotification("Existing data cleared. Updating knowledge...");
+                            ui.push();
+                        });
+                        return apiServiceConnection.callTextToRAGAndStore(textToRagStoreRequest);
+                    })
+                    .doFinally(signalType -> ui.access(() -> { // Re-enable button regardless of outcome
+                        logger.info("Clear and Update sequence finished (Signal: {}). Re-enabling button.", signalType);
+                        btnSaveRagData.setEnabled(true);
+                        btnSaveRagData.setText(BTN_DEFAULT_TEXT);
+                        ui.push();
+                    }))
+                    .subscribe( // Handle final success or error
+                            updateAnswer -> {
+                                // Both clear and update succeeded
+                                ui.access(() -> {
+                                    logger.info("Clear and Update successful: {}", updateAnswer);
+                                    appConfig.setAiRagDocumentsLastUpdate(Instant.now());
+                                    appConfigService.save(appConfig);
+                                    ragDocumentsValueLabel.setText(formatInstant(appConfig.getAiRagDocumentsLastUpdate()));
+                                    NotificationUtils.showSuccessNotification("AI knowledge cleared and updated successfully!");
+                                    ui.push();
+                                });
                             },
                             error -> {
-                                ui.get().access(() ->
-                                        NotificationUtils.showErrorNotification(error.getMessage()));
+                                // An error occurred during either clear OR update
+                                ui.access(() -> {
+                                    logger.error("Error during Clear and Update process: {}", error.getMessage(), error);
+                                    NotificationUtils.showErrorNotification("Error during clear/update: " + error.getMessage());
+                                    ui.push();
+                                });
+                            }
+                    );
+        });
+
+        // Add a Update Only button
+        dialog.setRejectable(true); // Allow rejecting
+        dialog.setRejectText("Update Only");
+        dialog.addRejectListener(event -> {
+            var ui = getUI();
+            String allData = ragService.generateStringData();
+            logger.info(allData);
+            TextToRagStoreRequest textToRagStoreRequest = new TextToRagStoreRequest();
+            textToRagStoreRequest.setText(allData);
+            textToRagStoreRequest.setChunk_separator("###CHUNK###");
+
+            btnSaveRagData.setEnabled(false);
+            btnSaveRagData.setText(BTN_UPDATING_TEXT);
+
+            apiServiceConnection.callTextToRAGAndStore(textToRagStoreRequest)
+                    .subscribe(
+                            answer -> {
+                                ui.get().access(() -> {
+                                    logger.info("AI knowledge updating...");
+
+                                    appConfig.setAiRagDocumentsLastUpdate(Instant.now());
+                                    appConfigService.save(appConfig);
+                                    NotificationUtils.showSuccessNotification("AI knowledge updated.");
+                                    btnSaveRagData.setEnabled(true);
+                                    btnSaveRagData.setText(BTN_DEFAULT_TEXT);
+                                    ui.get().push();
+                                });
+                            },
+                            error -> {
+                                ui.get().access(() -> {
+                                    logger.info("AI knowledge error..." + error.getMessage());
+
+                                    NotificationUtils.showErrorNotification(error.getMessage());
+                                    btnSaveRagData.setEnabled(true);
+                                    btnSaveRagData.setText(BTN_DEFAULT_TEXT);
+                                    ui.get().push();
+                                });
 
                             }
                     );
         });
 
-        Div div = new Div(new H3("Last update Knowledge Database and AI RAG Documents"), lastUpdateLayout, saveRagData);
+        // Add a cancel button
+        dialog.setCancelable(true);
+        dialog.setCancelText("Cancel");
+        dialog.addCancelListener(event -> logger.info("User cancelled update operation."));
+
+        btnSaveRagData.setWidthFull();
+        btnSaveRagData.addClickListener(click -> {
+            dialog.open();
+        });
+
+        Div div = new Div(new H3("Last update Knowledge Database and AI RAG Documents"), lastUpdateLayout, btnSaveRagData);
         div.addClassName("block-container");
         div.setWidth("80%");
         div.setMaxWidth("1200px");
@@ -443,13 +556,13 @@ public class AppConfigView extends BaseView {
         contentLayout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
         contentLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        saveButton.setWidthFull();
-        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        VerticalLayout saveLayout = new VerticalLayout(saveButton);
-        saveLayout.setWidthFull();
-        saveLayout.setAlignItems(FlexComponent.Alignment.END);
-
-        contentLayout.add(saveLayout);
+//        saveButton.setWidthFull();
+//        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+//        VerticalLayout saveLayout = new VerticalLayout(saveButton);
+//        saveLayout.setWidthFull();
+//        saveLayout.setAlignItems(FlexComponent.Alignment.END);
+//
+//        contentLayout.add(saveLayout);
         getContent().add(contentLayout);
     }
 }
