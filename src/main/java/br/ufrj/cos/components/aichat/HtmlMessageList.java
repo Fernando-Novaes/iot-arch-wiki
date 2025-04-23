@@ -1,13 +1,17 @@
 package br.ufrj.cos.components.aichat;
 
 import br.ufrj.cos.components.avatar.AvatarComponent;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -20,121 +24,121 @@ import java.util.List;
 
 @UIScope
 @Component
-@CssImport("./styles/chat-view-styles.css")
-public class HtmlMessageList extends VerticalLayout {
+@CssImport("./styles/chat-view-styles.css") // Keep your CSS import
+public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLayout to hold messages
+
+    private static final Logger log = LoggerFactory.getLogger(HtmlMessageList.class);
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+
     private final AvatarComponent avatarComponent;
 
     public HtmlMessageList(AvatarComponent avatarComponent) {
         this.avatarComponent = avatarComponent;
-        setClassName("html-message-list");
-        setSizeFull();
-        // Add padding for better appearance
-        setPadding(true);
-        setSpacing(true);
+        log.info("HtmlMessageList initialized.");
+    }
+
+    @PostConstruct
+    private void initializeUI() {
+        log.info("Initializing UI for HtmlMessageList");
+        // Configure this VerticalLayout (which holds the messages)
+        setClassName("html-message-list"); // Keep your class name
+        setWidthFull(); // Take full width within the scroller
+        setPadding(true); // Add padding for message spacing from scroller edges
+        setSpacing(true); // Add spacing between messages
+        // Remove setSizeFull() - height should be determined by content
+        getStyle().set("height", "auto");
     }
 
     public void setMessages(List<AIChatMessage> messages) {
+        log.debug("Setting {} messages in HtmlMessageList", messages.size());
+        // Clear previous messages from this layout
         removeAll();
 
-        for (AIChatMessage message : messages) {
-            // Create the message container
-            Div messageContainer = new Div();
-            messageContainer.addClassName("message-container");
+        if (messages.isEmpty()) {
+            add(new Span("No messages yet.")); // Optional placeholder
+        } else {
+            for (AIChatMessage message : messages) {
+                // Create the message container
+                Div messageContainer = new Div();
+                messageContainer.addClassName("message-container");
 
-            // Add appropriate class based on message type
-            if (message.getAiMessageType().equals(AIMessageType.USER)) {
-                messageContainer.addClassName("user-message-container");
-            } else if (message.getAiMessageType().equals(AIMessageType.ASSISTANT)) {
-                messageContainer.addClassName("assistant-message-container");
+                // Add appropriate class based on message type
+                if (message.getAiMessageType().equals(AIMessageType.USER)) {
+                    messageContainer.addClassName("user-message-container");
+                } else if (message.getAiMessageType().equals(AIMessageType.ASSISTANT)) {
+                    messageContainer.addClassName("assistant-message-container");
+                }
+
+                // Create the message bubble
+                Div messageBubble = new Div();
+                messageBubble.addClassName("message-bubble");
+
+                // Create avatar div
+                Div avatar = new Div();
+                avatar.addClassName("avatar");
+
+                // Add specific styling class based on message type
+                if (message.getAiMessageType().equals(AIMessageType.USER)) {
+                    messageBubble.addClassName("user-message");
+                    avatar.add(avatarComponent.getAvatar());
+                } else {
+                    messageBubble.addClassName("assistant-message");
+                    Avatar avatarImg = new Avatar();
+                    avatarImg.setImage("/icons/robo.png"); // Ensure this path is correct relative to webapp/frontend
+                    avatar.add(avatarImg);
+                }
+
+                // Add the message header with username and time
+                Div messageHeader = new Div();
+                messageHeader.addClassName("message-header");
+
+                Div userName = new Div();
+                userName.setText(message.getUserName());
+                userName.addClassName("message-username");
+
+                Div timestamp = new Div();
+                LocalDateTime time = LocalDateTime.ofInstant(message.getTime(), ZoneId.systemDefault()); // Use system default for display
+                timestamp.setText(formatChatTime(time.toInstant(ZoneOffset.UTC))); // Pass Instant for formatting logic
+                timestamp.addClassName("message-timestamp");
+
+                Div space = new Div();
+                space.getStyle().setWidth("5px");
+
+                messageHeader.add(avatar, space, userName, space, timestamp);
+
+                // Add the content with HTML rendering
+                Div contentDiv = new Div();
+                contentDiv.setId("content-div");
+                contentDiv.addClassName("message-content");
+
+                // Use setInnerHtml to render HTML content
+                contentDiv.getElement().setProperty("innerHTML", message.getText());
+
+                // Add all components to the message bubble
+                messageBubble.add(messageHeader, contentDiv);
+                messageContainer.add(messageBubble);
+
+                // Add the message container to this VerticalLayout (HtmlMessageList)
+                add(messageContainer);
             }
-
-            // Create the message bubble
-            Div messageBubble = new Div();
-            messageBubble.addClassName("message-bubble");
-
-            // Create avatar div
-            Div avatar = new Div();
-            avatar.addClassName("avatar");
-
-            // Add specific styling class based on message type
-            if (message.getAiMessageType().equals(AIMessageType.USER)) {
-                messageBubble.addClassName("user-message");
-                avatar.add(avatarComponent.getAvatar());
-            } else {
-                messageBubble.addClassName("assistant-message");
-                Avatar avatarImg = new Avatar();
-                avatarImg.setImage("/icons/robo.png");
-                avatar.add(avatarImg);
-            }
-
-            // Add the message header with username and time
-            Div messageHeader = new Div();
-            messageHeader.addClassName("message-header");
-
-            Div userName = new Div();
-            userName.setText(message.getUserName());
-            userName.addClassName("message-username");
-
-            Div timestamp = new Div();
-            LocalDateTime time = LocalDateTime.ofInstant(message.getTime(), ZoneId.of("UTC"));
-            timestamp.setText(formatChatTime(time.toInstant(ZoneOffset.UTC)));
-            timestamp.addClassName("message-timestamp");
-
-            Div space = new Div();
-            space.getStyle().setWidth("5px");
-
-            messageHeader.add(avatar, space, userName, space,  timestamp);
-
-            // Add the content with HTML rendering
-            Div contentDiv = new Div();
-            contentDiv.addClassName("message-content");
-
-            // Use setInnerHtml to render HTML content
-            contentDiv.getElement().setProperty("innerHTML", message.getText());
-
-            // Add all components to the message bubble
-            messageBubble.add(messageHeader, contentDiv);
-            messageContainer.add(messageBubble);
-
-            // Add the message container to the layout
-            add(messageContainer);
         }
+        log.debug("Finished adding message elements to HtmlMessageList.");
     }
 
-    /**
-     * Format Instant time in a chat-friendly format:
-     * - If today: "HH:mm" (e.g., "14:23")
-     * - If yesterday: "Yesterday at HH:mm"
-     * - If this year: "MMM d at HH:mm" (e.g., "Jan 15 at 14:23")
-     * - If earlier: "yyyy-MM-dd HH:mm" (e.g., "2023-01-15 14:23")
-     */
+    // formatChatTime method remains the same...
     private String formatChatTime(Instant instant) {
-        // Convert Instant to LocalDateTime using system default zone
         LocalDateTime time = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
         LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss"); // Simplified for example
 
-        // Format for time only
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
-
-        // If it's today
         if (time.toLocalDate().equals(now.toLocalDate())) {
             return timeFormatter.format(time);
+        } else if (time.toLocalDate().equals(now.toLocalDate().minusDays(1))) {
+            return "Yesterday " + timeFormatter.format(time);
+        } else {
+            return DateTimeFormatter.ofPattern("dd/MM/yy HH:mm").format(time); // Or another format for older dates
         }
-
-        // If it's yesterday
-        if (time.toLocalDate().equals(now.toLocalDate().minus(1, ChronoUnit.DAYS))) {
-            return "Yesterday at " + timeFormatter.format(time);
-        }
-
-        // If it's this year
-        if (time.getYear() == now.getYear()) {
-            DateTimeFormatter monthDayFormatter = DateTimeFormatter.ofPattern("MMM d");
-            return monthDayFormatter.format(time) + " at " + timeFormatter.format(time);
-        }
-
-        // If it's older
-        DateTimeFormatter fullFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-        return fullFormatter.format(time);
     }
+
+
 }

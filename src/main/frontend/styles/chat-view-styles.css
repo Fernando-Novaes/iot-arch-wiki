@@ -1,20 +1,38 @@
 /* ./frontend/styles/chat-view-styles.css */
 
+/* Overall container for the chat */
 .chat-container {
-    background-color: var(--lumo-base-color);
-    border-radius: var(--lumo-border-radius-l);
-    'box-shadow: var(--lumo-box-shadow-s);
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100%; /* Ensure this container has height */
+    width: 100%;
+    background-color: var(--lumo-base-color);
+    border-radius: var(--lumo-border-radius-l);
+    box-shadow: var(--lumo-box-shadow-s);
+    overflow: hidden; /* Prevent the main container from scrolling */
 }
+
+/* The AIChatMessageDisplay component itself */
+.ai-chat-message-display {
+    flex-grow: 1; /* Allow it to take up space */
+    overflow: hidden; /* It shouldn't scroll, the Scroller inside does */
+    display: flex; /* Needed for expand() to work correctly */
+    flex-direction: column; /* Needed for expand() to work correctly */
+}
+
+/* The Scroller component */
+.message-list-scroller {
+    flex-grow: 1; /* Takes up all space within AIChatMessageDisplay */
+    /* overflow-y: auto; */ /* Scroller component handles this internally */
+}
+
 
 /* Message list container */
 .html-message-list {
     background-color: var(--lumo-base-color);
     padding: var(--lumo-space-m);
-    overflow-y: auto;
-    flex: 1;
+    'overflow-y: auto;
+    'flex: 1;
     display: flex;
     flex-direction: column;
 }

@@ -2,8 +2,6 @@ package br.ufrj.cos.views.appconfig;
 
 import br.ufrj.cos.api.APIServiceConnection;
 import br.ufrj.cos.api.TextToRagStoreRequest;
-import br.ufrj.cos.api.WebScrapingRequest;
-import br.ufrj.cos.api.WebScrapingResponse;
 import br.ufrj.cos.domain.APIServiceType;
 import br.ufrj.cos.domain.AppConfig;
 import br.ufrj.cos.domain.ScrapWebSite;
@@ -13,21 +11,20 @@ import br.ufrj.cos.service.RAGService;
 import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
+import br.ufrj.cos.views.record.EndpointRecord;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.textfield.TextField;
-import com.vaadin.flow.data.renderer.ComponentRenderer;
-import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.Route;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.component.html.Div;
@@ -51,13 +48,13 @@ import java.util.*;
 public class AppConfigView extends BaseView {
     private static final Logger logger = LoggerFactory.getLogger(AppConfigView.class);
 
-    private final AppConfig appConfig;
+    private AppConfig appConfig;
     private final Grid<ScrapWebSite> scrapWebsiteGrid = new Grid<>(ScrapWebSite.class);
     private final TextField urlField = new TextField("URL");
     private final TextField descriptionField = new TextField("Description");
     private final Button addButton = new Button("Add");
     private final Grid<ServiceName> serviceNameGrid = new Grid<>(ServiceName.class);
-    private final TextField serviceNameField = new TextField("Service Name");
+    private final ComboBox<EndpointRecord> serviceNameField = new ComboBox<EndpointRecord>("Service Name");
     private final TextField serviceDescriptionField = new TextField("Service Description");
     private final ComboBox<APIServiceType> serviceTypeComboBox = new ComboBox<>("Service Type", APIServiceType.values());
     private final Button addServiceButton = new Button("Add");
@@ -69,16 +66,14 @@ public class AppConfigView extends BaseView {
     private final RAGService ragService;
 
     private final APIServiceConnection apiServiceConnection;
+    private final List<EndpointRecord> endpoints;
 
-    private final String UPDATE_BUTTON_DEFAULT_TEXT = "Update AI Knowledge";
-    private final String UPDATE_BUTTON_CLEARING_TEXT = "Clearing Data...";
-    private final String UPDATE_BUTTON_UPDATING_TEXT = "Updating Knowledge...";
-
-    public AppConfigView(AppConfigService appConfigService, RAGService ragService, APIServiceConnection apiServiceConnection) {
+    public AppConfigView(AppConfigService appConfigService, RAGService ragService, APIServiceConnection apiServiceConnection, List<EndpointRecord> endpoints) {
         this.appConfig = appConfigService.getAppConfig();
         this.appConfigService = appConfigService;
         this.ragService = ragService;
         this.apiServiceConnection = apiServiceConnection;
+        this.endpoints = endpoints;
         this.createHeader("Application Config");
         configureApiAddressBlock();
         //configureScrapWebsiteBlock();
@@ -86,6 +81,7 @@ public class AppConfigView extends BaseView {
         //configureSaveButton();
         configureLastUpdateLabels(); // Add this line
         configureContentLayout();
+        loadEndpoints();
     }
 
     private void configureApiAddressBlock() {
@@ -107,11 +103,25 @@ public class AppConfigView extends BaseView {
 
         Div apiAddressDiv = new Div(new H3("AI Chat - API Address Configuration"), apiAddressLayout);
         apiAddressDiv.addClassName("block-container");
-        apiAddressDiv.setWidth("80%");
+        apiAddressDiv.setWidth("95%");
         apiAddressDiv.setMaxWidth("1200px");
         apiAddressDiv.getStyle().set("margin", "0 auto");
 
         contentLayout.add(apiAddressDiv); // Add at the beginning
+    }
+
+    private void loadEndpoints() {
+        var ui = UI.getCurrent();
+        apiServiceConnection.callListEndpoints()
+                .subscribe(
+                        answer -> {
+                            logger.info("Getting list of endpoints...");
+                            answer.getEndpoints().forEach(endpoint -> endpoints.add(new EndpointRecord(endpoint.getEndpoint(),endpoint.getDescription())));
+                        },
+                        error -> {
+                            logger.info("Getting list of endpoints error..." + error.getMessage());
+                        }
+                );
     }
 
 //    private void configureScrapWebsiteBlock() {
@@ -291,9 +301,11 @@ public class AppConfigView extends BaseView {
                 dialog.add(String.format("Are you sure you want to delete the item [%s]?", item.getName()));
 
                 Button confirmButton = new Button("Confirm", confirmEvent -> {
+                    appConfig = appConfigService.getAppConfig();
                     appConfig.getServiceNames().remove(item);
-                    serviceNameGrid.setItems(appConfig.getServiceNames());
+
                     appConfigService.save(appConfig);
+                    serviceNameGrid.setItems(appConfig.getServiceNames());
                     dialog.close();
                 });
                 confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
@@ -342,7 +354,8 @@ public class AppConfigView extends BaseView {
                 dialog.open();
             });
 
-            actionsLayout.add(editButton, deleteButton);
+            //actionsLayout.add(editButton, deleteButton);
+            actionsLayout.add(deleteButton);
             return actionsLayout;
         }).setHeader("Actions");
 
@@ -350,32 +363,57 @@ public class AppConfigView extends BaseView {
         serviceNameField.setRequired(true);
         serviceDescriptionField.setWidthFull();
 
-        addServiceButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addServiceButton.addClickListener(event -> {
-            ServiceName service = ServiceName.builder()
-                    .name(serviceNameField.getValue())
-                    .description(serviceDescriptionField.getValue())
-                    .type(serviceTypeComboBox.getValue()) // Default enum value
-                    .build();
+        serviceNameField.setAllowCustomValue(true);
+        serviceNameField.setClearButtonVisible(true);
+        serviceDescriptionField.setClearButtonVisible(true);
 
-            if (appConfig.getServiceNames() == null) {
-                appConfig.setServiceNames(new ArrayList<>());
+        serviceTypeComboBox.setRequired(true);
+
+        serviceNameField.setItems(endpoints);
+        serviceNameField.addValueChangeListener(value -> {
+            EndpointRecord selectedRecord = value.getValue();
+            if (selectedRecord != null) {
+                // Defensive check (shouldn't be necessary if 'if' works)
+                String description = selectedRecord.description();
+                if (description != null) { // Check if description itself could be null?
+                    serviceDescriptionField.setValue(description);
+                } else {
+                    serviceDescriptionField.setValue(""); // Handle null description
+                }
+            } else {
+                serviceDescriptionField.setValue("");
             }
-            appConfig.getServiceNames().add(service);
-            serviceNameGrid.setItems(appConfig.getServiceNames());
-            appConfigService.save(appConfig);
-            serviceNameField.clear();
-            serviceDescriptionField.clear();
         });
 
-        HorizontalLayout serviceInputLayout = new HorizontalLayout(serviceNameField, serviceDescriptionField, addServiceButton);
+        addServiceButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        addServiceButton.addClickListener(event -> {
+            if (serviceNameField.getValue() != null) {
+                ServiceName service = ServiceName.builder()
+                        .name(serviceNameField.getValue().endpoint())
+                        .description(serviceDescriptionField.getValue())
+                        .type(serviceTypeComboBox.getValue()) // Default enum value
+                        .build();
+
+                if (appConfig.getServiceNames() == null) {
+                    appConfig.setServiceNames(new ArrayList<>());
+                }
+                appConfig.getServiceNames().add(service);
+                serviceNameGrid.setItems(appConfig.getServiceNames());
+                appConfigService.save(appConfig);
+                serviceNameField.clear();
+                serviceDescriptionField.clear();
+                serviceTypeComboBox.clear();
+            }
+        });
+
+        HorizontalLayout serviceInputLayout = new HorizontalLayout(serviceNameField, serviceDescriptionField, serviceTypeComboBox, addServiceButton);
         serviceInputLayout.setWidthFull();
         serviceInputLayout.setFlexGrow(1, serviceNameField, serviceDescriptionField);
         serviceInputLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
 
         Div serviceNameDiv = new Div(new H3("AI Chat - API Service Names"), serviceInputLayout, serviceNameGrid);
         serviceNameDiv.addClassName("block-container");
-        serviceNameDiv.setWidth("80%");
+        serviceNameDiv.setWidth("95%");
         serviceNameDiv.setMaxWidth("1200px");
         serviceNameDiv.getStyle().set("margin", "0 auto");
 
@@ -411,11 +449,17 @@ public class AppConfigView extends BaseView {
         Text knowledgeDatabaseValueLabel = new Text(
                formatInstant(appConfig.getKnowledgeDatabaseLastUpdate()));
 
-        Text ragDocumentsLabel = new Text("AI RAG Documents: ");
+        Text ragDocumentsLabel = new Text("AI Knowledge: ");
         Text ragDocumentsValueLabel = new Text(formatInstant(appConfig.getAiRagDocumentsLastUpdate()));
+        Span alert = new Span();
+        alert.add(ragDocumentsValueLabel);
+
+        if (appConfig.getKnowledgeDatabaseLastUpdate().isAfter(appConfig.getAiRagDocumentsLastUpdate())) {
+            alert.getStyle().setColor("red");
+        }
 
         HorizontalLayout knowledgeLayout = new HorizontalLayout(knowledgeDatabaseLabel, knowledgeDatabaseValueLabel);
-        HorizontalLayout ragLayout = new HorizontalLayout(ragDocumentsLabel, ragDocumentsValueLabel);
+        HorizontalLayout ragLayout = new HorizontalLayout(ragDocumentsLabel, alert);
 
         VerticalLayout lastUpdateLayout = new VerticalLayout(knowledgeLayout, ragLayout);
         lastUpdateLayout.setWidthFull();
@@ -542,9 +586,9 @@ public class AppConfigView extends BaseView {
             dialog.open();
         });
 
-        Div div = new Div(new H3("Last update Knowledge Database and AI RAG Documents"), lastUpdateLayout, btnSaveRagData);
+        Div div = new Div(new H3("Last update Knowledge Database and AI Knowledge"), lastUpdateLayout, btnSaveRagData);
         div.addClassName("block-container");
-        div.setWidth("80%");
+        div.setWidth("95%");
         div.setMaxWidth("1200px");
         div.getStyle().set("margin", "0 auto");
 
@@ -553,16 +597,11 @@ public class AppConfigView extends BaseView {
 
     private void configureContentLayout() {
         contentLayout.setWidthFull();
+        contentLayout.getStyle().setPadding("0");
+        contentLayout.getStyle().setMargin("0");
         contentLayout.setFlexDirection(FlexLayout.FlexDirection.COLUMN);
         contentLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
-
-//        saveButton.setWidthFull();
-//        saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-//        VerticalLayout saveLayout = new VerticalLayout(saveButton);
-//        saveLayout.setWidthFull();
-//        saveLayout.setAlignItems(FlexComponent.Alignment.END);
-//
-//        contentLayout.add(saveLayout);
         getContent().add(contentLayout);
+        getContent().setSizeFull();
     }
 }

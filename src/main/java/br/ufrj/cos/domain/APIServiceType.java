@@ -8,6 +8,7 @@ public enum APIServiceType {
     RAG_TEXT_AND_STORE,
     TEST_CONNECTION,
     CLEAR_AI_DATA,
+    ENDPOINT_LIST,
     DEFAULT
 
 }
