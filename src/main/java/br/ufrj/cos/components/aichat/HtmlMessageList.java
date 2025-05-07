@@ -122,7 +122,7 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                 add(messageContainer);
             }
         }
-        log.debug("Finished adding message elements to HtmlMessageList.");
+        log.info("Finished adding message elements to HtmlMessageList.");
     }
 
     // formatChatTime method remains the same...
