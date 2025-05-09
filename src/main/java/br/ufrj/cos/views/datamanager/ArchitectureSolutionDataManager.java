@@ -90,7 +90,7 @@ class ArchitectureSolutionDataManager {
 
         TextArea archNotes = new TextArea("Architecture Solution notes");
         archNotes.setClearButtonVisible(true);
-        archNotes.setWidth("60%");
+        archNotes.setWidth("90%");
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setVisible(false);
@@ -172,6 +172,7 @@ class ArchitectureSolutionDataManager {
 
         buttons.add(saveBtn, cancelBtn);
 
+        vl.expand(comboPaper, comboBoxArch, comboBoxDomain, archNotes, qualityRequirementGrid, buttons);
         vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes, qualityRequirementGrid, buttons);
 
         return vl;

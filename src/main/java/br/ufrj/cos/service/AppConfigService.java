@@ -26,6 +26,10 @@ public class AppConfigService {
         serviceNameRepository.delete(serviceName);
     }
 
+    public void saveServiceName(ServiceName serviceName) {
+        serviceNameRepository.saveAndFlush(serviceName);
+    }
+
     public AppConfig getAppConfig() {
         return
                 (appConfigRepository.findAll().isEmpty())? new AppConfig() : appConfigRepository.findAll().getFirst();

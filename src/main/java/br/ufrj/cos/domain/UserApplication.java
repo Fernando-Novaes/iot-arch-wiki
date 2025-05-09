@@ -24,6 +24,7 @@ public class UserApplication {
     @Enumerated(EnumType.STRING)
     private Role role; // Enum for USER or ADMIN
 
+    //Bcrypt Hash
     private String password;
 
     @Temporal(TemporalType.TIMESTAMP)

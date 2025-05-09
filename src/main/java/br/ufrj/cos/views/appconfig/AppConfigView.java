@@ -63,6 +63,7 @@ public class AppConfigView extends BaseView {
     private final FlexLayout contentLayout = new FlexLayout();
     private final TextField apiAddressField = new TextField("API Address");
     private final Button testConnectionButton = new Button("Test Connection");
+    private final Button apiAddressSaveButton = new Button("Save");
     private final RAGService ragService;
 
     private final APIServiceConnection apiServiceConnection;
@@ -92,12 +93,21 @@ public class AppConfigView extends BaseView {
         apiAddressField.setRequired(true);
         apiAddressField.setPlaceholder("XXX.XXX.XXX.XXX:0000");
 
-        testConnectionButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        testConnectionButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         testConnectionButton.addClickListener(event -> {
-            apiServiceConnection.testConnection();
+            apiServiceConnection.testConnection(apiAddressField.getValue());
         });
 
-        HorizontalLayout apiAddressLayout = new HorizontalLayout(apiAddressField, testConnectionButton);
+        apiAddressSaveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        apiAddressSaveButton.addClickListener(click -> {
+            if (apiAddressField.getValue() != null) {
+                appConfig.setApiAddress(apiAddressField.getValue());
+                appConfigService.save(appConfig);
+                NotificationUtils.showSuccessNotification("API address saved.");
+            }
+        });
+
+        HorizontalLayout apiAddressLayout = new HorizontalLayout(apiAddressField, testConnectionButton, apiAddressSaveButton);
         apiAddressLayout.setWidthFull();
         apiAddressLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
 
@@ -316,43 +326,43 @@ public class AppConfigView extends BaseView {
                 dialog.open();
             });
 
-            Button editButton = new Button("Edit");
-            editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-            editButton.addClickListener(event -> {
-                Dialog dialog = new Dialog();
-                dialog.setHeaderTitle("Edit Item");
-
-                TextField nameEditorField = new TextField("Name");
-                nameEditorField.setValue(item.getName());
-
-                TextField descriptionEditorField = new TextField("Description");
-                descriptionEditorField.setValue(item.getDescription());
-
-                ComboBox<APIServiceType> serviceTypeComboBoxField = new ComboBox<>("Service Type");
-                serviceTypeComboBoxField.setItems(APIServiceType.values());
-                serviceTypeComboBoxField.setValue(item.getType());
-
-                VerticalLayout v1 = new VerticalLayout(nameEditorField);
-                VerticalLayout v2 = new VerticalLayout(descriptionEditorField);
-                VerticalLayout v3 = new VerticalLayout(serviceTypeComboBoxField);
-
-                dialog.add(v1, v2, v3);
-
-                Button saveButton = new Button("Save", saveEvent -> {
-                    item.setName(nameEditorField.getValue());
-                    item.setDescription(descriptionEditorField.getValue());
-                    item.setType(serviceTypeComboBoxField.getValue());
-                    serviceNameGrid.setItems(appConfig.getServiceNames());
-                    appConfigService.save(appConfig);
-                    dialog.close();
-                });
-                saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-
-                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
-
-                dialog.getFooter().add(saveButton, cancelButton);
-                dialog.open();
-            });
+//            Button editButton = new Button("Edit");
+//            editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
+//            editButton.addClickListener(event -> {
+//                Dialog dialog = new Dialog();
+//                dialog.setHeaderTitle("Edit Item");
+//
+//                TextField nameEditorField = new TextField("Name");
+//                nameEditorField.setValue(item.getName());
+//
+//                TextField descriptionEditorField = new TextField("Description");
+//                descriptionEditorField.setValue(item.getDescription());
+//
+//                ComboBox<APIServiceType> serviceTypeComboBoxField = new ComboBox<>("Service Type");
+//                serviceTypeComboBoxField.setItems(APIServiceType.values());
+//                serviceTypeComboBoxField.setValue(item.getType());
+//
+//                VerticalLayout v1 = new VerticalLayout(nameEditorField);
+//                VerticalLayout v2 = new VerticalLayout(descriptionEditorField);
+//                VerticalLayout v3 = new VerticalLayout(serviceTypeComboBoxField);
+//
+//                dialog.add(v1, v2, v3);
+//
+//                Button saveButton = new Button("Save", saveEvent -> {
+//                    item.setName(nameEditorField.getValue());
+//                    item.setDescription(descriptionEditorField.getValue());
+//                    item.setType(serviceTypeComboBoxField.getValue());
+//                    serviceNameGrid.setItems(appConfig.getServiceNames());
+//                    appConfigService.save(appConfig);
+//                    dialog.close();
+//                });
+//                saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+//
+//                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
+//
+//                dialog.getFooter().add(saveButton, cancelButton);
+//                dialog.open();
+//            });
 
             //actionsLayout.add(editButton, deleteButton);
             actionsLayout.add(deleteButton);
@@ -398,8 +408,9 @@ public class AppConfigView extends BaseView {
                     appConfig.setServiceNames(new ArrayList<>());
                 }
                 appConfig.getServiceNames().add(service);
-                serviceNameGrid.setItems(appConfig.getServiceNames());
-                appConfigService.save(appConfig);
+                appConfigService.saveServiceName(service);
+                serviceNameGrid.getDataProvider().refreshAll();
+
                 serviceNameField.clear();
                 serviceDescriptionField.clear();
                 serviceTypeComboBox.clear();
@@ -447,14 +458,16 @@ public class AppConfigView extends BaseView {
 
         Text knowledgeDatabaseLabel = new Text("Knowledge Database: ");
         Text knowledgeDatabaseValueLabel = new Text(
-               formatInstant(appConfig.getKnowledgeDatabaseLastUpdate()));
+                appConfig.getKnowledgeDatabaseLastUpdate() != null? formatInstant(appConfig.getKnowledgeDatabaseLastUpdate()) : "-");
 
         Text ragDocumentsLabel = new Text("AI Knowledge: ");
-        Text ragDocumentsValueLabel = new Text(formatInstant(appConfig.getAiRagDocumentsLastUpdate()));
+        Text ragDocumentsValueLabel = new Text(
+                appConfig.getAiRagDocumentsLastUpdate() != null? formatInstant(appConfig.getAiRagDocumentsLastUpdate()) : "-");
         Span alert = new Span();
         alert.add(ragDocumentsValueLabel);
 
-        if (appConfig.getKnowledgeDatabaseLastUpdate().isAfter(appConfig.getAiRagDocumentsLastUpdate())) {
+        if ((appConfig.getKnowledgeDatabaseLastUpdate() != null && appConfig.getAiRagDocumentsLastUpdate() != null) &&
+                appConfig.getKnowledgeDatabaseLastUpdate().isAfter(appConfig.getAiRagDocumentsLastUpdate())) {
             alert.getStyle().setColor("red");
         }
 

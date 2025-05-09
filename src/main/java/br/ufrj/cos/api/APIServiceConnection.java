@@ -32,16 +32,16 @@ public class APIServiceConnection {
         this.appConfigService = appConfigService;
     }
 
-    public void testConnection() {
+    public void testConnection(String apiAddress) {
         var ui = UI.getCurrent();
 
-        if (this.appConfigService.getAppConfig().getApiAddress() == null) {
-            NotificationUtils.showErrorNotification("There is no API address configured.");
+        if (apiAddress == null || apiAddress.isEmpty()) {
+            NotificationUtils.showErrorNotification("Enter a valid API address.");
             return;
         }
 
         String conn = String.format("%s/%s",
-                this.appConfigService.getAppConfig().getApiAddress(),
+                apiAddress,
                 this.appConfigService.getServiceNameByType(APIServiceType.TEST_CONNECTION).getName());
         logger.info(String.format("Connecting to API service: %s", conn));
 

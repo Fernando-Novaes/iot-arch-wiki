@@ -63,7 +63,10 @@ public class DataManagerView extends BaseView {
     ArchitectureSolution architectureSolution = new ArchitectureSolution();
 
     @Autowired
-    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, ArchitectureService architectureService, QualityRequirementService qualityRequirementService, PaperReferenceService paperReferenceService, TechnologyService technologyService, ArchitectureSolutionDataManager architectureSolutionDataManager) {
+    public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService,
+                           ArchitectureService architectureService, QualityRequirementService qualityRequirementService,
+                           PaperReferenceService paperReferenceService, TechnologyService technologyService,
+                           ArchitectureSolutionDataManager architectureSolutionDataManager) {
         this.domainService = domainService;
         this.architectureSolutionService = architectureSolutionService;
         this.architectureService = architectureService;
@@ -243,7 +246,7 @@ public class DataManagerView extends BaseView {
         gridPapers.setShowNotifications(false);
         gridPapers.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridPapers.getGrid().getColumnByKey("title").setAutoWidth(true);
-        gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link", "publishYear");
+        gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link", "publishYear", "reference");
         gridPapers.setAddOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
@@ -251,7 +254,7 @@ public class DataManagerView extends BaseView {
             return paper;
         });
 
-        GridCRUDUtils.setColumnsOrder(gridPapers,"id", "title", "publishYear", "doi", "link", "architectureSolution");
+        GridCRUDUtils.setColumnsOrder(gridPapers,"id", "title", "publishYear", "doi", "link", "reference", "architectureSolution");
 
         gridPapers.setUpdateOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
