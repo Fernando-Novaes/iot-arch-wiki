@@ -15,6 +15,7 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
 import com.vaadin.flow.component.tabs.Tabs;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
@@ -78,6 +79,7 @@ public class DataManagerView extends BaseView {
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
+        getContent().getStyle().setOverflow(Style.Overflow.HIDDEN);
 
         this.createHeader("Knowledge Manager");
 

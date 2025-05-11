@@ -91,13 +91,13 @@ public class AboutView extends BaseView {
         box.add(title);
 
         // Author 1
-        box.add(createAuthorInfo("Author 1 Name", "author1@example.com"));
+        box.add(createAuthorInfo("Guilherme Horta Travassos", "ght@cos.ufrj.br"));
 
         // Author 2
-        box.add(createAuthorInfo("Author 2 Name", "author2@example.com"));
+        box.add(createAuthorInfo("Bruno Pedraça de Souza", "bpsouza@cos.ufrj.br"));
 
         // Author 3
-        box.add(createAuthorInfo("Author 3 Name", "author3@example.com"));
+        box.add(createAuthorInfo("Fernando Novaes Ribeiro da Silva", "fernandonrs@cos.ufrj.br"));
 
         return box;
     }
@@ -107,8 +107,8 @@ public class AboutView extends BaseView {
         authorLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         authorLayout.setSpacing(true);
 
-        Text nameLabel = new Text("Name: " + name);
-        Text emailLabel = new Text("Email: " + email);
+        Text nameLabel = new Text(name);
+        Text emailLabel = new Text(" - " + email);
 
         authorLayout.add(nameLabel, emailLabel);
 

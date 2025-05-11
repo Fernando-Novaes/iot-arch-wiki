@@ -51,7 +51,7 @@ public class TreeNodeDetailsFactory {
             btn.getElement().addEventListener("mouseover", event -> setTechnologyDetails(node, tech));
         }
 
-        btn.getElement().addEventListener("mouseout", event -> this.publishEmptyDetails());
+        //btn.getElement().addEventListener("mouseout", event -> this.publishEmptyDetails());
         this.annotationComponent.create(btn, UI.getCurrent(), node);
 
         return btn;

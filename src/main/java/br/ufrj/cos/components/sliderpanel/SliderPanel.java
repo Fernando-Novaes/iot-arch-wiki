@@ -90,7 +90,7 @@ public class SliderPanel extends Div {
         Div resizer = new Div();
         resizer.addClassName("slider-resizer");
         add(resizer);
-        currentWidth = 600.0;
+        currentWidth = 800.0;
         // Embed JavaScript to handle resizing
         String script = "" +
                 "const slider = this;" +
@@ -365,6 +365,7 @@ public class SliderPanel extends Div {
         } else {
             removeClassName("expanded");
             updateButtonContent(false);
+            this.clearContents();
         }
     }
 }

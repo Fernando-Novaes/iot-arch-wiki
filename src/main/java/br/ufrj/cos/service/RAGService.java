@@ -16,13 +16,14 @@ import com.itextpdf.kernel.font.PdfFontFactory;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
 public class RAGService {
 
     private final IoTDomainService domainService;
+    private final ArchitectureService architectureService;
+    private final IoTDomainService ioTDomainService;
     private final ArchitectureSolutionService architectureSolutionService;
     private final QualityRequirementService qualityRequirementService;
     private final TechnologyService technologyService;
@@ -31,9 +32,14 @@ public class RAGService {
     private final int SIZE_OF_TITLE = 10;
     private final int SIZE_OF_CONTENT = 8;
 
-    public RAGService(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService, ArchitectureService architectureService, QualityRequirementService qualityRequirementService, TechnologyService technologyService, PaperReferenceService paperReferenceService) throws IOException {
+    public RAGService(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService,
+                      ArchitectureService architectureService, IoTDomainService ioTDomainService,
+                      QualityRequirementService qualityRequirementService, TechnologyService technologyService,
+                      PaperReferenceService paperReferenceService) throws IOException {
         this.domainService = domainService;
+        this.architectureService = architectureService;
         this.architectureSolutionService = architectureSolutionService;
+        this.ioTDomainService = ioTDomainService;
         this.qualityRequirementService = qualityRequirementService;
         this.technologyService = technologyService;
         this.paperReferenceService = paperReferenceService;
@@ -494,6 +500,29 @@ public class RAGService {
     public String generateStringData() {
         StringBuilder allSolutions =new StringBuilder();
         List<ArchitectureSolution> solutions = this.architectureSolutionService.findAll();
+
+        //List all iot domains
+        allSolutions.append("###CHUNK###");
+        allSolutions.append("All IoT domains of the knowledge base:");
+        this.ioTDomainService.findAll().forEach(domain -> {
+            allSolutions.append(domain.getName());
+        });
+        allSolutions.append("###CHUNK###");
+
+        //List all quality requirements
+        allSolutions.append("###CHUNK###");
+        allSolutions.append("All quality requirements of the knowledge base:");
+        this.ioTDomainService.findAll().forEach(qr -> {
+            allSolutions.append(qr.getName());
+        });
+        allSolutions.append("###CHUNK###");
+
+        //List all architectures
+        allSolutions.append("###CHUNK###");
+        allSolutions.append("All architectures of the knowledge base:");
+        this.architectureService.findAll().forEach(arch -> {
+            allSolutions.append(arch.getName());
+        });
 
         allSolutions.append("###CHUNK###");
         solutions.forEach(architectureSolution -> {

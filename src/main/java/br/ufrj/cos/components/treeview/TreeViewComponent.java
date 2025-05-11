@@ -106,7 +106,7 @@ public class TreeViewComponent extends VerticalLayout {
 
                 return this.createNodeWithIcon(treeGrid, node, nodeNames);
             }
-            return new Text("");
+            return new Text("Move the cursor over the tree node to see more details on the side panel.");
         }).setHeader(
                 (this.getGridHeader() != null)?
                         this.getGridHeader() :
@@ -115,7 +115,9 @@ public class TreeViewComponent extends VerticalLayout {
 
         treeGrid.getStyle().setBorderRadius("8px");
 
-        TreeNode<Object> root;
+        TreeNode<Object> root =
+                new TreeNode<>(new Text("Move the cursor over the tree node to see more details in the side panel."));
+
         if (this.isFiltering) {
             root = treeViewService.getTree(this.treeViewType);
             this.setTreeViewData(treeViewService.getTreeViewData());

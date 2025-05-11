@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface ArchitectureRepository extends JpaRepository<Architecture, Long> {
 
-    @Query("SELECT a FROM Architecture a")
+    @Query("SELECT a FROM Architecture a ORDER By a.name")
     List<Architecture> findAllOrderByName();
 
     List<Architecture> findByNameContainingIgnoreCase(String name);

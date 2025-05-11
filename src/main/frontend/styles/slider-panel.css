@@ -5,7 +5,7 @@
     top: 0;
     right: 0;
     height: 100vh;
-    width: clamp(600px, 25vw, 1200px); /* Responsive width */
+    width: clamp(800px, 25vw, 1200px); /* Responsive width */
     z-index: 1000;
     background-color: var(--lumo-base-color);
     box-shadow: -4px 0 8px rgba(0, 0, 0, 0.4);

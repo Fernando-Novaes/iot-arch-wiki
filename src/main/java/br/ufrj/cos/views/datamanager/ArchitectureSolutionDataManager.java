@@ -67,8 +67,10 @@ class ArchitectureSolutionDataManager {
     public VerticalLayout createKnowledgeCrud() {
 
         VerticalLayout vl = new VerticalLayout();
-        vl.setSizeFull();
+        vl.setWidthFull();
+        vl.setHeight("80%");
         vl.setSpacing(true);
+        vl.getStyle().setOverflow(Style.Overflow.AUTO);
 
         ComboBox<Architecture> comboBoxArch = new ComboBox<>("Architecture", this.architectureService.findAll());
         comboBoxArch.setWidth("60%");
@@ -83,6 +85,7 @@ class ArchitectureSolutionDataManager {
         ComboBox<PaperReference> comboPaper = new ComboBox<>("Paper Reference", this.paperReferenceService.finAllOrderByPaperReferenceTitle());
         comboPaper.setWidth("60%");
         comboPaper.setPlaceholder("Select the Paper Reference");
+        comboPaper.setClearButtonVisible(true);
 
         Grid<QualityRequirementTechnology> qualityRequirementGrid = new Grid<>(QualityRequirementTechnology.class);
         qualityRequirementGrid.setWidthFull();
@@ -98,6 +101,13 @@ class ArchitectureSolutionDataManager {
         buttons.setAlignItems(FlexComponent.Alignment.END);
         buttons.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
         buttons.setWidthFull();
+
+        HorizontalLayout hlGrid = new HorizontalLayout();
+        buttons.setVisible(true);
+        hlGrid.setSpacing(true);
+        hlGrid.setAlignItems(FlexComponent.Alignment.CENTER);
+        hlGrid.setWidthFull();
+        hlGrid.add(qualityRequirementGrid);
 
 
         // Add a delete button column
@@ -172,8 +182,7 @@ class ArchitectureSolutionDataManager {
 
         buttons.add(saveBtn, cancelBtn);
 
-        vl.expand(comboPaper, comboBoxArch, comboBoxDomain, archNotes, qualityRequirementGrid, buttons);
-        vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes, qualityRequirementGrid, buttons);
+        vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes, hlGrid, buttons);
 
         return vl;
     }
