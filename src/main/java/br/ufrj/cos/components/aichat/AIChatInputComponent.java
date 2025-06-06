@@ -10,6 +10,7 @@ import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.popover.Popover;
@@ -39,6 +40,22 @@ public class AIChatInputComponent extends HorizontalLayout {
     private final MessageList messageList;
 
     public final String CHAT_ACTIONS_ICON = "/icons/square_dots.png";
+    public final String HELLO_MESSAGE = """
+            <div>
+                    <p>Hello %s! I am your <b>IoT Architectural Design Assistant</b>.</p>
+            <p>I can help you explore architectural solutions, technologies, and quality requirements for your Internet of Things projects based on a curated knowledge base of scientific literature and industry best practices.</p>
+            <p>To get started, you can ask me to design an IoT system by describing your needs. The more details you provide, the better I can assist you. Here's an example of how you can phrase your request:</p>
+                    <div>
+                        "Design an IoT system for <b>smart agriculture</b> that needs to monitor <b>soil moisture, temperature, and sunlight</b> across <b>large farms (e.g., 1000+ acres)</b>. Key challenges include <b>scalability and energy efficiency</b> for battery-powered sensors. The budget per sensor node is around <b>$50</b>, and there's <b>no existing network infrastructure</b>."
+                    </div>
+                    <p>Alternativsely, you can ask me about specific IoT domains, architectural patterns, quality requirements, or technologies you're interested in. For example:</p>
+                    <ul>
+                        <li>"Tell me about common architectures for Industrial IoT."</li>
+                        <li>"What are the key security considerations for healthcare IoT systems?"</li>
+                        <li>"Compare LoRaWAN and NB-IoT for wide-area connectivity."</li>
+                    </ul>
+            <p>How can I help you design your IoT system today?</p>
+        </div>""";
 
     public AIChatInputComponent(
             ApplicationEventPublisher eventPublisher,
@@ -81,7 +98,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         var ui = UI.getCurrent();
         ui.access(() -> {
             AIChatMessage aiMessage = AIChatMessage.Builder()
-                            .text(String.format("Hello %s! Well-come to IoT Solutions Design Assistant. How can I help you today?",
+                            .text(String.format(HELLO_MESSAGE,
                                     SecurityUtils.getUsername()))
                             .aiMessageType(AIMessageType.ASSISTANT)
                             .userDetails(createAIUser())
@@ -89,10 +106,39 @@ public class AIChatInputComponent extends HorizontalLayout {
                             .build();
 
 
-            eventPublisher.publishEvent(new ChatMessageReceivedEvent(this, aiMessage));
+            eventPublisher.publishEvent(new ChatMessageSentEvent(this, aiMessage));
             ui.push();
         });
     }
+
+//    private void sendHelloMessage() {
+//        logger.info("### Hello message sent....");
+//        AIChatMessage userMessage = AIChatMessage.Builder()
+//                .text(HELLO_MESSAGE)
+//                .userDetails(SecurityUtils.getAuthenticatedUser())
+//                .aiMessageType(AIMessageType.USER)
+//                .time(java.time.Instant.now())
+//                .build();
+//
+//        //eventPublisher.publishEvent(new ChatMessageSentEvent(this, userMessage));
+//
+//        this.blockSendButton(true);
+//
+//        var ui = UI.getCurrent();
+//        asyncRagQueryService.queryRag(HELLO_MESSAGE)
+//                .subscribe(
+//                        answer -> {
+//                            ui.access(() ->
+//                                    handleResponse(answer));
+//                        },
+//                        error -> {
+//                            ui.access(() ->
+//                                    handleError(error));
+//
+//                        }
+//                );
+//        logger.info("### Hello message sent.... end.");
+//    }
 
     private void configureSendButton() {
         Shortcuts.addShortcutListener(messageInput, sendButton::click, Key.ENTER, KeyModifier.CONTROL);
@@ -149,6 +195,7 @@ public class AIChatInputComponent extends HorizontalLayout {
 
     private void sendMessage(String text) {
         logger.info("### Message sent....");
+
         AIChatMessage userMessage = AIChatMessage.Builder()
                 .text(text)
                 .userDetails(SecurityUtils.getAuthenticatedUser())

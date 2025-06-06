@@ -5,6 +5,8 @@ import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
 import br.ufrj.cos.components.aichat.events.ClearChatEvent;
 import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
@@ -15,6 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 @UIScope
@@ -84,8 +90,26 @@ public class AIChatMessageDisplay extends VerticalLayout {
     }
 
     private void updateMessageList() {
-        messageList.setMessages(messageService.getMessages().stream().toList());
-        log.debug("Message list updated with {} messages.", messageService.getMessages().size());
+        Collection<AIChatMessage> messages = messageService.getMessages();
+
+        if (!messages.isEmpty()) {
+            messageList.setMessages(messages.stream().toList());
+
+            // Showing load image before chat response
+            if (messageService.getMessages().stream().toList().getLast().getAiMessageType().equals(AIMessageType.USER)) {
+                Image load = new Image();
+                load.setWidth("30%");
+                load.setHeight("30%");
+                load.getStyle().setColor("white");
+                load.setSrc("/images/dots.gif");
+
+                messageList.add(new Span(load));
+            }
+
+            log.info("Message list updated with {} messages.", messageService.getMessages().size());
+        } else {
+            log.info("Message list updated with 0 message.");
+        }
     }
 
     /**

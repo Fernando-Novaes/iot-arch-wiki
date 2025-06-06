@@ -27,7 +27,7 @@ import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
 import java.util.*;
 import java.util.stream.Collectors;
 
-@PageTitle("IoT-Arch - Data Manager")
+@PageTitle("Data Manager")
 @Route(value = "datamanager-view", layout = MainLayout.class)
 @RolesAllowed("ADMIN")
 public class DataManagerView extends BaseView {

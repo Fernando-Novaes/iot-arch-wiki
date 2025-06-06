@@ -43,6 +43,7 @@ public class AsyncRagQueryService {
         logger.info(String.format("Connecting to API service: %s", conn));
 
         WebClient webClient = webClientBuilder.baseUrl(this.appConfigService.getAppConfig().getApiAddress()).build();
+        logger.info(String.format("Base URL: %s", this.appConfigService.getAppConfig().getApiAddress()));
 
         QueryRequest request = new QueryRequest();
         request.setQuery(query);

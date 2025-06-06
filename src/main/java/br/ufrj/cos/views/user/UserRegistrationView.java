@@ -59,7 +59,8 @@ public class UserRegistrationView extends BaseView {
                 return null;
             } else {
                 userApplication.setDateOfCreation(new Date());
-                passwordEncoder.encode(userApplication.getPassword());
+                userApplication.setPassword(
+                    passwordEncoder.encode(userApplication.getPassword()));
                 userApplicationService.save(userApplication);
                 refreshAllData();
                 NotificationUtils.showSuccessNotification("User registered.");

@@ -1,15 +1,19 @@
 package br.ufrj.cos.components.aichat;
 
 import br.ufrj.cos.components.avatar.AvatarComponent;
+import br.ufrj.cos.utils.ClipboardUtils;
+import br.ufrj.cos.utils.NotificationUtils;
 import com.vaadin.flow.component.avatar.Avatar;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
+import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -19,7 +23,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @UIScope
@@ -31,6 +34,7 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     private final AvatarComponent avatarComponent;
+    private Icon copyIcon;
 
     public HtmlMessageList(AvatarComponent avatarComponent) {
         this.avatarComponent = avatarComponent;
@@ -49,14 +53,34 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
         getStyle().set("height", "auto");
     }
 
+    private void configCopyBtn(String message) {
+        copyIcon =  new Icon(VaadinIcon.COPY);
+        copyIcon.setSize("12px");
+        copyIcon.setTooltipText("Copy text message.");
+
+
+        copyIcon.addClickListener(click -> {
+            log.info("Copy button clicked...");
+            ClipboardUtils.copyToClipboard(message);
+            NotificationUtils.showSuccessNotification("Message copied.");
+        });
+        copyIcon.getStyle().setCursor("pointer");
+    }
+
     public void setMessages(List<AIChatMessage> messages) {
         log.debug("Setting {} messages in HtmlMessageList", messages.size());
         // Clear previous messages from this layout
         removeAll();
 
         if (messages.isEmpty()) {
-            add(new Span("No messages yet.")); // Optional placeholder
+            Image load = new Image();
+            load.setWidth("20%");
+            load.setHeight("20%");
+            load.getStyle().setColor("white");
+            load.setSrc("/images/dots.gif");
+            add(new Span(load)); // Optional placeholder
         } else {
+
             for (AIChatMessage message : messages) {
                 // Create the message container
                 Div messageContainer = new Div();
@@ -104,7 +128,9 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                 Div space = new Div();
                 space.getStyle().setWidth("5px");
 
-                messageHeader.add(avatar, space, userName, space, timestamp);
+                configCopyBtn(
+                        ClipboardUtils.basicHtmlToCleanString(message.getText()));
+                messageHeader.add(avatar, space, userName, space, timestamp, space, copyIcon);
 
                 // Add the content with HTML rendering
                 Div contentDiv = new Div();

@@ -4,6 +4,7 @@ import br.ufrj.cos.domain.UserApplication;
 import br.ufrj.cos.service.UserApplicationService;
 import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.utils.SecurityUtils;
+import br.ufrj.cos.views.home.HomeView;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.login.LoginForm;
@@ -135,7 +136,7 @@ public class LoginView extends VerticalLayout implements HasUrlParameter<String>
                 if (SecurityContextHolder.getContext().getAuthentication() != null
                         && SecurityContextHolder.getContext().getAuthentication().isAuthenticated()) {
                     // Redirect to main page
-                    UI.getCurrent().navigate("");
+                    UI.getCurrent().navigate(HomeView.class);
                 }
             } else {
                 throw new UsernameNotFoundException("User not found");

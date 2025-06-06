@@ -12,3 +12,4 @@ ENTRYPOINT ["java", "-jar", "/iot-arch-wiki.jar"]
 #docker build -t iot-arch-wiki .
 #docker tag iot-arch-wiki fernandonrs/iot-arch-wiki
 #docker run -d -p 36519:36519 iot-arch-wiki
+#docker save -o ./iot-arch-wiki.tar iot-arch-wiki:latest

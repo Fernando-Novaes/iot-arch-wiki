@@ -10,7 +10,7 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.security.PermitAll;
 import com.vaadin.flow.component.dependency.CssImport;
 
-@PageTitle("AI Assistant")
+@PageTitle("AI-Assistant")
 @Route(value = "aichat", layout = MainLayout.class)
 @PermitAll
 @CssImport("./styles/chat-view-styles.css")

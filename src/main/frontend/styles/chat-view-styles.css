@@ -15,7 +15,7 @@
 /* The AIChatMessageDisplay component itself */
 .ai-chat-message-display {
     flex-grow: 1; /* Allow it to take up space */
-    overflow: hidden; /* It shouldn't scroll, the Scroller inside does */
+    overflow: auto; /* It shouldn't scroll, the Scroller inside does */
     display: flex; /* Needed for expand() to work correctly */
     flex-direction: column; /* Needed for expand() to work correctly */
 }
@@ -55,7 +55,7 @@
 
 .system-message-container {
     justify-content: center;
-    width: 45%;
+    width: 80%;
 }
 
 /* Avatar styling */
@@ -80,7 +80,7 @@
 
 /* Message bubble styling */
 .message-bubble {
-    max-width: 70%;
+    max-width: 80%;
     padding: var(--lumo-space-s);
     border-radius: var(--lumo-border-radius-m);
     box-shadow: var(--lumo-box-shadow-xs);

@@ -27,7 +27,7 @@ public class AppConfigService {
     }
 
     public void saveServiceName(ServiceName serviceName) {
-        serviceNameRepository.saveAndFlush(serviceName);
+        serviceNameRepository.save(serviceName);
     }
 
     public AppConfig getAppConfig() {

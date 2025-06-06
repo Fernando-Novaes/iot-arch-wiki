@@ -23,7 +23,7 @@ public class AppConfig extends DomainBase {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ScrapWebSite> scrapWebSites;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "appConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ServiceName> serviceNames;
 
     private Instant knowledgeDatabaseLastUpdate;

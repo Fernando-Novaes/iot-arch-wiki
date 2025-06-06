@@ -20,6 +20,7 @@ public class AIChatMessage extends MessageListItem {
     private AIMessageType aiMessageType;
     private UserDetails userDetails;
     private static final List<String> DEFAULT_CLASS_NAMES = new ArrayList<>();
+    private String plainMessage;
 
     static {
         DEFAULT_CLASS_NAMES.add("message-list-item");

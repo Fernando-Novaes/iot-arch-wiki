@@ -76,13 +76,13 @@ public class AppConfigView extends BaseView {
         this.apiServiceConnection = apiServiceConnection;
         this.endpoints = endpoints;
         this.createHeader("Application Config");
+        loadEndpoints();
         configureApiAddressBlock();
-        //configureScrapWebsiteBlock();
+        //configureScrapWebsiteBlock();        
         configureServiceNameBlock();
         //configureSaveButton();
         configureLastUpdateLabels(); // Add this line
         configureContentLayout();
-        loadEndpoints();
     }
 
     private void configureApiAddressBlock() {
@@ -96,6 +96,8 @@ public class AppConfigView extends BaseView {
         testConnectionButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         testConnectionButton.addClickListener(event -> {
             apiServiceConnection.testConnection(apiAddressField.getValue());
+            logger.info("Testing connection: " + apiAddressField.getValue());
+
         });
 
         apiAddressSaveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
@@ -127,6 +129,8 @@ public class AppConfigView extends BaseView {
                         answer -> {
                             logger.info("Getting list of endpoints...");
                             answer.getEndpoints().forEach(endpoint -> endpoints.add(new EndpointRecord(endpoint.getEndpoint(),endpoint.getDescription())));
+                            logger.info("Getting list of endpoints... done. Total: " + endpoints.size());
+                            loadComboEndpoints();
                         },
                         error -> {
                             logger.info("Getting list of endpoints error..." + error.getMessage());
@@ -303,6 +307,7 @@ public class AppConfigView extends BaseView {
         serviceNameGrid.addComponentColumn(item -> {
             HorizontalLayout actionsLayout = new HorizontalLayout();
 
+            // Delete service name
             Button deleteButton = new Button("Delete");
             deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
             deleteButton.addClickListener(event -> {
@@ -320,6 +325,7 @@ public class AppConfigView extends BaseView {
                 });
                 confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
 
+                // Cancel deletion service name
                 Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
 
                 dialog.getFooter().add(confirmButton, cancelButton);
@@ -379,21 +385,7 @@ public class AppConfigView extends BaseView {
 
         serviceTypeComboBox.setRequired(true);
 
-        serviceNameField.setItems(endpoints);
-        serviceNameField.addValueChangeListener(value -> {
-            EndpointRecord selectedRecord = value.getValue();
-            if (selectedRecord != null) {
-                // Defensive check (shouldn't be necessary if 'if' works)
-                String description = selectedRecord.description();
-                if (description != null) { // Check if description itself could be null?
-                    serviceDescriptionField.setValue(description);
-                } else {
-                    serviceDescriptionField.setValue(""); // Handle null description
-                }
-            } else {
-                serviceDescriptionField.setValue("");
-            }
-        });
+        loadComboEndpoints();
 
         addServiceButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addServiceButton.addClickListener(event -> {
@@ -401,7 +393,8 @@ public class AppConfigView extends BaseView {
                 ServiceName service = ServiceName.builder()
                         .name(serviceNameField.getValue().endpoint())
                         .description(serviceDescriptionField.getValue())
-                        .type(serviceTypeComboBox.getValue()) // Default enum value
+                        .type(serviceTypeComboBox.getValue())
+                        .appConfig(appConfig)
                         .build();
 
                 if (appConfig.getServiceNames() == null) {
@@ -409,6 +402,7 @@ public class AppConfigView extends BaseView {
                 }
                 appConfig.getServiceNames().add(service);
                 appConfigService.saveServiceName(service);
+                appConfig = appConfigService.getAppConfig();
                 serviceNameGrid.getDataProvider().refreshAll();
 
                 serviceNameField.clear();
@@ -429,6 +423,29 @@ public class AppConfigView extends BaseView {
         serviceNameDiv.getStyle().set("margin", "0 auto");
 
         contentLayout.add(serviceNameDiv);
+    }
+
+    /***
+     * The endpoints names are loaded from the API service
+     */
+    private void loadComboEndpoints() {
+        if (!endpoints.isEmpty()) {
+            serviceNameField.setItems(endpoints);
+        }
+        serviceNameField.addValueChangeListener(value -> {
+            EndpointRecord selectedRecord = value.getValue();
+            if (selectedRecord != null) {
+                // Defensive check (shouldn't be necessary if 'if' works)
+                String description = selectedRecord.description();
+                if (description != null) { // Check if description itself could be null?
+                    serviceDescriptionField.setValue(description);
+                } else {
+                    serviceDescriptionField.setValue(""); // Handle null description
+                }
+            } else {
+                serviceDescriptionField.setValue("");
+            }
+        });
     }
 
 //    private void configureSaveButton() {

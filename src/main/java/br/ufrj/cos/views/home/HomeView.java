@@ -7,91 +7,111 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
-import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.PermitAll;
 
-@PageTitle("Home View")
+@PageTitle("Home")
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
+// No @CssImport needed if all styles are inline via Java
 public class HomeView extends Composite<VerticalLayout> {
 
     public HomeView() {
-        VerticalLayout content = getContent();
-        content.setSpacing(true);
-        content.setSizeFull();
-        content.getStyle().set("flex-grow", "1");
-        content.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
-        content.setAlignItems(FlexComponent.Alignment.CENTER);
+        VerticalLayout rootContent = getContent();
+        rootContent.setSpacing(false);
+        rootContent.setPadding(false);
+        rootContent.setSizeFull();
+        rootContent.getStyle().set("flex-grow", "1");
+        // Center the main presentation card within the root content area
+        rootContent.setAlignItems(FlexComponent.Alignment.CENTER);
+        rootContent.setJustifyContentMode(FlexComponent.JustifyContentMode.START); // Align card to top usually
 
-        createPresentationBox(content);
+        createPresentationBox(rootContent);
     }
 
     private void createPresentationBox(VerticalLayout rootLayout) {
-        VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setSpacing(true);
-        mainLayout.setPadding(true);
-        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-        mainLayout.getStyle()
+        VerticalLayout presentationCard = new VerticalLayout();
+        presentationCard.setSpacing(true); // Spacing between elements inside the card
+        presentationCard.setPadding(false); // Padding will be controlled by style.set("padding", ...)
+        presentationCard.setAlignItems(FlexComponent.Alignment.CENTER); // Center direct children of the card
+
+        // Style the presentation card
+        presentationCard.getStyle()
                 .set("background-color", "var(--lumo-contrast-5pct)")
                 .set("border", "1px solid var(--lumo-contrast-20pct)")
-                .set("border-radius", "var(--lumo-border-radius)")
-                .set("padding", "clamp(1em, 5vw, 2em)")
-                .set("max-height", "92vh")
-                .set("overflow-y", "none");
-        mainLayout.setWidth("95%"); // Make the box wider
-        mainLayout.setMaxWidth("1200px"); // Define a maximum width for larger screens
+                .set("border-radius", "var(--lumo-border-radius-m)")
+                .set("padding", "clamp(1em, 4vw, 2.5em)") // Responsive padding
+                .set("margin", "var(--lumo-space-m)") // Margin around the card
+                .set("box-sizing", "border-box"); // Important for width calculations with padding/border
 
-        Div contentContainer = new Div();
-        contentContainer.getStyle()
-                .set("width", "100%")
-                .set("padding", "0 clamp(1em, 3vw, 2em)")
-                .set("margin-left", "0"); // Remove the left margin
+        // Control width for different screen sizes
+        // On small screens, it will be 90% of the parent (rootContent).
+        // On large screens, it will be capped at 1000px.
+        // The browser will pick the smaller of the two.
+        presentationCard.setWidth("100%");
+        presentationCard.setMaxWidth("1000px");
 
+
+        // --- Header ---
         Div headerContainer = new Div();
         headerContainer.getStyle()
                 .set("text-align", "center")
-                .set("width", "100%")
-                .set("margin-bottom", "2em");
+                .set("width", "100%") // Take full width of presentationCard
+                .set("margin-bottom", "var(--lumo-space-m)");
 
-        H3 mainTitle = new H3("Welcome to the IoT Design Decision Assistant");
-        mainTitle.getStyle().setFontSize("clamp(2.0em, 3.5vw, 3.0em)");  // Responsive Font Size
-//        H3 subtitle = new H3("Empowering your IoT Software System Design Process");
-//        subtitle.getStyle().setFontSize("clamp(1.5em, 3.0vw, 2.0em)"); // Responsive Font Size
-//        H4 subheader = new H4("Unlock the Power of Informed Decision-Making");
-//        subheader.getStyle().setFontSize("clamp(1.2em, 2.5vw, 1.8em)"); // Responsive Font Size
+        H2 mainTitle = new H2("Welcome to the IoT Design Decision Assistant");
+        mainTitle.getStyle().setFontSize("clamp(1.8em, 3vw, 2.5em)");
+        mainTitle.getStyle().set("margin-top", "0"); // Remove default H2 top margin
 
-        headerContainer.add(mainTitle, new Hr());//, subtitle, new Span(), subheader);
+        headerContainer.add(mainTitle, new Hr());
 
-        H4 whyChooseTitle = new H4("Why Choose Our Tool?");
-        whyChooseTitle.getStyle().setFontSize("clamp(1.2em, 2.5vw, 1.8em)"); // Responsive Font Size
+        // --- Content Container (for lists and paragraphs) ---
+        VerticalLayout contentContainer = new VerticalLayout();
+        contentContainer.setWidth("100%");
+        contentContainer.setPadding(false);
+        contentContainer.setSpacing(true);
+        contentContainer.setAlignItems(FlexComponent.Alignment.STRETCH); // Make children like lists take full width
+
+        H3 whyChooseTitle = new H3("Why Choose Our Tool?");
+        whyChooseTitle.getStyle().setFontSize("clamp(1.2em, 2.2vw, 1.6em)");
+        whyChooseTitle.getStyle().set("margin-top", "var(--lumo-space-m)"); // Add some top margin
+        whyChooseTitle.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
+
 
         UnorderedList whyChooseList = createResponsiveList(
-                "Comprehensive Knowledge Base: Access a base of knowledge of IoT domains, architectural solutions, quality requirements, and technologies, all curated from peer-reviewed research and industry best practices.",
-                "Intelligent Decision Support: Leverage our advanced technology to match your project requirements with optimal architectural solutions and technologies.",
-                "Quality-Driven Approach: Ensure your designs meet the highest standards by aligning them with established quality attributes and requirements specific to IoT systems.",
-                "Stay Current: Benefit from regularly updated content from the literature, reflecting the latest advancements in IoT technology and design methodologies."
+                "Comprehensive Knowledge Base: Access a curated collection of IoT domains, architectural solutions, quality requirements, and technologies from peer-reviewed research and industry best practices.",
+                "Intelligent Decision Support: Leverage advanced AI to match your project requirements with optimal architectural solutions and technologies.",
+                "Quality-Driven Approach: Ensure your designs meet high standards by aligning with established quality attributes specific to IoT systems.",
+                "Stay Current: Benefit from regularly updated content reflecting the latest advancements in IoT technology and design methodologies."
         );
 
-        H4 featuresTitle = new H4("Key Features:");
-        featuresTitle.getStyle().setFontSize("clamp(1.2em, 2.5vw, 1.8em)"); // Responsive Font Size
+        H3 featuresTitle = new H3("Key Features:");
+        featuresTitle.getStyle().setFontSize("clamp(1.2em, 2.2vw, 1.6em)");
+        featuresTitle.getStyle().set("margin-top", "var(--lumo-space-m)"); // Add some top margin
+        featuresTitle.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
 
         UnorderedList featuresList = createResponsiveList(
-                "Interactive Design Explorer: Visually navigate through IoT domains, solutions, and technologies.",
+                "Interactive Design Explorer: Visually navigate IoT domains, solutions, and technologies.",
                 "Requirements Analyzer: Define and prioritize your project's quality requirements with ease.",
                 "Solution Recommender: Receive tailored architectural recommendations based on your specific needs.",
-                "Technology Evaluator: Compare and assess various IoT technologies to find the perfect fit for your project.",
-                "AI Assistant: Engage in dynamic conversations with an intelligent assistant to receive instant guidance, explore concepts, and troubleshoot challenges within the IoT domain.",
-                "Knowledge Contribution: Submit your own experiences and solutions to enrich the community's collective wisdom."
+                "Technology Evaluator: Compare and assess various IoT technologies for your project.",
+                "AI Assistant: Engage with an intelligent assistant for instant guidance and exploration of IoT concepts.",
+                "Knowledge Contribution: Submit your experiences to enrich our collective wisdom (Admin/Curator feature)."
         );
 
-        Paragraph closing = new Paragraph("Embark on your IoT design journey with confidence. Let our Book of Knowledge be your guide to creating robust, efficient, and innovative IoT software systems.");
-        closing.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)"); // Responsive Font Size
+        Paragraph closing = new Paragraph("Embark on your IoT design journey with confidence. Let our Assistant be your guide to creating robust, efficient, and innovative IoT software systems.");
+        closing.getStyle().setFontSize("clamp(0.9em, 1.8vw, 1.1em)");
+        closing.getStyle().set("text-align", "center");
+        closing.getStyle().set("margin-top", "var(--lumo-space-m)");
+
 
         Emphasis callToAction = new Emphasis("Start exploring now and transform the way you design IoT solutions!");
         callToAction.getStyle()
-                .set("display", "block")
-                .set("margin-top", "1em");
-        callToAction.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)"); // Responsive Font Size
+                .set("display", "block") // Make it a block to center it
+                .set("text-align", "center")
+                .set("margin-top", "var(--lumo-space-m)")
+                .set("font-weight", "bold")
+                .set("color", "white");
+        callToAction.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)");
 
         contentContainer.add(
                 whyChooseTitle,
@@ -102,25 +122,25 @@ public class HomeView extends Composite<VerticalLayout> {
                 callToAction
         );
 
-        mainLayout.add(headerContainer, contentContainer);
-        rootLayout.add(mainLayout);
+        presentationCard.add(headerContainer, contentContainer);
+        rootLayout.add(presentationCard);
     }
 
     private UnorderedList createResponsiveList(String... items) {
         UnorderedList list = new UnorderedList();
         list.getStyle()
-                .set("max-width", "100%")
-                .set("padding-left", "clamp(1.5em, 4vw, 2.5em)")
-                .setFontSize("clamp(1.0em, 2.0vw, 1.2em)"); //Responsive Font Size
+                .set("padding-left", "clamp(1.2em, 3vw, 2em)")
+                .setFontSize("clamp(0.9em, 1.8vw, 1.1em)");
+        // list.getStyle().set("max-width", "800px"); // Optional: constrain list width for readability
+        // list.getStyle().set("margin", "0 auto"); // Center the list if max-width is set
 
-        for (String item : items) {
-            ListItem listItem = new ListItem(item);
+        for (String itemText : items) {
+            ListItem listItem = new ListItem(itemText);
             listItem.getStyle()
-                    .set("margin-bottom", "0.8em")
-                    .set("line-height", "1.5");
+                    .set("margin-bottom", "var(--lumo-space-s)")
+                    .set("line-height", "1.2");
             list.add(listItem);
         }
-
         return list;
     }
 }
