@@ -10,6 +10,7 @@ import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
+import br.ufrj.cos.views.record.ReferenceRecord;
 import com.github.appreciated.apexcharts.ApexCharts;
 import com.github.appreciated.apexcharts.config.builder.LegendBuilder;
 import com.vaadin.flow.component.DetachEvent;
@@ -43,7 +44,7 @@ public class BoardView extends BaseView {
     private final TechnologyService technologyService;
     private final PaperReferenceService paperReferenceService;
     private final ChartComponent chart;
-    private final DiagramComponent diagramComponent;
+    //private final DiagramComponent diagramComponent;
 
     private final HorizontalLayout pageContent;
 
@@ -51,6 +52,7 @@ public class BoardView extends BaseView {
     private final String ARCHITETCTURE_GRAPH_TITLE = "How many Solutions for each Architecture?";
     private final String QUALITYREQUIREMENT_GRAPH_TITLE = "How many each Quality Requirement is addressed by each Solution?";
     private final String TECHNOLOGY_GRAPH_TITLE = "How many each Technology is addressed to each Quality Requirement?";
+    private final String REFERENCE_TITLE = "Primary Sources by Year";
 
     public BoardView(
             IoTDomainService domainService,
@@ -66,7 +68,7 @@ public class BoardView extends BaseView {
         this.technologyService = technologyService;
         this.paperReferenceService = paperReferenceService;
         this.chart = chart;
-        this.diagramComponent = diagramComponent;
+        //this.diagramComponent = diagramComponent;
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
@@ -146,7 +148,7 @@ public class BoardView extends BaseView {
 
         // Define the titles for each box
         String[] boxTitles =
-                {IOTDOMAIN_GRAPH_TITLE, ARCHITETCTURE_GRAPH_TITLE, QUALITYREQUIREMENT_GRAPH_TITLE, TECHNOLOGY_GRAPH_TITLE};
+                {IOTDOMAIN_GRAPH_TITLE, ARCHITETCTURE_GRAPH_TITLE, QUALITYREQUIREMENT_GRAPH_TITLE, REFERENCE_TITLE};
 
         // Create boxes using a loop for better maintainability
         for (int i = 0; i < 4; i++) {
@@ -193,6 +195,11 @@ public class BoardView extends BaseView {
             case TECHNOLOGY_GRAPH_TITLE -> {
                 apexCharts = this.createTechnologyChart("Technologies");
                 dialogChart = this.createTechnologyChart("Technologies");
+                box.add(apexCharts);
+            }
+            case REFERENCE_TITLE -> {
+                apexCharts = this.createReferencesChart("Primary Sources");
+                dialogChart = this.createReferencesChart("Primary Sources");
                 box.add(apexCharts);
             }
         }
@@ -254,7 +261,9 @@ public class BoardView extends BaseView {
         this.chart.addData("IoT Domains", (long) this.domainService.findAll().size(), 0L);
         this.chart.addData("Architectures", (long) this.architectureSolutionService.geArchitectureSolutionCountGroupedByName().size(), 0L);
         this.chart.addData("Quality Requirements", (long) this.qualityReqService.getQualityRequirementCountGroupedByName().size(), 0L);
-        this.chart.addData("Technologies", (long) this.technologyService.findAll().size(), 0L);
+        this.chart.addData("Primary Sources", (long) this.paperReferenceService.findAll().size(), 0L);
+        //this.chart.addData("Technologies", (long) this.technologyService.findAll().size(), 0L);
+
         //this.chart.addData("References", (long) this.paperReferenceService.findAll().size(), 0L);
 
         return chart.createBarChart(String.format("Data Summary (Totaling %s solutions found)", this.architectureSolutionService.findAll().size()), false);
@@ -324,6 +333,22 @@ public class BoardView extends BaseView {
         });
 
         return chart.createPieChart(String.format("%s [%s]", chartTitle, recordData.size()));
+    }
+
+    /***
+     * Create the References chart
+     * @param chartTitle
+     * @throws IOException
+     */
+    private ApexCharts createReferencesChart(String chartTitle) {
+        List<ReferenceRecord> recordData = this.paperReferenceService.findPaperCountsByYear();
+
+        this.chartInitialConfig();
+        recordData.forEach(paper -> {
+            this.chart.addData(paper.publishYear().toString(), paper.qtd(), paper.total());
+        });
+
+        return chart.createBarChart(String.format("%s [%s]", chartTitle, this.paperReferenceService.findAll().size()), false);
     }
 
     @Override

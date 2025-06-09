@@ -2,6 +2,7 @@ package br.ufrj.cos.service;
 
 import br.ufrj.cos.domain.PaperReference;
 import br.ufrj.cos.repository.PaperReferenceRepository;
+import br.ufrj.cos.views.record.ReferenceRecord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,10 @@ public class PaperReferenceService {
     @Autowired
     public PaperReferenceService(PaperReferenceRepository paperReferenceRepository) {
         this.paperReferenceRepository = paperReferenceRepository;
+    }
+
+    public List<ReferenceRecord> findPaperCountsByYear() {
+        return paperReferenceRepository.findPaperCountsByYear();
     }
 
     public List<PaperReference> findAll() {

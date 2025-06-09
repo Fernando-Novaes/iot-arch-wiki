@@ -97,14 +97,7 @@ public class TreeViewComponent extends VerticalLayout {
             } else if (data instanceof QualityRequirement) {
                 return this.treeNodeDetailsFactory.createButtonForNode(node, "quality-requirement");
             } else if (data instanceof Technology) {
-                String nodeNames = null;
-                try {
-                    nodeNames = this.createPathToNode(node);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-
-                return this.createNodeWithIcon(treeGrid, node, nodeNames);
+                return this.createNodeWithIcon(treeGrid, node);
             }
             return new Text("Move the cursor over the tree node to see more details on the side panel.");
         }).setHeader(
@@ -168,40 +161,22 @@ public class TreeViewComponent extends VerticalLayout {
         this.loaded = Boolean.TRUE;
     }
 
-    private String createPathToNode(TreeNode<?> node) throws Exception {
-        List<TreeNode<?>> path = getPathToRoot(node);
+    private String createPathToNode(IoTDomain iotDomain, ArchitectureSolution architectureSolution, QualityRequirement qualityRequirement, Technology technology) {
         StringBuilder diagramlabels = new StringBuilder();
 
         // Construct the full path string
         this.pathString = new StringBuilder();
-        for (int i = path.size() - 1; i >= 0; i--) {
-            Object data = path.get(i).getData();
 
-            if (data instanceof Technology) {
-                Technology technology = (Technology) data;
+        // Append to diagram names
+        diagramlabels.append(iotDomain.getName()).append("!").append("IoT Domain").append("#");
+        diagramlabels.append(architectureSolution.getArchitecture().getName()).append("!").append("Architecture").append("#");
+        diagramlabels.append(qualityRequirement.getName()).append("!").append("Quality Requirement").append("#");
+        diagramlabels.append(technology.getDescription()).append("!").append("Technology").append("#");
 
-                 //Find the specific association that links this technology
-                QualityRequirementTechnology association =
-                        technology.getAssociations().stream()
-                                .findFirst()
-                                .orElseThrow(() -> new Exception("No associated Architecture Solution found!"));
-
-                ArchitectureSolution architectureSolution = association.getArchitectureSolution();
-                QualityRequirement qualityRequirement = association.getQualityRequirement();
-                IoTDomain iotDomain = architectureSolution.getIoTDomain();
-
-                // Append to diagram names
-                diagramlabels.append(iotDomain.getName()).append("!").append("IoT Domain").append("#");
-                diagramlabels.append(architectureSolution.getArchitecture().getName()).append("!").append("Architecture").append("#");
-                diagramlabels.append(qualityRequirement.getName()).append("!").append("Quality Requirement").append("#");
-                diagramlabels.append(technology.getDescription()).append("!").append("Technology").append("#");
-
-                pathString.append(iotDomain.getName()).append(" >> ");
-                pathString.append(architectureSolution.getArchitecture().getName()).append(" >> ");
-                pathString.append(qualityRequirement.getName()).append(" >> ");
-                pathString.append(technology.getDescription());
-            }
-        }
+        pathString.append(iotDomain.getName()).append(" >> ");
+        pathString.append(architectureSolution.getArchitecture().getName()).append(" >> ");
+        pathString.append(qualityRequirement.getName()).append(" >> ");
+        pathString.append(technology.getDescription());
 
         return diagramlabels.toString();
     }
@@ -209,7 +184,7 @@ public class TreeViewComponent extends VerticalLayout {
     /***
      * Method to create a component for the node with text and icon
      */
-    private HorizontalLayout createNodeWithIcon(TreeGrid<TreeNode<?>>  treeGrid, TreeNode<?> node, String diagramNames) {
+    private HorizontalLayout createNodeWithIcon(TreeGrid<TreeNode<?>>  treeGrid, TreeNode<?> node) {
         // Create an icon
         Icon icon = VaadinIcon.INFO_CIRCLE.create(); // Use any icon you prefer
         icon.getElement().getStyle().set("cursor", "pointer"); // Change cursor style to pointer for clickable effect
@@ -221,19 +196,21 @@ public class TreeViewComponent extends VerticalLayout {
         button.addClickListener(event -> {
             this.selectRow(node, treeGrid);
             // Action when the icon is clicked
-            //Notification.show("Icon clicked for: " + tech.getDescription());
 
-            // Find the specific association that links this technology
-            QualityRequirementTechnology association =
-                    ((Technology) node.getData()).getAssociations().stream()
-                            .findFirst().get();
+            Technology tech = (Technology) node.getData();
+            QualityRequirement qr = (QualityRequirement) node.getParent().getData();
+            ArchitectureSolution archSol = (ArchitectureSolution) node.getParent().getParent().getData();
+            IoTDomain domain = (IoTDomain) node.getParent().getParent().getParent().getData();
+
+            PaperReference ref = archSol.getPaperReference();
+
+            String diagramNames = this.createPathToNode(domain, archSol, qr, tech);
+            this.createDiagram(diagramNames);
 
             createReferenceDetailsDialog(
-                    association.getArchitectureSolution().getPaperReference().getTitle(),
-                    association.getArchitectureSolution().getPaperReference().getLink());
+                    ref.getTitle(),
+                    ref.getLink());
         });
-
-        this.createDiagram(diagramNames);
 
         button.getStyle().set("min-width", "20px"); // Set the button size
         button.getStyle().set("height", "22px"); // Set the button size
@@ -319,21 +296,21 @@ public class TreeViewComponent extends VerticalLayout {
         treeGrid.getSelectionModel().select(node);
     }
 
-    private List<TreeNode<?>> getPathToRoot(TreeNode<?> node) {
-        List<TreeNode<?>> path = new ArrayList<>();
-        TreeNode<?> current = node;
-        while (current != null) {
-            path.add(current);
-
-            if (current.getParent().getData() != null) {
-                current = current.getParent();
-            } else {
-                current = null;
-            }
-        }
-
-        return path;
-    }
+//    private List<TreeNode<?>> getPathToRoot(TreeNode<?> node) {
+//        List<TreeNode<?>> path = new ArrayList<>();
+//        TreeNode<?> current = node;
+//        while (current != null) {
+//            path.add(current);
+//
+//            if (current.getParent().getData() != null) {
+//                current = current.getParent();
+//            } else {
+//                current = null;
+//            }
+//        }
+//
+//        return path;
+//    }
 
     private void loadTree(TreeViewType type) {
         this.removeAll();  // Remove existing tree
