@@ -9,6 +9,8 @@ import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.login.LoginForm;
 import com.vaadin.flow.component.login.LoginI18n;
+import com.vaadin.flow.component.orderedlayout.BoxSizing;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
 import com.vaadin.flow.server.VaadinSession;
@@ -86,14 +88,20 @@ public class LoginView extends VerticalLayout implements HasUrlParameter<String>
             }
         });
 
-        this.add(
-                new Html("<div><center><h1>IoT Architecture Solution Knowledge Base</h1><p>IoT Design Decision Assistant</p></br></br></center></div>"),
+        VerticalLayout loginBox = new VerticalLayout();
+        loginBox.setAlignItems(Alignment.CENTER);
+        loginBox.setJustifyContentMode(JustifyContentMode.CENTER);
+        loginBox.getStyle().setBorder("1px solid grey");
+        loginBox.setWidth("30%");
+        loginBox.add(new Html("<div><center><h1>IoT Architecture Solution Knowledge Base</h1><p>IoT Design Decision Assistant</p></br></br></center></div>"),
                 login,
-                new Html(String.format("<div></br><center>- %s -</center></div>", this.message)));
+                new Html("<div></br><center>- ArchIoTect -</center></div>"));
+
+        this.add(loginBox);
 
         LoginI18n i18n = LoginI18n.createDefault();
         i18n.setAdditionalInformation(
-                "Contact admin@company.com if you're experiencing issues logging into your account");
+                "Contact archiotect@cos.ufrj.br if you're experiencing issues logging into your account");
         login.setI18n(i18n);
     }
 

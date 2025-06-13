@@ -102,7 +102,7 @@ public class ReferenceDetailsDialog {
         UI.getCurrent().getElement().executeJs(
                 "document.head.innerHTML += '<style>" +
                         ".paper-title-link { " +
-                        "   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); " +
+                        //"   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); " +
                         "   margin: 0; " +
                         "   word-wrap: break-word; " +
                         "   font-size: 1.2em; " +

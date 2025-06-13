@@ -115,18 +115,18 @@ public class BoardView extends BaseView {
 //        return horizontalLayout;
 //    }
 
-    private void createDiagramLayout() {
-        HorizontalLayout container = createContainer();
-        VerticalLayout box01 = createVerticalContainer();
-
-        Div diagram = new Div();
-        diagram.setId("diagram");
-        box01.add(diagram);
-        container.add(box01);
-        getContent().add(container);
-
-        //this.diagramComponent.execute();
-    }
+//    private void createDiagramLayout() {
+//        HorizontalLayout container = createContainer();
+//        VerticalLayout box01 = createVerticalContainer();
+//
+//        Div diagram = new Div();
+//        diagram.setId("diagram");
+//        box01.add(diagram);
+//        container.add(box01);
+//        getContent().add(container);
+//
+//        //this.diagramComponent.execute();
+//    }
 
     private void createBarGraphLayout() {
         HorizontalLayout container = createContainer();

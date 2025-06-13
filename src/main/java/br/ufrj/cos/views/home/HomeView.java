@@ -110,7 +110,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 .set("text-align", "center")
                 .set("margin-top", "var(--lumo-space-m)")
                 .set("font-weight", "bold")
-                .set("color", "white");
+                .set("color", "var(--lumo-body-text-color)");
         callToAction.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)");
 
         contentContainer.add(

@@ -28,7 +28,7 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     private static final String COLOR_WHITE = "white";
     private static final String COLOR_YELLOW = "yellow";
     private static final String COLOR_GREEN = "green";
-    private static final String COLOR_TEXT = "#2e3033";
+    private static final String COLOR_TEXT = "var(--lumo-body-text-color)";
 
     @Getter
     private TreeViewType treeViewType;

@@ -72,6 +72,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         messageInput.setClearButtonVisible(true);
 
         sendButton = new Button("Send");
+        sendButton.getStyle().setColor("white");
         messageInput.setSuffixComponent(sendButton);
 
         configureSendButton();

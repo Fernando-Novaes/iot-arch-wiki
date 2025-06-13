@@ -151,7 +151,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         // Add styling variant to the TreeGrid for better visibility
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
-        treeGrid.getStyle().setBackgroundColor("#373a3f");
+        treeGrid.getStyle().setBackgroundColor("#var(--lumo-contrast-10pct)");
 
         // Add the TreeGrid to the main layout
         add(treeGrid);

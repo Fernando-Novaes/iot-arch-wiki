@@ -19,7 +19,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  */
 @PWA(name = "", shortName = "")
 @SpringBootApplication
-@Theme(value = "iot-arch-wiki", variant = Material.DARK)
+@Theme(value = "iot-arch-wiki", variant = Material.LIGHT)
 @Push(PushMode.MANUAL)
 public class Application implements AppShellConfigurator {
 

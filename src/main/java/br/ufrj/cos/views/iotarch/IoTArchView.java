@@ -167,10 +167,10 @@ public class IoTArchView extends BaseView {
 
     private void applyComboBoxStyles(ComboBox<?> comboBox) {
         comboBox.getStyle()
-                .set("--lumo-contrast-10pct", "rgba(255, 255, 255, 0.1)")
-                .set("--lumo-body-text-color", "#ffffff")
-                .set("--lumo-secondary-text-color", "#e0e0e0")
-                .set("--lumo-primary-text-color", "#ffffff")
+//                .set("--lumo-contrast-10pct", "rgba(255, 255, 255, 0.1)")
+//                .set("--lumo-body-text-color", "#ffffff")
+//                .set("--lumo-secondary-text-color", "#e0e0e0")
+//                .set("--lumo-primary-text-color", "#ffffff")
                 .set("margin", "0 0.5em")
                 .set("position", "relative")
                 .set("z-index", "5");
@@ -333,7 +333,7 @@ public class IoTArchView extends BaseView {
 
     private void styleMainLayout(VerticalLayout layout) {
         layout.getStyle()
-                .set("background-color", "#373a3f")
+                .set("background-color", "var(--lumo-contrast-10pct)")
                 .set("border", "1px solid #4a4d52")
                 .set("border-radius", "12px")
                 .set("width", "100%")

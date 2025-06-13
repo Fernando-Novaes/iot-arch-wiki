@@ -48,9 +48,9 @@ public class ProfileDialogView extends BaseView {
         Div box = new Div();
         box.addClassName("centered-aboutbox");
         box.getStyle()
-                .set("background-color", "var(--lumo-contrast-5pct)")
+                .set("background-color", "var(--lumo-contrast-10pct)")
                 .set("border-radius", "var(--lumo-border-radius)")
-                .set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
+                //.set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
                 .set("padding", "20px");
 
         // Create a HorizontalLayout to center the box horizontally

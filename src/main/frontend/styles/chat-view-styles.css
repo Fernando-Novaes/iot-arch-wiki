@@ -98,7 +98,7 @@
 .user-message {
     'background-color: var(--lumo-primary-color-10pct);
     background-color: #3f454d;
-    color: var(--lumo-primary-contrast-color);
+    color: var(--lumo-secondary-text-color);
     border-radius: var(--lumo-border-radius-m) var(--lumo-border-radius-s) var(--lumo-border-radius-s) var(--lumo-border-radius-m);
 }
 

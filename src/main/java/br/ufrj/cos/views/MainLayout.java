@@ -14,6 +14,7 @@ import br.ufrj.cos.views.user.UserRegistrationView;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.applayout.AppLayout;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
@@ -21,6 +22,10 @@ import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
@@ -50,6 +55,7 @@ import java.util.List;
 public class MainLayout extends AppLayout {
 
     public AvatarComponent avatarComponent = new AvatarComponent();
+    private final String HELP_DOC_PATH = "docs/user-manual.pdf";
 
     /**
      * A simple navigation item component, based on ListItem element.
@@ -89,29 +95,49 @@ public class MainLayout extends AppLayout {
         Header header = new Header();
         header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
 
-        Div layout = new Div();
+        HorizontalLayout layout = new HorizontalLayout();
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE, Padding.Vertical.SMALL);
         layout.getStyle().setBoxShadow("0 4px 8px rgba(0, 0, 0, 0.2)");
 
-        H1 appName = new H1("IoT Architecture Solution Knowledge Base");
-        appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
-        //appName.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
-        layout.add(
+        layout.setAlignItems(FlexComponent.Alignment.START);
+        layout.add(new Html("<div style='font-weight: bold; font-size: xx-large'>ArchIoTect</div>"),
+                new Span(" "),
                 new Html("<div style='width: 100%'><h3>IoT Architecture Solution Knowledge Base</h3><p >IoT Design Decision Assistant</p></div>"),
                 this.avatarComponent.createAvatar());
 
         Nav nav = new Nav();
-        nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL);
+        nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL, Width.FULL);
 
         // Wrap the links in a list; improves accessibility
         UnorderedList list = new UnorderedList();
-        list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE);
+        list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE, Width.FULL); // Ensure the list itself takes full width
+
         nav.add(list);
 
         for (MenuItemInfo menuItem : createMenuItems()) {
-            //menuItem.getStyle().set("text-shadow", "2px 2px 4px rgba(0, 0, 0, 0.5)");
             list.add(menuItem);
         }
+
+        // 1. Create the help item. It should NOT take up the full width.
+        //    It should only be as wide as its content (the icon).
+        ListItem helpItem = new ListItem();
+        Button helpBtn = new Button(new Icon(VaadinIcon.QUESTION_CIRCLE));
+        helpBtn.getStyle().setCursor("pointer");
+        helpBtn.setTooltipText("User manual");
+
+        helpBtn.addClickListener(click -> {
+            getUI().ifPresent(ui -> ui.getPage().open(HELP_DOC_PATH, "_blank"));
+        });
+
+        helpItem.add(helpBtn);
+
+        // 2. Apply the magic style: margin-left: auto
+        //    This tells the flex item to consume all available space to its left,
+        //    pushing it to the far right of the flex container (the UnorderedList).
+        helpItem.addClassNames(Margin.Start.AUTO, AlignItems.CENTER, Display.FLEX, Padding.Horizontal.XLARGE);
+
+        // 3. Add the correctly styled help item to the list.
+        list.add(helpItem);
 
         header.add(layout, nav);
         return header;

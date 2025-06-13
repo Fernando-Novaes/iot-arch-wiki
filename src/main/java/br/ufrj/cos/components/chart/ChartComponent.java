@@ -57,7 +57,7 @@ public class ChartComponent extends ApexChartsBuilder {
             values.add(d.getValue().doubleValue());
         });
 
-        TitleSubtitle titleChart = createChartTitle(title, "white");
+        TitleSubtitle titleChart = createChartTitle(title, "var(--lumo-body-text-color)");
 
         ApexChartsBuilder b = withChart(ChartBuilder.get().withType(Type.PIE).build())
                 .withLabels(labels.toArray(value ->
@@ -97,17 +97,17 @@ public class ChartComponent extends ApexChartsBuilder {
         this.dataSet.forEach(d -> {
             labels.add(d.getDescription());
             values.add(d.getValue().doubleValue());
-            labelColors.add("white");
+            labelColors.add("var(--lumo-body-text-color)");
         });
 
-        TitleSubtitle titleChart = createChartTitle(title, "white");
+        TitleSubtitle titleChart = createChartTitle(title, "var(--lumo-body-text-color)");
 
         com.github.appreciated.apexcharts.config.xaxis.labels.Style labelXStyle = StyleBuilder.get()
                 .withColors(labelColors)
                 .build();
 
         com.github.appreciated.apexcharts.config.yaxis.labels.Style labelYStyle = com.github.appreciated.apexcharts.config.yaxis.labels.builder.StyleBuilder.get()
-                .withColor("white")
+                .withColor("var(--lumo-body-text-color)")
                 .build();
 
         Ranges ranges = new Ranges();
@@ -134,7 +134,7 @@ public class ChartComponent extends ApexChartsBuilder {
                 .withYaxis(YAxisBuilder.get()
                         .withLabels(com.github.appreciated.apexcharts.config.yaxis.builder.LabelsBuilder.get().withStyle(labelYStyle).build())
                         .withAxisTicks(AxisTicksBuilder.get()
-                                .withColor("white")
+                                .withColor("var(--lumo-body-text-color)")
                                 .build())
                         .build())
                 .withResponsive(ResponsiveBuilder.get()
