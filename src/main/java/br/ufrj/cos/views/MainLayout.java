@@ -167,4 +167,12 @@ public class MainLayout extends AppLayout {
         return menu.toArray(new MenuItemInfo[0]);
     }
 
+    @Override
+    protected void afterNavigation() {
+        super.afterNavigation();
+        // Set the content area to be a full-height flex container
+        getElement().getStyle().set("height", "100%");
+        getContent().getElement().getStyle().set("flex-grow", "1");
+    }
+
 }

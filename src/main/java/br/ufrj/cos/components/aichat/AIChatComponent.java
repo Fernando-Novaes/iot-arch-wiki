@@ -47,11 +47,12 @@ public class AIChatComponent extends VerticalLayout {
 
         // 5. Set flex grow
         // Make the messageDisplay (and its internal scroller) expand to fill space
-        expand(messageDisplay);
+        //expand(messageDisplay);
         // Input component should take its natural height, so no setFlexGrow needed or setFlexGrow(0)
+        inputComponent.getStyle().set("flex-shrink", "100");
 
         // Optional: Add some styling class if needed
-        addClassName("ai-chat-component");
+        //addClassName("ai-chat-component");
     }
 
     // Keep the clearMessages method if needed externally

@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.List;
 
 @Route(value = "board-view", layout = MainLayout.class)
-@PageTitle("Iot-Arch Wiki - Board")
+@PageTitle("Board")
 @PermitAll
 public class BoardView extends BaseView {
 

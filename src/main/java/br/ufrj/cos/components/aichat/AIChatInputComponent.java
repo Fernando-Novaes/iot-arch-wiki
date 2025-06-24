@@ -17,6 +17,7 @@ import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -160,8 +161,8 @@ public class AIChatInputComponent extends HorizontalLayout {
     private void configActionsButton() {
         Image icon = new Image();
         icon.setSrc(CHAT_ACTIONS_ICON);
-        icon.setHeight("20px");
-        icon.setWidth("14px");
+        icon.setHeight("18px");
+        icon.setWidth("12px");
 
         this.actionsBtn = new Button(icon);
         this.actionsBtn.setHeight("62px");
@@ -277,5 +278,23 @@ public class AIChatInputComponent extends HorizontalLayout {
     private void blockSendButton(boolean block) {
         sendButton.setEnabled(!block);
         sendButton.setText((block)? "Thinking..." : "Send");
+    }
+
+    /**
+     * Scrolls the message scroller to the bottom using JavaScript.
+     */
+    public void scrollToBottom() {
+        getUI().ifPresent(ui -> {
+            // Target the MessageList's own element, which is the scrollable container.
+            Element messageListElement = messageList.getElement();
+
+            if (messageListElement.getNode().isAttached()) {
+                // The JS is correct. setTimeout ensures it runs after the DOM update.
+                String script = "var list = $0; setTimeout(function() { list.scrollTop = list.scrollHeight; }, 100);";
+                ui.getPage().executeJs(script, messageListElement);
+            } else {
+                logger.warn("MessageList element is not attached, cannot execute JS scroll.");
+            }
+        });
     }
 }

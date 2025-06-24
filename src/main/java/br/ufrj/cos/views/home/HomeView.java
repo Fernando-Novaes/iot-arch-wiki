@@ -40,7 +40,7 @@ public class HomeView extends Composite<VerticalLayout> {
                 .set("border", "1px solid var(--lumo-contrast-20pct)")
                 .set("border-radius", "var(--lumo-border-radius-m)")
                 .set("padding", "clamp(1em, 4vw, 2.5em)") // Responsive padding
-                .set("margin", "var(--lumo-space-m)") // Margin around the card
+                .set("margin", "var(--lumo-space-s)") // Margin around the card
                 .set("box-sizing", "border-box"); // Important for width calculations with padding/border
 
         // Control width for different screen sizes
@@ -56,7 +56,7 @@ public class HomeView extends Composite<VerticalLayout> {
         headerContainer.getStyle()
                 .set("text-align", "center")
                 .set("width", "100%") // Take full width of presentationCard
-                .set("margin-bottom", "var(--lumo-space-m)");
+                .set("margin-bottom", "var(--lumo-space-s)");
 
         H2 mainTitle = new H2("Welcome to the IoT Design Decision Assistant");
         mainTitle.getStyle().setFontSize("clamp(1.8em, 3vw, 2.5em)");
@@ -73,7 +73,7 @@ public class HomeView extends Composite<VerticalLayout> {
 
         H3 whyChooseTitle = new H3("Why Choose Our Tool?");
         whyChooseTitle.getStyle().setFontSize("clamp(1.2em, 2.2vw, 1.6em)");
-        whyChooseTitle.getStyle().set("margin-top", "var(--lumo-space-m)"); // Add some top margin
+        whyChooseTitle.getStyle().set("margin-top", "var(--lumo-space-s)"); // Add some top margin
         whyChooseTitle.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
 
 
@@ -86,7 +86,7 @@ public class HomeView extends Composite<VerticalLayout> {
 
         H3 featuresTitle = new H3("Key Features:");
         featuresTitle.getStyle().setFontSize("clamp(1.2em, 2.2vw, 1.6em)");
-        featuresTitle.getStyle().set("margin-top", "var(--lumo-space-m)"); // Add some top margin
+        featuresTitle.getStyle().set("margin-top", "var(--lumo-space-s)"); // Add some top margin
         featuresTitle.getStyle().set("margin-bottom", "var(--lumo-space-xs)");
 
         UnorderedList featuresList = createResponsiveList(
@@ -101,14 +101,14 @@ public class HomeView extends Composite<VerticalLayout> {
         Paragraph closing = new Paragraph("Embark on your IoT design journey with confidence. Let our Assistant be your guide to creating robust, efficient, and innovative IoT software systems.");
         closing.getStyle().setFontSize("clamp(0.9em, 1.8vw, 1.1em)");
         closing.getStyle().set("text-align", "center");
-        closing.getStyle().set("margin-top", "var(--lumo-space-m)");
+        closing.getStyle().set("margin-top", "var(--lumo-space-s)");
 
 
         Emphasis callToAction = new Emphasis("Start exploring now and transform the way you design IoT solutions!");
         callToAction.getStyle()
                 .set("display", "block") // Make it a block to center it
                 .set("text-align", "center")
-                .set("margin-top", "var(--lumo-space-m)")
+                .set("margin-top", "var(--lumo-space-s)")
                 .set("font-weight", "bold")
                 .set("color", "var(--lumo-body-text-color)");
         callToAction.getStyle().setFontSize("clamp(1.0em, 2.0vw, 1.2em)");

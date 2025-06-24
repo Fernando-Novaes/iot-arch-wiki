@@ -61,17 +61,16 @@
 }
 
 .bar_graph {
-    width: 100%;
-    height: 50%;
+    'width: 100%;
+    'height: 50%;
     border: 1px solid #373a3f;
     background-color: var(--lumo-contrast-10pct);
     color: var(--lumo-body-text-color);
 }
 
 .box {
-    color: white;
-    width: 20%;
-    height: 20%;
+    'width: 20%;
+    'height: 20%;
     border: 1px solid grey;
     background-color: var(--lumo-contrast-10pct);
     color: var(--lumo-body-text-color);

@@ -3,11 +3,10 @@ package br.ufrj.cos.components.aichat;
 import br.ufrj.cos.components.aichat.events.ChatMessageReceivedEvent;
 import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
 import br.ufrj.cos.components.aichat.events.ClearChatEvent;
-import com.vaadin.flow.component.AttachEvent;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.orderedlayout.Scroller; // CHANGE 1: Import Scroller
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -19,8 +18,6 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 @UIScope
@@ -31,6 +28,7 @@ public class AIChatMessageDisplay extends VerticalLayout {
 
     private final HtmlMessageList messageList;
     private final AIChatMessageService messageService;
+    private Scroller scroller; // CHANGE 2: Add a field for the Scroller
 
     public AIChatMessageDisplay(HtmlMessageList messageList, AIChatMessageService messageService) {
         this.messageList = messageList;
@@ -46,11 +44,16 @@ public class AIChatMessageDisplay extends VerticalLayout {
         setSpacing(false);
         addClassName("ai-chat-message-display");
 
-        messageList.setSizeFull();
-        messageList.getStyle().set("height", "auto"); // Let height grow
-        messageList.getStyle().set("overflow-y", "auto"); // Make this layout scrollable
+        // CHANGE 3: Use a Scroller to wrap the messageList
+        scroller = new Scroller();
+        scroller.setSizeFull();
+        scroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        scroller.setContent(messageList); // Put the message list inside the scroller
 
-        add(messageList);
+        messageList.getStyle().set("height", "auto"); // Allow message list to grow vertically
+
+        add(scroller); // Add the scroller to the layout
+        expand(scroller); // Expand the scroller, not the message list
         expand(messageList);
 
         this.messageService.clearMessages();
@@ -91,53 +94,38 @@ public class AIChatMessageDisplay extends VerticalLayout {
 
     private void updateMessageList() {
         Collection<AIChatMessage> messages = messageService.getMessages();
+        messageList.setMessages(messages.stream().toList());
 
-        if (!messages.isEmpty()) {
-            messageList.setMessages(messages.stream().toList());
-
-            // Showing load image before chat response
-            if (messageService.getMessages().stream().toList().getLast().getAiMessageType().equals(AIMessageType.USER)) {
-                Image load = new Image();
-                load.setWidth("30%");
-                load.setHeight("30%");
-                load.getStyle().setColor("white");
-                load.setSrc("/images/dots.gif");
-
-                messageList.add(new Span(load));
-            }
-
-            log.info("Message list updated with {} messages.", messageService.getMessages().size());
-        } else {
-            log.info("Message list updated with 0 message.");
+        // Showing load image before chat response
+        if (!messages.isEmpty() && messages.stream().toList().getLast().getAiMessageType().equals(AIMessageType.USER)) {
+            Image load = new Image("/images/dots.gif", "Thinking...");
+            load.setWidth("64px"); // Use fixed size for better layout
+            load.setHeight("32px");
+            load.getStyle().set("margin-left", "var(--lumo-space-l)"); // Align with other messages
+            messageList.add(new Span(load));
         }
+
+        // CHANGE 4: Remove the scroll call from here. It belongs in updateAndScroll.
+        // this.scrollToBottom();
+
+        log.info("Message list updated with {} messages.", messageService.getMessages().size());
     }
 
     /**
      * Scrolls the message scroller to the bottom using JavaScript.
      */
     public void scrollToBottom() {
-        getUI().ifPresent(ui -> { // Target messageList directly
-            Element messageListElement = messageList.getElement();
-            if (messageListElement.getNode().isAttached()) {
-                String script = "var list = $0; setTimeout(function() { list.scrollTop = list.scrollHeight; }, 0);";
-                ui.getPage().executeJs(script, messageListElement)
-                        .then(r -> log.info("Scroll to bottom JS executed on messageList element: {}", messageListElement.getTag()),
-                                e -> log.error("Scroll to bottom JS failed for element {}: {}", messageListElement, e));
-                ui.push();
+        getUI().ifPresent(ui -> {
+            // CHANGE 5: Target the Scroller's element, which is the true scrollable container.
+            Element scrollerElement = scroller.getElement();
+
+            if (scrollerElement.getNode().isAttached()) {
+                String script = "var scroller = $0; setTimeout(function() { scroller.scrollTop = scroller.scrollHeight; }, 100);";
+                ui.getPage().executeJs(script, scrollerElement);
+                log.info("Scroll command sent to scroller element.");
             } else {
-                log.warn("MessageList element is not attached, cannot execute JS scroll.");
+                log.warn("Scroller element is not attached, cannot execute JS scroll.");
             }
-
-            ui.push();
         });
-    }
-
-    // Optional: Scroll to bottom when the component is first attached and potentially populated
-    @Override
-    protected void onAttach(AttachEvent attachEvent) {
-        super.onAttach(attachEvent);
-        log.debug("AIChatMessageDisplay attached. Scheduling initial scroll.");
-        // Schedule scroll after the initial render
-        attachEvent.getUI().beforeClientResponse(this, context -> scrollToBottom());
     }
 }
