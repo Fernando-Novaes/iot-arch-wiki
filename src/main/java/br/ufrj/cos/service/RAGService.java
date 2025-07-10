@@ -247,6 +247,14 @@ public class RAGService {
                         }
                     });
                 }
+                allContentBuilder.append(chunkSeparator);
+
+                List<Technology> techs = this.technologyService.findAllOrderedByDescription();
+                StringBuilder techsBlockBuilder = new StringBuilder();
+                techs.forEach(tech -> {
+                    techsBlockBuilder.append(String.format("Technology/Feature: %s - Definition/Notes: %s\n\n", tech.getDescription(), tech.getNotes() != null ? tech.getNotes() : "N/A"));
+                });
+
 
                 String solutionChunk = String.format("""
                         ## Architectural Solution: %s for %s
@@ -269,6 +277,9 @@ public class RAGService {
 
                         ### Quality Requirements Addressed & Technologies/Features
                         %s
+                        
+                        ### All technologies and features concepts
+                        %s
                         """,
                         archName, iotDomainName,
                         paperTitle, paperYear,
@@ -278,7 +289,8 @@ public class RAGService {
                         archName,
                         solutionDesc.replace("\n", "\n                        "), // Indent multiline description
                         iotDomainName,
-                        qrBlockBuilder.toString().isBlank() ? "Details not specified." : qrBlockBuilder.toString()
+                        qrBlockBuilder.toString().isBlank() ? "Details not specified." : qrBlockBuilder.toString(),
+                        techsBlockBuilder.toString()
                 );
                 allContentBuilder.append(solutionChunk);
                 allContentBuilder.append(chunkSeparator);
