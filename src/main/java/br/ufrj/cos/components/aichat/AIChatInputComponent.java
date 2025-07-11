@@ -16,6 +16,7 @@ import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.popover.Popover;
 import com.vaadin.flow.component.popover.PopoverPosition;
 import com.vaadin.flow.component.popover.PopoverVariant;
+import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
@@ -35,7 +36,7 @@ import java.util.UUID;
 public class AIChatInputComponent extends HorizontalLayout {
     private static final Logger logger = LoggerFactory.getLogger(AIChatComponent.class);
 
-    private final TextField messageInput;
+    private final TextArea messageInput;
     private final Button sendButton;
     private Button actionsBtn;
     private final ApplicationEventPublisher eventPublisher;
@@ -73,7 +74,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         this.avatar = avatar;
         uuid_conversation_id = UUID.randomUUID();
 
-        messageInput = new TextField();
+        messageInput = new TextArea();
         messageInput.setPlaceholder("...");
         messageInput.setPrefixComponent(this.avatar.getAvatar());
         messageInput.setWidthFull();
@@ -168,11 +169,11 @@ public class AIChatInputComponent extends HorizontalLayout {
     private void configActionsButton() {
         Image icon = new Image();
         icon.setSrc(CHAT_ACTIONS_ICON);
-        icon.setHeight("18px");
-        icon.setWidth("12px");
+        icon.setHeight("10px");
+        icon.setWidth("8px");
 
         this.actionsBtn = new Button(icon);
-        this.actionsBtn.setHeight("62px");
+        this.actionsBtn.setHeight(messageInput.getHeight());
 
         Popover popover = new Popover();
         popover.setTarget(actionsBtn);
