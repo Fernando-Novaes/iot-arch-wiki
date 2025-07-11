@@ -27,6 +27,9 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+import java.util.UUID;
+
 @Component
 @UIScope
 public class AIChatInputComponent extends HorizontalLayout {
@@ -39,6 +42,9 @@ public class AIChatInputComponent extends HorizontalLayout {
     private final AsyncRagQueryService asyncRagQueryService;
     private final AvatarComponent avatar;
     private final MessageList messageList;
+
+    // This will be used to give ID to history messages and keep context
+    private final UUID uuid_conversation_id;
 
     public final String CHAT_ACTIONS_ICON = "/icons/square_dots.png";
     public final String HELLO_MESSAGE = """
@@ -65,6 +71,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         this.eventPublisher = eventPublisher;
         this.asyncRagQueryService = asyncRagQueryService;
         this.avatar = avatar;
+        uuid_conversation_id = UUID.randomUUID();
 
         messageInput = new TextField();
         messageInput.setPlaceholder("...");
@@ -210,7 +217,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         this.blockSendButton(true);
 
         var ui = UI.getCurrent();
-        asyncRagQueryService.queryRag(text)
+        asyncRagQueryService.queryRag(text, Optional.ofNullable(uuid_conversation_id))
                 .subscribe(
                         answer -> {
                             ui.access(() ->

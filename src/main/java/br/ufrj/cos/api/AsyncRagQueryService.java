@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import java.time.Duration;
+import java.util.Optional;
+import java.util.UUID;
 
 @UIScope
 @Service
@@ -26,7 +28,7 @@ public class AsyncRagQueryService {
         this.appConfigService = appConfigService;
     }
 
-    public Mono<String> queryRag(String query) {
+    public Mono<String> queryRag(String query, Optional<UUID> conversation_id) {
         if (this.appConfigService.getAppConfig().getApiAddress() == null) {
             NotificationUtils.showErrorNotification("There is no API address configured.");
             return Mono.empty();
@@ -47,6 +49,7 @@ public class AsyncRagQueryService {
 
         QueryRequest request = new QueryRequest();
         request.setQuery(query);
+        request.setConversation_id(conversation_id.get());
 
         return webClient
                 .post()
