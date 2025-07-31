@@ -12,7 +12,9 @@ import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface ArchitectureSolutionRepository extends JpaRepository<ArchitectureSolution, Long> {
@@ -36,4 +38,7 @@ public interface ArchitectureSolutionRepository extends JpaRepository<Architectu
     List<ArchitectureSolution> findByArchitecture_NameContainingIgnoreCase(String name);
 
     List<ArchitectureSolution> findArchitectureSolutionByIoTDomain(IoTDomain domain);
+
+    // Encontra soluções baseadas em um conjunto de nomes de domínio.
+    List<ArchitectureSolution> findByIoTDomainNameIn(Collection<String> domainNames);
 }

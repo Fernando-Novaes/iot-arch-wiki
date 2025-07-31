@@ -157,21 +157,22 @@ public class SliderPanel extends Div {
     }
 
     public void toggle() {
-        expanded = !expanded;
         if (expanded) {
             toggleButton.setIcon(new Icon(VaadinIcon.ANGLE_LEFT));
             addClassName("expanded");
             updateButtonContent(true);
+            expanded = !expanded;
         } else {
             toggleButton.setIcon(new Icon(VaadinIcon.ANGLE_RIGHT));
             removeClassName("expanded");
             updateButtonContent(false);
+            expanded = !expanded;
         }
     }
 
-    private String formatSlidePanelDetails(String title, String name, String description) {
-        return String.format("<div><h3>%s:</h3><b>%s</b></br><div style='font-style: italic; margin-bottom: 5px;'>%s</div></div>",
-                title, name, Optional.ofNullable(description).orElse("No description"));
+    private String formatSlidePanelDetails(String title, String name, String description, String addressedNotes) {
+        return String.format("<div><h3>%s:</h3><b>%s</b></br><div style='font-style: italic; margin-bottom: 5px;'>%s</div></br><div style='font-style: italic; margin-bottom: 5px;'>%s</div></div>",
+                title, name, Optional.ofNullable(description).orElse("No description"), Optional.ofNullable(addressedNotes).orElse("No description"));
     }
 
     public void setDataDetailsContent(DataDetails dataDetails) {
@@ -189,7 +190,7 @@ public class SliderPanel extends Div {
             }
 
             if (dataDetails.getTechnology() != null) {
-                this.setTechnologyContent(dataDetails.getTechnology());
+                this.setTechnologyContent(dataDetails);
             }
 
             if (dataDetails.getReference() != null) {
@@ -201,27 +202,33 @@ public class SliderPanel extends Div {
     private void setIoTDomainContent(IoTDomain domain) {
         iotDomainHL.add(
                 new HorizontalLayout(
-                        new Html(formatSlidePanelDetails("IoT Domain", domain.getName(), domain.getDescription()))
+                        new Html(formatSlidePanelDetails("IoT Domain", domain.getName(), domain.getDescription(),  null))
 
                 ));
     }
 
     private void setArchitectureContent(ArchitectureSolution solution) {
         archHL.add(new HorizontalLayout(
-                new Html(formatSlidePanelDetails("Architecture", solution.getArchitecture().getName(), solution.getDescription()))));
+                new Html(formatSlidePanelDetails("Architecture", solution.getArchitecture().getName(), solution.getDescription(), null))));
     }
 
     private void setQualityRequirementContent(QualityRequirement qr) {
         qrHL.add(new HorizontalLayout(
                 new Html(formatSlidePanelDetails("Quality Requirement", qr.getName(),
-                        Optional.ofNullable(qr.getDescription()).orElse("No description")))
+                        Optional.ofNullable(qr.getDescription()).orElse("No description"), null))
         ));
     }
 
-    private void setTechnologyContent(Technology tech) {
+    private void setTechnologyContent(DataDetails details) {
+        Optional<QualityRequirementTechnology> qrAddressedNotes = details.getArchitectureSolution().getQualityRequirementTechnologies().stream()
+                .filter(tech -> tech.getTechnology().equals(details.getTechnology()))
+                .filter(qr ->  qr.getQualityRequirement().equals(details.getQualityRequirement()))
+                .findAny();
+
         techHL.add(new HorizontalLayout(
-                new Html(formatSlidePanelDetails("Technology", tech.getDescription(),
-                        Optional.ofNullable(tech.getNotes()).orElse("No description")))
+                new Html(formatSlidePanelDetails("Technology", details.getTechnology().getDescription(),
+                        Optional.ofNullable(details.getTechnology().getNotes()).orElse("No description"),
+                        String.format("%s: %s", qrAddressedNotes.get().getQualityRequirement(), qrAddressedNotes.get().getNotes())))
 
         ));
     }

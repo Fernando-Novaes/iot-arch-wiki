@@ -23,4 +23,6 @@ public interface IoTDomainRepository extends JpaRepository<IoTDomain, Long> {
 
 
     List<IoTDomain> findByNameContainingIgnoreCase(String name);
+
+    List<IoTDomain> findIoTDomainsByNameInOrderByNameAsc(List<String> ioTDomains);
 }

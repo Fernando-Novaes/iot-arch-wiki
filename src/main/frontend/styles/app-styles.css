@@ -8,7 +8,6 @@
 
 /* Base styles */
 .button-base {
-    border: none;
     padding: 5px 10px;
     border-radius: 4px;
     'cursor: pointer;
@@ -17,6 +16,9 @@
     color: black;
     height: 22px;
     cursor: pointer;
+    border-width: thin;
+    border-style: solid;
+    border-color: black;
 }
 
 /* IoT Domain button style */
@@ -36,7 +38,7 @@
 
 /* Technology button style */
 .technology {
-    background-color: green;
+    background-color: lightgreen;
 }
 
 .treeView-cell {

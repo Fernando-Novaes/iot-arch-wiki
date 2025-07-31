@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ArchitectureSolutionService {
@@ -64,5 +65,9 @@ public class ArchitectureSolutionService {
 
     public List<ArchitectureSolution> findByIoTDomainName(String domainName) {
         return this.architectureSolutionRepository.findByIoTDomainName(domainName);
+    }
+
+    public List<ArchitectureSolution> findByIoTDomainNames(Set<String> domainNames) {
+        return this.architectureSolutionRepository.findByIoTDomainNameIn(domainNames);
     }
 }

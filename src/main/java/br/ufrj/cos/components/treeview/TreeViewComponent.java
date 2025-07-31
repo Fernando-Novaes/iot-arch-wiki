@@ -5,7 +5,6 @@ import br.ufrj.cos.components.diagram.DiagramComponent;
 import br.ufrj.cos.components.diagram.EdgeDiagram;
 import br.ufrj.cos.components.diagram.NodeDiagram;
 import br.ufrj.cos.components.qrcode.QRCodeComponent;
-import br.ufrj.cos.components.sliderpanel.OpenCloseEvent;
 import br.ufrj.cos.components.treeview.dialog.ReferenceDetailsDialog;
 import br.ufrj.cos.components.treeview.events.TreeRootSelectionChangeEvent;
 import br.ufrj.cos.components.treeview.factory.TreeNodeDetailsFactory;
@@ -16,13 +15,8 @@ import com.vaadin.flow.component.DetachEvent;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.GridVariant;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -111,15 +105,15 @@ public class TreeViewComponent extends VerticalLayout {
         TreeNode<Object> root =
                 new TreeNode<>(new Text("Move the cursor over the tree node to see more details in the side panel."));
 
-        if (this.isFiltering) {
+//        if (this.isFiltering) {
+//            root = treeViewService.getTree(this.treeViewType);
+//            this.setTreeViewData(treeViewService.getTreeViewData());
+//            if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+//        } else {
             root = treeViewService.getTree(this.treeViewType);
             this.setTreeViewData(treeViewService.getTreeViewData());
             if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
-        } else {
-            root = treeViewService.getTree(this.treeViewType);
-            if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
-            this.setTreeViewData(treeViewService.getTreeViewData());
-        }
+//        }
 
         treeGrid.expand(root);
 

@@ -62,4 +62,8 @@ public class IoTDomainService {
     public void delete(IoTDomain domain) {
         ioTDomainRepository.delete(domain);
     }
+
+    public List<IoTDomain> findAllByDomainName(List<String> domainNames) {
+        return this.ioTDomainRepository.findIoTDomainsByNameInOrderByNameAsc(domainNames);
+    }
 }

@@ -11,8 +11,8 @@ import java.util.Set;
 
 @Entity
 @Data
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode(callSuper = false, exclude = "architectureSolutions")
 public class IoTDomain extends DomainBase {
     @Id
@@ -26,6 +26,9 @@ public class IoTDomain extends DomainBase {
 
     @OneToMany(mappedBy = "ioTDomain", fetch = FetchType.EAGER)
     private List<ArchitectureSolution> architectureSolutions;
+
+    public IoTDomain(IoTDomain domain) {
+    }
 
     @Override
     public String toString() {

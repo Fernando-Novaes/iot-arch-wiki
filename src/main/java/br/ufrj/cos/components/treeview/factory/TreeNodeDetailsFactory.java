@@ -47,8 +47,9 @@ public class TreeNodeDetailsFactory {
             btn.setText(qr.getName());
             btn.getElement().addEventListener("mouseover", event -> setQualityRequirementDetails(node, qr));
         } else if (data instanceof Technology tech) {
+            QualityRequirement qr = (QualityRequirement) node.getParent().getData();
             btn.setText(tech.getDescription());
-            btn.getElement().addEventListener("mouseover", event -> setTechnologyDetails(node, tech));
+            btn.getElement().addEventListener("mouseover", event -> setTechnologyDetails(node, qr, tech));
         }
 
         //btn.getElement().addEventListener("mouseout", event -> this.publishEmptyDetails());
@@ -116,7 +117,7 @@ public class TreeNodeDetailsFactory {
         eventPublisher.publishEvent(new DataDetailsUpdateEvent(this.dataDetails));
     }
 
-    private void setTechnologyDetails(TreeNode<?> node, Technology tech) {
+    private void setTechnologyDetails(TreeNode<?> node, QualityRequirement qr, Technology tech) {
         ArchitectureSolution solution = (ArchitectureSolution) node.getParent().getParent().getData();
 //        setIoTDomainDetails(solution.getIoTDomain());
 //        setArchitectureSolutionDetails(solution);
@@ -127,6 +128,7 @@ public class TreeNodeDetailsFactory {
 
         QualityRequirementTechnology assoc = solution.getQualityRequirementTechnologies()
                 .stream()
+                .filter(assocs -> assocs.getQualityRequirement().equals(qr))
                 .filter(assocs -> assocs.getTechnology().getId().equals(tech.getId()))
                 .findFirst()
                 .orElse(null);

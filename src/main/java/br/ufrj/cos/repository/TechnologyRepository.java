@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface TechnologyRepository extends JpaRepository<Technology, Long> {
@@ -43,5 +44,4 @@ public interface TechnologyRepository extends JpaRepository<Technology, Long> {
 
 
     List<Technology> findByDescriptionContainingIgnoreCase(String description);
-
 }

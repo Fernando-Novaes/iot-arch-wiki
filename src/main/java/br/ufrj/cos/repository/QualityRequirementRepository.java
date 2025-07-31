@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface QualityRequirementRepository extends JpaRepository<QualityRequirement, Long> {
@@ -50,6 +51,5 @@ public interface QualityRequirementRepository extends JpaRepository<QualityRequi
     List<String> findDistinctNames();
 
     List<QualityRequirement> findByAssociations_ArchitectureSolution_Architecture_Name_ContainingIgnoreCaseOrderByNameAsc(String name);
-
 
 }

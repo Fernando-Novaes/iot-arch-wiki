@@ -12,6 +12,7 @@ import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
@@ -27,11 +28,14 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     private static final String COLOR_IOT_DOMAIN = "#ED8312E5";
     private static final String COLOR_WHITE = "white";
     private static final String COLOR_YELLOW = "yellow";
-    private static final String COLOR_GREEN = "green";
+    private static final String COLOR_GREEN = "lightgreen";
     private static final String COLOR_TEXT = "var(--lumo-body-text-color)";
 
     @Getter
     private TreeViewType treeViewType;
+
+    @Getter @Setter
+    private Boolean isFiltering = false;
 
     private final Button rootSelection;
     private final Button leafLevelOne;
@@ -49,8 +53,10 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
         this.eventPublisher = eventPublisher;
 
         // Initialize buttons
-        this.changeRight = new Button("→");
-        this.changeLeft = new Button("←");
+        this.changeRight = new Button(VaadinIcon.ARROW_CIRCLE_RIGHT.create());
+        this.changeRight.getStyle().setBorder("1px solid black");
+        this.changeLeft = new Button(VaadinIcon.ARROW_CIRCLE_LEFT.create());
+        this.changeLeft.getStyle().setBorder("1px solid black");
 
         this.rootSelection = createStyledButton("Root");
         this.leafLevelOne = createStyledButton("First Level");
@@ -86,21 +92,39 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     }
 
     private TreeViewType getLeftTreeViewType(TreeViewType current) {
-        return switch (current) {
-            case IoTDomain, Filtered -> TreeViewType.QualityRequirement;
-            case ArchitectureSolution -> TreeViewType.IoTDomain;
-            case QualityRequirement, Technology -> TreeViewType.ArchitectureSolution;
-            default -> TreeViewType.IoTDomain;
-        };
+        if (this.isFiltering) {
+            return switch (current) {
+                case IoTDomain_Filtered -> TreeViewType.QualityRequirement_Filtered;
+                case ArchitectureSolution_Filtered -> TreeViewType.IoTDomain_Filtered;
+                case QualityRequirement_Filtered, Technology_Filtered -> TreeViewType.ArchitectureSolution_Filtered;
+                default -> TreeViewType.IoTDomain_Filtered;
+            };
+        } else {
+            return switch (current) {
+                case IoTDomain, Filtered -> TreeViewType.QualityRequirement;
+                case ArchitectureSolution_Filtered -> TreeViewType.IoTDomain;
+                case QualityRequirement, Technology -> TreeViewType.ArchitectureSolution;
+                default -> TreeViewType.IoTDomain;
+            };
+        }
     }
 
     private TreeViewType getRightTreeViewType(TreeViewType current) {
-        return switch (current) {
-            case IoTDomain, Filtered -> TreeViewType.ArchitectureSolution;
-            case ArchitectureSolution -> TreeViewType.QualityRequirement;
-            case QualityRequirement, Technology -> TreeViewType.IoTDomain;
-            default -> TreeViewType.IoTDomain;
-        };
+        if (this.isFiltering) {
+            return switch (current) {
+                case IoTDomain_Filtered -> TreeViewType.ArchitectureSolution_Filtered;
+                case ArchitectureSolution_Filtered -> TreeViewType.QualityRequirement_Filtered;
+                case QualityRequirement_Filtered, Technology_Filtered -> TreeViewType.IoTDomain_Filtered;
+                default -> TreeViewType.IoTDomain_Filtered;
+            };
+        } else {
+            return switch (current) {
+                case IoTDomain, Filtered -> TreeViewType.ArchitectureSolution;
+                case ArchitectureSolution -> TreeViewType.QualityRequirement;
+                case QualityRequirement, Technology -> TreeViewType.IoTDomain;
+                default -> TreeViewType.IoTDomain;
+            };
+        }
     }
 
     private Button createStyledButton(String tooltip) {
@@ -108,6 +132,7 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
         button.getStyle().set(BUTTON_FONT_WEIGHT, "bold");
         button.getStyle().set(BUTTON_TEXT_COLOR, COLOR_TEXT);
         button.setTooltipText(tooltip);
+        button.getStyle().setBorder("1px solid black");
         return button;
     }
 
@@ -142,6 +167,10 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     @PostConstruct
     private void init() {
         setTreeViewType(TreeViewType.IoTDomain);
+    }
+
+    public void changeToDefaultView() {
+        this.setTreeViewType(TreeViewType.IoTDomain);
     }
 
     public void setTreeViewType(TreeViewType type) {
