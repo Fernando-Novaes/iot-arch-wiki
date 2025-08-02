@@ -6,11 +6,14 @@ import br.ufrj.cos.components.aichat.events.ChatMessageSentEvent;
 import br.ufrj.cos.components.aichat.events.ClearChatEvent;
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.SecurityUtils;
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.componentfactory.onboarding.OnboardingStep;
 import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.popover.Popover;
@@ -21,6 +24,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -36,12 +40,13 @@ import java.util.UUID;
 public class AIChatInputComponent extends HorizontalLayout {
     private static final Logger logger = LoggerFactory.getLogger(AIChatComponent.class);
 
-    private final TextArea messageInput;
-    private final Button sendButton;
-    private Button actionsBtn;
+    @Getter private final TextArea messageInput;
+    @Getter private final Button sendButton;
+    private final HtmlMessageList htmlMessageList;
+    @Getter private Button actionsBtn;
     private final ApplicationEventPublisher eventPublisher;
     private final AsyncRagQueryService asyncRagQueryService;
-    private final AvatarComponent avatar;
+    @Getter private final AvatarComponent avatar;
     private final MessageList messageList;
 
     // This will be used to give ID to history messages and keep context
@@ -62,13 +67,14 @@ public class AIChatInputComponent extends HorizontalLayout {
                         <li>"What are the key security considerations for healthcare IoT systems?"</li>
                         <li>"Compare LoRaWAN and NB-IoT for wide-area connectivity."</li>
                     </ul>
+            <p>Additionally, you can make a tour and see tips about the assistant. Just click on information button <img src='images/tour.png' alt='User Icon' style='height: 18px; vertical-align: middle; margin-right: 5px;'> above.</p>
             <p>How can I help you design your IoT system today?</p>
         </div>""";
 
     public AIChatInputComponent(
             ApplicationEventPublisher eventPublisher,
             AsyncRagQueryService asyncRagQueryService, AvatarComponent avatar,
-            MessageList messageList) {
+            MessageList messageList, HtmlMessageList htmlMessageList) {
         this.eventPublisher = eventPublisher;
         this.asyncRagQueryService = asyncRagQueryService;
         this.avatar = avatar;
@@ -90,6 +96,7 @@ public class AIChatInputComponent extends HorizontalLayout {
         setSizeFull();
         add(messageInput, actionsBtn);
         this.messageList = messageList;
+        this.htmlMessageList = htmlMessageList;
     }
 
     @Override
@@ -110,7 +117,7 @@ public class AIChatInputComponent extends HorizontalLayout {
             AIChatMessage aiMessage = AIChatMessage.Builder()
                             .text(String.format(HELLO_MESSAGE,
                                     SecurityUtils.getUsername()))
-                            .aiMessageType(AIMessageType.ASSISTANT)
+                            .aiMessageType(AIMessageType.HELLO_MESSAGE)
                             .userDetails(createAIUser())
                             .time(java.time.Instant.now())
                             .build();

@@ -1,6 +1,11 @@
 package br.ufrj.cos.views.home;
 
+import br.ufrj.cos.components.sliderpanel.OpenCloseEvent;
+import br.ufrj.cos.views.HasTour;
 import br.ufrj.cos.views.MainLayout;
+import com.vaadin.componentfactory.PopupPosition;
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.componentfactory.onboarding.OnboardingStep;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -13,7 +18,7 @@ import jakarta.annotation.security.PermitAll;
 @Route(value = "", layout = MainLayout.class)
 @PermitAll
 // No @CssImport needed if all styles are inline via Java
-public class HomeView extends Composite<VerticalLayout> {
+public class HomeView extends Composite<VerticalLayout> implements HasTour {
 
     public HomeView() {
         VerticalLayout rootContent = getContent();
@@ -142,5 +147,15 @@ public class HomeView extends Composite<VerticalLayout> {
             list.add(listItem);
         }
         return list;
+    }
+
+    @Override
+    public Onboarding createTour() {
+        return null;
+    }
+
+    @Override
+    public Boolean startDemoTour() {
+        return true;
     }
 }

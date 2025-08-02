@@ -3,6 +3,7 @@ package br.ufrj.cos.views;
 import br.ufrj.cos.components.treeview.TreeViewComponent;
 import com.vaadin.flow.component.Composite;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.details.Details;
 import com.vaadin.flow.component.details.DetailsVariant;
@@ -40,6 +41,27 @@ public abstract class BaseView extends Composite<VerticalLayout> {
         h1.setText(headerText);
         h1.setWidth("max-content");
         header.add(h1);
+
+        getContent().add(header);
+    }
+
+    public void createHeader(String headerText, Button btn) {
+        HorizontalLayout header = new HorizontalLayout();
+        H1 h1 = new H1();
+        HorizontalLayout layoutRow2 = new HorizontalLayout();
+        header.setWidthFull();
+        getContent().setFlexGrow(1.0, header);
+        header.setWidth("100%");
+        header.getStyle().set("flex-grow", "1");
+        header.setMinHeight("5%");
+        header.setMaxHeight("5%");
+        header.setAlignItems(FlexComponent.Alignment.CENTER);
+        header.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
+        h1.setText(headerText);
+        h1.setWidth("max-content");
+        btn.getStyle().setCursor("pointer");
+        btn.setTooltipText("Start a guided tour of this page's features.");
+        header.add(h1, btn);
 
         getContent().add(header);
     }

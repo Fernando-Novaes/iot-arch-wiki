@@ -1,22 +1,26 @@
 package br.ufrj.cos.views.iotarch;
 
 import br.ufrj.cos.components.sliderpanel.DataDetailsUpdateEvent;
+import br.ufrj.cos.components.sliderpanel.OpenCloseEvent;
 import br.ufrj.cos.components.sliderpanel.SliderPanel;
 import br.ufrj.cos.components.treeview.TreeRootSelectionComponent;
 import br.ufrj.cos.components.treeview.TreeViewComponent;
 import br.ufrj.cos.components.treeview.TreeViewType;
-import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.*;
+import br.ufrj.cos.utils.TourUtils;
 import br.ufrj.cos.views.BaseView;
+import br.ufrj.cos.views.HasTour;
 import br.ufrj.cos.views.MainLayout;
 import br.ufrj.cos.views.record.ArchitectureSolutionRecord;
 import br.ufrj.cos.views.record.IoTDomainRecord;
 import br.ufrj.cos.views.record.QualityRequirementRecord;
 import br.ufrj.cos.views.record.TechnologyRecord;
-import com.vaadin.flow.component.UI;
+import com.vaadin.componentfactory.PopupPosition;
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.componentfactory.onboarding.OnboardingStep;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.combobox.MultiSelectComboBox;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -24,10 +28,9 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.*;
-import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.security.PermitAll;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.event.EventListener;
 
 import java.util.*;
@@ -36,10 +39,12 @@ import java.util.stream.Collectors;
 @PermitAll
 @PageTitle("IoT-Architecture Knowledge Base")
 @Route(value = "iot-arch-view", layout = MainLayout.class)
-public class IoTArchView extends BaseView {
+public class IoTArchView extends BaseView implements HasTour {
+    private final TreeViewComponent treeViewComponent;
     private TreeViewComponent treeView;
     private final TreeRootSelectionComponent treeRootSelection;
     private final SliderPanel sliderPanel;
+    private final ApplicationEventPublisher eventPublisher;
 
     // Services
     private final IoTDomainService ioTDomainService;
@@ -67,21 +72,62 @@ public class IoTArchView extends BaseView {
     @Autowired
     public IoTArchView(TreeViewComponent treeView,
                        TreeRootSelectionComponent treeRootSelection,
-                       SliderPanel sliderPanel,
+                       SliderPanel sliderPanel, ApplicationEventPublisher eventPublisher,
                        IoTDomainService ioTDomainService,
                        ArchitectureSolutionService architectureSolutionService,
                        QualityRequirementService qualityRequirementService,
-                       TechnologyService technologyService) {
+                       TechnologyService technologyService, TreeViewComponent treeViewComponent) {
 
         this.treeView = treeView; // Create new instance
         this.treeRootSelection = treeRootSelection; // Create new instance
         this.sliderPanel = sliderPanel;
+        this.eventPublisher = eventPublisher;
         this.ioTDomainService = ioTDomainService;
         this.architectureSolutionService = architectureSolutionService;
         this.qualityRequirementService = qualityRequirementService;
         this.technologyService = technologyService;
 
         initializeView();
+        this.treeViewComponent = treeViewComponent;
+    }
+
+    @Override
+    public Onboarding createTour() {
+            return new TourUtils().build()
+                    .addStep(filterButton, "Filter options", new Html("<div>The filtering mechanism allows for precise refinement of the knowledge base\n" +
+                            "view. To apply filters, proceed as follows:</br></br>" +
+                            " • Select one or more of the following: Architecture (Pattern/Name), IoT Domain,\n" +
+                            "Quality Requirement, Technology or combine more than one option. Then, click the\n" +
+                            "Filter button to perform the action.</br>" +
+                            " • Combining Filters: When you select multiple criteria (e.g., Domain: 'Healthcare' AND\n" +
+                            "QR: 'Security'), the system will only show results that match all selected criteria.</br>" +
+                            " • To reset the view, click the Cancel button when visible.</div>"), PopupPosition.BOTTOM)
+                    .addStep(iotDomainCombo, "Multiselection Comboboxes", new Html("<p>You can select multiple values from any combobox.</p>"), PopupPosition.END, Optional.of(l -> {
+                        iotDomainCombo.updateSelection(Set.of(new IoTDomainRecord("Healthcare"), new IoTDomainRecord("Generic")), Set.of());
+                        iotDomainCombo.setOpened(true);
+                    }))
+                    .addStep(treeView, "Hierarchical Knowledge Base", new Html("<div>Browse all data from Knowledge Base here. All data is organized in hierarchical way, considering: IoT Domain, Architectural Solution, " +
+                            "Quality Requirement, and Technology.</br>" +
+                            "When you open an item in the Tree and move the mouser point over it, the Details View" +
+                            "Panel will display all associated attributes, such as:" +
+                            "Description, Source Paper / Reference, Target IoT Domain(s), Addressed Quality" +
+                            "Requirements (QRs), and Associated Technologies.</div>"), PopupPosition.BOTTOM,
+                            Optional.of(l -> {
+                                iotDomainCombo.updateSelection(Set.of(), Set.of(new IoTDomainRecord("Healthcare"), new IoTDomainRecord("Generic")));
+                            }))
+                    .addStep(treeRootSelection, "Hierarchical Representation", new Html("<div><p>Here is shown how data is presented in the Tree (root and leaf).</p></div>"), PopupPosition.BOTTOM)
+                    .addStep(sliderPanel.getToggleButton(), "Show/Hide Details", new Html("<p>You can make the Details View Panel visible or hidden, by clicking on the Show/Hide Details buttons" +
+                            "The Show/Hide panel is resizable. To adjust its width, hover the cursor over the left" +
+                            "edge until it changes into a resize icon, then click and drag to the desired size.</p>"), PopupPosition.END,
+                            Optional.of(l -> eventPublisher.publishEvent(new OpenCloseEvent(OpenCloseEvent.Action.OPEN))))
+                    .addStep(treeViewComponent.getTreeGrid(), "Move the cursor over the nodes", new Html("<p>To see more details about a node in the details panel, move the cursor over it.</p>"),
+                            PopupPosition.BOTTOM, Optional.of(l -> eventPublisher.publishEvent(new OpenCloseEvent(OpenCloseEvent.Action.CLOSE))))
+                    .getOnboarding();
+    }
+
+    @Override
+    public Boolean startDemoTour() {
+        return false;
     }
 
     private void initializeView() {
@@ -89,10 +135,10 @@ public class IoTArchView extends BaseView {
         getContent().removeAll();
 
         // Initialize UI components
-        this.iotDomainCombo = createComboBox("IoT Domains", ActionType.IOTDOMAIN, false);
-        this.architectureCombo = createComboBox("Architecture Solutions", ActionType.ARCHITECTURESOLUTION, false);
-        this.qualityCombo = createComboBox("Quality Requirements", ActionType.QUALITYREQUIREMENT, true);
-        this.technologiesCombo = createComboBox("Technologies", ActionType.TECHNOLOGY, true);
+        this.iotDomainCombo = createComboBox("IoT Domains", ActionType.IOTDOMAIN);
+        this.architectureCombo = createComboBox("Architecture Solutions", ActionType.ARCHITECTURESOLUTION);
+        this.qualityCombo = createComboBox("Quality Requirements", ActionType.QUALITYREQUIREMENT);
+        this.technologiesCombo = createComboBox("Technologies", ActionType.TECHNOLOGY);
 
         this.filterButton = createFilterButton();
         this.cancelButton = createCancelButton();
@@ -154,12 +200,13 @@ public class IoTArchView extends BaseView {
 //        };
 //    }
 
-    private <T> MultiSelectComboBox<T> createComboBox(String label, ActionType actionType, Boolean multiSelection) {
+    private <T> MultiSelectComboBox<T> createComboBox(String label, ActionType actionType) {
         MultiSelectComboBox<T> comboBox = new MultiSelectComboBox<>(label);
         comboBox.setPlaceholder("All " + label);
         comboBox.setWidth("300px");
         comboBox.setClearButtonVisible(false);
         comboBox.setLabel(null);
+        comboBox.setSelectedItemsOnTop(true);
 
         applyComboBoxStyles(comboBox);
         setupComboBoxOverlay(comboBox);
@@ -222,7 +269,7 @@ public class IoTArchView extends BaseView {
             safelyRemoveTreeView();
 
             // Setup new filtered view
-            //cancelButton.setVisible(true);
+            cancelButton.setVisible(true);
             treeView.setIsFiltering(true);
 
             //treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);

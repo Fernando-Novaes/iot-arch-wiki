@@ -38,7 +38,10 @@ import java.util.List;
 @CssImport(value = "./styles/app-styles.css", themeFor = "vaadin-grid")
 public class TreeViewComponent extends VerticalLayout {
 
+    @Getter
     private TreeGrid<TreeNode<?>> treeGrid;
+    @Getter
+    private TreeNode<Object> rootNode;
     private final QRCodeComponent qrCodeComponent;
     private final DiagramComponent diagramComponent;
     private final TreeViewService treeViewService;
@@ -80,6 +83,10 @@ public class TreeViewComponent extends VerticalLayout {
      */
     public void load() {
         treeGrid = new TreeGrid<>();
+
+        TreeNode<Object> tree = treeViewService.getTree(this.treeViewType);
+        this.setTreeViewData(treeViewService.getTreeViewData());
+
         // Define columns (e.g., displaying IoT Domain names)
         treeGrid.addComponentHierarchyColumn(node -> {
             Object data = node.getData();
@@ -93,7 +100,10 @@ public class TreeViewComponent extends VerticalLayout {
             } else if (data instanceof Technology) {
                 return this.createNodeWithIcon(treeGrid, node);
             }
-            return new Text("Move the cursor over the tree node to see more details on the side panel.");
+            return (treeViewData.isEmpty())?
+                    new Html("<div style='font-weight: bold; align-content: center; width: max-content; color: red'>No results were found for the current combination of filters. " +
+                            "Try adjusting or removing a filter to see more results.</div>") :
+                    new Text("Move the cursor over the tree node to see more details on the side panel.");
         }).setHeader(
                 (this.getGridHeader() != null)?
                         this.getGridHeader() :
@@ -103,17 +113,19 @@ public class TreeViewComponent extends VerticalLayout {
         treeGrid.getStyle().setBorderRadius("8px");
 
         TreeNode<Object> root =
-                new TreeNode<>(new Text("Move the cursor over the tree node to see more details in the side panel."));
+                new TreeNode<>(new Text("Move the cursor over the tree node to see more details on the side panel."));
+
 
 //        if (this.isFiltering) {
 //            root = treeViewService.getTree(this.treeViewType);
 //            this.setTreeViewData(treeViewService.getTreeViewData());
 //            if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
 //        } else {
-            root = treeViewService.getTree(this.treeViewType);
-            this.setTreeViewData(treeViewService.getTreeViewData());
-            if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
-//        }
+
+        root = tree;
+        this.rootNode = root;
+        if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+        //}
 
         treeGrid.expand(root);
 

@@ -3,16 +3,21 @@ package br.ufrj.cos.components.aichat;
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.ClipboardUtils;
 import br.ufrj.cos.utils.NotificationUtils;
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.componentfactory.onboarding.OnboardingStep;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Image;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.jsoup.safety.Safelist;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +29,10 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 @UIScope
 @Component
@@ -89,7 +98,7 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                 // Add appropriate class based on message type
                 if (message.getAiMessageType().equals(AIMessageType.USER)) {
                     messageContainer.addClassName("user-message-container");
-                } else if (message.getAiMessageType().equals(AIMessageType.ASSISTANT)) {
+                } else if ((message.getAiMessageType().equals(AIMessageType.ASSISTANT)) || (message.getAiMessageType().equals(AIMessageType.HELLO_MESSAGE))) {
                     messageContainer.addClassName("assistant-message-container");
                 }
 
@@ -148,6 +157,7 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                 add(messageContainer);
             }
         }
+
         log.info("Finished adding message elements to HtmlMessageList.");
     }
 

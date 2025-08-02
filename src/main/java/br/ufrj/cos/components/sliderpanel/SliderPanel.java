@@ -28,6 +28,7 @@ import java.util.Optional;
 @CssImport("./styles/slider-panel.css")  // Keep your main CSS
 public class SliderPanel extends Div {
     private final Div content;
+    @Getter
     private final Button toggleButton;
     private boolean expanded = true; // Default to expanded
     private String expandedText = "Hide Details";

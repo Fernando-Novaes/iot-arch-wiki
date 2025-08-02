@@ -2,21 +2,25 @@ package br.ufrj.cos.views;
 
 
 import br.ufrj.cos.components.avatar.AvatarComponent;
-import br.ufrj.cos.utils.SecurityUtils;
+import br.ufrj.cos.utils.TourUtils;
 import br.ufrj.cos.views.about.AboutView;
 import br.ufrj.cos.views.aichat.AiChatView;
-import br.ufrj.cos.views.appconfig.AppConfigView;
 import br.ufrj.cos.views.board.BoardView;
-import br.ufrj.cos.views.datamanager.DataManagerView;
 import br.ufrj.cos.views.home.HomeView;
 import br.ufrj.cos.views.iotarch.IoTArchView;
-import br.ufrj.cos.views.user.UserRegistrationView;
+import com.vaadin.componentfactory.Popup;
+import com.vaadin.componentfactory.PopupAlignment;
+import com.vaadin.componentfactory.PopupPosition;
+import com.vaadin.componentfactory.PopupVariant;
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.componentfactory.onboarding.OnboardingStep;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.ComponentEvent;
+import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.ListItem;
 import com.vaadin.flow.component.html.Nav;
@@ -27,6 +31,7 @@ import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.shared.Registration;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
 import com.vaadin.flow.theme.lumo.LumoUtility.Display;
@@ -47,16 +52,22 @@ import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * The main view is a top-level placeholder for other views.
  */
 @PermitAll
+@CssImport("./styles/tour-styles.css")
 public class MainLayout extends AppLayout {
 
-    public AvatarComponent avatarComponent = new AvatarComponent();
+    private AvatarComponent avatarComponent = new AvatarComponent();
     private final String HELP_DOC_PATH = "docs/user-manual.pdf";
-
+    private Nav nav;
+    private Header header;
+    private Button tourBtn;
+    private Button helpBtn;
+    Registration clickRegistration;
     /**
      * A simple navigation item component, based on ListItem element.
      */
@@ -92,7 +103,7 @@ public class MainLayout extends AppLayout {
     }
 
     private Component createHeaderContent() {
-        Header header = new Header();
+        header = new Header();
         header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
 
         HorizontalLayout layout = new HorizontalLayout();
@@ -105,7 +116,7 @@ public class MainLayout extends AppLayout {
                 new Html("<div style='width: 100%'><h3>IoT Architecture Solution Knowledge Base</h3><p >IoT Design Decision Assistant</p></div>"),
                 this.avatarComponent.createAvatar());
 
-        Nav nav = new Nav();
+        nav = new Nav();
         nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL, Width.FULL);
 
         // Wrap the links in a list; improves accessibility
@@ -121,15 +132,22 @@ public class MainLayout extends AppLayout {
         // 1. Create the help item. It should NOT take up the full width.
         //    It should only be as wide as its content (the icon).
         ListItem helpItem = new ListItem();
-        Button helpBtn = new Button(new Icon(VaadinIcon.QUESTION_CIRCLE));
+        helpBtn = new Button(new Icon(VaadinIcon.QUESTION_CIRCLE));
         helpBtn.getStyle().setCursor("pointer");
         helpBtn.setTooltipText("User manual");
+
+        tourBtn = new Button(VaadinIcon.INFO_CIRCLE.create());
+        tourBtn.setTooltipText("Start a guided tour of this page's features.");
+        tourBtn.getStyle().setCursor("pointer");
+        tourBtn.getStyle().setBorder("solid 1px blue");
 
         helpBtn.addClickListener(click -> {
             getUI().ifPresent(ui -> ui.getPage().open(HELP_DOC_PATH, "_blank"));
         });
 
-        helpItem.add(helpBtn);
+        helpItem.setWhiteSpace(HasText.WhiteSpace.NORMAL);
+        helpBtn.getStyle().setBorder("solid 1px blue");
+        helpItem.add(helpBtn, tourBtn);
 
         // 2. Apply the magic style: margin-left: auto
         //    This tells the flex item to consume all available space to its left,
@@ -140,6 +158,7 @@ public class MainLayout extends AppLayout {
         list.add(helpItem);
 
         header.add(layout, nav);
+
         return header;
     }
 
@@ -170,9 +189,73 @@ public class MainLayout extends AppLayout {
     @Override
     protected void afterNavigation() {
         super.afterNavigation();
+        tourBtn.addClickListener(ComponentEvent::unregisterListener);
+
+        if (clickRegistration != null) {
+            clickRegistration.remove();
+        }
+
         // Set the content area to be a full-height flex container
         getElement().getStyle().set("height", "100%");
         getContent().getElement().getStyle().set("flex-grow", "1");
+
+        Component currentView = getContent();
+        // Check if the current view implements our HasTour interface
+        if (currentView instanceof HasTour viewWithTour) {
+            // 2. Ask the view to create its specific tour
+            Onboarding tour = (Onboarding) viewWithTour.createTour();
+
+            // 1. Make the tour button visible
+            if (tour != null && !tour.getSteps().isEmpty()) {
+                tourBtn.setVisible(true);
+                tourBtn.addClickListener(ComponentEvent::unregisterListener);
+
+                // 4. Wire the button's click listener to start THIS specific tour
+                //    We need to remove old listeners first to prevent them from stacking up.
+                clickRegistration = tourBtn.addClickListener(e -> tour.start());
+            }
+
+            if (tour == null && viewWithTour instanceof HomeView) {
+                createPageTour();
+            }
+
+            //Demo tour to show the user manual and tour buttons
+            if (viewWithTour.startDemoTour()) {
+               tourBtn.setVisible(true);
+               startDemoTour();
+            }
+
+        } else {
+            // If the page doesn't have a tour, hide the button.
+            tourBtn.setVisible(false);
+        }
+    }
+
+    private void startDemoTour() {
+        tourBtn.addClickListener(ComponentEvent::unregisterListener);
+
+        this.addAttachListener(l ->  new TourUtils().build()
+                .addStep(tourBtn,
+                        "Page Features and Tips Tour",
+                        new Html("<div>When this button is visible a guided tour is available for the page.</div>"),
+                        PopupPosition.BOTTOM).startTour());
+    }
+
+    private void createPageTour() {
+        tourBtn.addClickListener(ComponentEvent::unregisterListener);
+        if (clickRegistration != null) { clickRegistration.remove(); }
+
+        System.out.println("Created tourx...");
+        clickRegistration = tourBtn.addClickListener(e -> new TourUtils().build()
+                .addStep(header,
+                        "Avatar and Menu Options",
+                        new Html("<div>Profile, Change Password, and Logout options.</div>"),
+                        PopupPosition.BOTTOM)
+                .addStep(nav,
+                        "Nav Bar",
+                        new Html("<div>From here, you can explore the application in several ways: browse the menu options, open the User Manual, or take a guided tour of the page's features.</div>"),
+                        PopupPosition.BOTTOM).startTour());
+        System.out.println("Tourx done.");
     }
 
 }

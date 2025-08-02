@@ -12,6 +12,7 @@ import com.vaadin.flow.dom.Element;
 import com.vaadin.flow.spring.annotation.UIScope;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
+import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.event.EventListener;
@@ -26,14 +27,16 @@ public class AIChatMessageDisplay extends VerticalLayout {
 
     private static final Logger log = LoggerFactory.getLogger(AIChatMessageDisplay.class);
 
-    private final HtmlMessageList messageList;
+    @Getter private final HtmlMessageList messageList;
     private final AIChatMessageService messageService;
+    private final HtmlMessageList htmlMessageList;
     private Scroller scroller; // CHANGE 2: Add a field for the Scroller
 
-    public AIChatMessageDisplay(HtmlMessageList messageList, AIChatMessageService messageService) {
+    public AIChatMessageDisplay(HtmlMessageList messageList, AIChatMessageService messageService, HtmlMessageList htmlMessageList) {
         this.messageList = messageList;
         this.messageService = messageService;
         log.info("AIChatMessageDisplay initialized.");
+        this.htmlMessageList = htmlMessageList;
     }
 
     @PostConstruct

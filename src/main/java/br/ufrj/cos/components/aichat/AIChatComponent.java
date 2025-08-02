@@ -1,7 +1,12 @@
 package br.ufrj.cos.components.aichat;
 
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.componentfactory.onboarding.OnboardingStep;
+import com.vaadin.flow.component.messages.MessageList;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.spring.annotation.UIScope;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
 import org.springframework.stereotype.Component;
 
 @UIScope
@@ -10,19 +15,24 @@ public class AIChatComponent extends VerticalLayout {
 
     // Use final fields and constructor injection (good practice)
     private final AIChatMessageService messageService;
+    @Getter
     private final AIChatMessageDisplay messageDisplay;
-    private final AIChatInputComponent inputComponent;
+    @Getter private final AIChatInputComponent inputComponent;
+    @Getter private final MessageList messageList;
+    @Getter private final HtmlMessageList htmlMessageList;
 
     public AIChatComponent(
             AIChatMessageService messageService,
             AIChatMessageDisplay messageDisplay,
-            AIChatInputComponent inputComponent) {
+            AIChatInputComponent inputComponent, MessageList messageList, HtmlMessageList htmlMessageList) {
         this.messageService = messageService;
         this.messageDisplay = messageDisplay;
         this.inputComponent = inputComponent;
 
         // Configure layout after dependencies are injected
         configureLayout();
+        this.messageList = messageList;
+        this.htmlMessageList = htmlMessageList;
     }
 
     // Or use @PostConstruct if you prefer field injection (though constructor is generally better)
