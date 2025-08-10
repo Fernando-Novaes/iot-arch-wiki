@@ -21,7 +21,6 @@ import java.util.Optional;
 @Route(value = "aichat", layout = MainLayout.class)
 @PermitAll
 @CssImport("./styles/chat-view-styles.css")
-@CssImport("./styles/tour-styles.css")
 @UIScope
 public class AiChatView extends VerticalLayout implements HasTour {
 

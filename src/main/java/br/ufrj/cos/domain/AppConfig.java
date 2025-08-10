@@ -6,7 +6,7 @@ import lombok.*;
 import java.time.Instant;
 import java.util.List;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "tasks")
 @Entity
 @Data
 @NoArgsConstructor
@@ -29,4 +29,8 @@ public class AppConfig extends DomainBase {
     private Instant knowledgeDatabaseLastUpdate;
 
     private Instant aiRagDocumentsLastUpdate;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "appConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<TaskScheduleConfig> tasks;
 }

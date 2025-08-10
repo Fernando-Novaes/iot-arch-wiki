@@ -2,16 +2,23 @@ package br.ufrj.cos.views.appconfig;
 
 import br.ufrj.cos.api.APIServiceConnection;
 import br.ufrj.cos.api.TextToRagStoreRequest;
-import br.ufrj.cos.domain.APIServiceType;
-import br.ufrj.cos.domain.AppConfig;
-import br.ufrj.cos.domain.ScrapWebSite;
-import br.ufrj.cos.domain.ServiceName;
+import br.ufrj.cos.components.taskscheduler.TaskConfig;
+import br.ufrj.cos.components.taskscheduler.TaskRegister;
+import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.AppConfigService;
 import br.ufrj.cos.service.RAGService;
+import br.ufrj.cos.service.TaskScheduleConfigService;
+import br.ufrj.cos.tasks.RAGDataUpdate;
 import br.ufrj.cos.utils.NotificationUtils;
+import br.ufrj.cos.utils.TourUtils;
 import br.ufrj.cos.views.BaseView;
+import br.ufrj.cos.views.HasTour;
 import br.ufrj.cos.views.MainLayout;
 import br.ufrj.cos.views.record.EndpointRecord;
+import br.ufrj.cos.views.record.PeriodRecord;
+import com.vaadin.componentfactory.PopupPosition;
+import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -45,7 +52,7 @@ import java.util.*;
 @Route(value = "appconfig-view", layout = MainLayout.class)
 @RolesAllowed("ADMIN")
 @CssImport("./styles/app-styles.css")
-public class AppConfigView extends BaseView {
+public class AppConfigView extends BaseView implements HasTour {
     private static final Logger logger = LoggerFactory.getLogger(AppConfigView.class);
 
     private AppConfig appConfig;
@@ -65,20 +72,33 @@ public class AppConfigView extends BaseView {
     private final Button testConnectionButton = new Button("Test Connection");
     private final Button apiAddressSaveButton = new Button("Save");
     private final RAGService ragService;
+    private TaskScheduleConfig taskScheduleConfig = null;
+    private Text statusTxt;
+    private Button taskButton;
+    private TaskRegister taskRegister;
+    private RAGDataUpdate ragDataUpdate;
+    private TaskScheduleConfigService taskScheduleConfigService;
+    private ComboBox<PeriodRecord> periodCombo;
+    private ComboBox<TaskScheduleConfig> taskNamesCombo;
+
+    private HorizontalLayout apiAddressLayout;
 
     private final APIServiceConnection apiServiceConnection;
     private final List<EndpointRecord> endpoints;
 
-    public AppConfigView(AppConfigService appConfigService, RAGService ragService, APIServiceConnection apiServiceConnection, List<EndpointRecord> endpoints) {
+    public AppConfigView(AppConfigService appConfigService, RAGService ragService, TaskRegister taskRegister, RAGDataUpdate ragDataUpdate, TaskScheduleConfigService taskScheduleConfigService, APIServiceConnection apiServiceConnection, List<EndpointRecord> endpoints) {
         this.appConfig = appConfigService.getAppConfig();
         this.appConfigService = appConfigService;
         this.ragService = ragService;
+        this.taskRegister = taskRegister;
+        this.ragDataUpdate = ragDataUpdate;
+        this.taskScheduleConfigService = taskScheduleConfigService;
         this.apiServiceConnection = apiServiceConnection;
         this.endpoints = endpoints;
         this.createHeader("Application Config");
         loadEndpoints();
         configureApiAddressBlock();
-        //configureScrapWebsiteBlock();        
+        //configureScrapWebsiteBlock();
         configureServiceNameBlock();
         //configureSaveButton();
         configureLastUpdateLabels(); // Add this line
@@ -109,7 +129,7 @@ public class AppConfigView extends BaseView {
             }
         });
 
-        HorizontalLayout apiAddressLayout = new HorizontalLayout(apiAddressField, testConnectionButton, apiAddressSaveButton);
+        apiAddressLayout = new HorizontalLayout(apiAddressField, testConnectionButton, apiAddressSaveButton);
         apiAddressLayout.setWidthFull();
         apiAddressLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
 
@@ -137,164 +157,6 @@ public class AppConfigView extends BaseView {
                         }
                 );
     }
-
-//    private void configureScrapWebsiteBlock() {
-//        if (appConfig.getScrapWebSites() != null) {
-//            scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-//        }
-//        scrapWebsiteGrid.setColumns("url", "description");
-//        scrapWebsiteGrid.setWidthFull();
-//        scrapWebsiteGrid.setMinHeight("5%");
-//
-//        Map<ScrapWebSite, Checkbox> checkboxMap = new HashMap<>();
-//
-//        Grid.Column<ScrapWebSite> checkboxColumn = scrapWebsiteGrid.addColumn(new ComponentRenderer<>(item -> {
-//            Checkbox checkbox = new Checkbox();
-//            checkboxMap.put(item, checkbox);
-//            return checkbox;
-//        })).setHeader("Select");
-//
-//        Button selectAllButton = new Button("Select");
-//        selectAllButton.addClickListener(event -> {
-//            boolean anyUnchecked = checkboxMap.values().stream().anyMatch(checkbox -> !checkbox.getValue());
-//            checkboxMap.values().forEach(checkbox -> checkbox.setValue(anyUnchecked));
-//            selectAllButton.setText((selectAllButton.getText().equals("Select"))? "Deselect" : "Select");
-//        });
-//
-//        var ui = UI.getCurrent();
-//        Button getSelectedButton = new Button("Run");
-//        getSelectedButton.addClickListener(event -> {
-//            List<String> selectedUrls = new ArrayList<>();
-//            checkboxMap.forEach((item, checkbox) -> {
-//                if (checkbox.getValue()) {
-//                    selectedUrls.add(item.getUrl());
-//                }
-//
-//                if (!selectedUrls.isEmpty()) {
-//                    logger.info("URLs: " + selectedUrls.toString());
-//
-//                    getSelectedButton.setText("Running");
-//                    getSelectedButton.setEnabled(false);
-//
-//                    WebScrapingRequest scraping = new WebScrapingRequest();
-//                    scraping.setUrls(selectedUrls);
-//                    apiServiceConnection.callWebScrapingAPI(scraping)
-//                            .subscribe(
-//                                    answer -> {
-//                                        ui.access(() ->
-//                                                NotificationUtils.showSuccessNotification(answer.toString()));
-//                                    },
-//                                    error -> {
-//                                        ui.access(() ->
-//                                                NotificationUtils.showErrorNotification(error.getMessage()));
-//
-//                                    }
-//                            );
-//                    getSelectedButton.setText("Run");
-//                    getSelectedButton.setEnabled(true);
-//                }
-//            });
-//        });
-//        ui.push();
-//
-//        HorizontalLayout headerActions = new HorizontalLayout(selectAllButton, getSelectedButton);
-//        scrapWebsiteGrid.getHeaderRows().getFirst().getCell(checkboxColumn).setComponent(headerActions);
-//
-//        scrapWebsiteGrid.addComponentColumn(item -> {
-//            HorizontalLayout actionsLayout = new HorizontalLayout();
-//
-//            Button deleteButton = new Button("Delete");
-//            deleteButton.addThemeVariants(ButtonVariant.LUMO_SMALL, ButtonVariant.LUMO_ERROR);
-//            deleteButton.addClickListener(event -> {
-//                Dialog dialog = new Dialog();
-//                dialog.setHeaderTitle("Confirm Deletion");
-//                dialog.add(String.format("Are you sure you want to delete the item [%s]?", item.getUrl()));
-//
-//                Button confirmButton = new Button("Confirm", confirmEvent -> {
-//                    appConfig.getScrapWebSites().remove(item);
-//                    scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-//                    dialog.close();
-//                });
-//                confirmButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_ERROR);
-//
-//                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
-//
-//                dialog.getFooter().add(confirmButton, cancelButton);
-//                dialog.open();
-//            });
-//
-//            Button editButton = new Button("Edit");
-//            editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-//            editButton.addClickListener(event -> {
-//                Dialog dialog = new Dialog();
-//                dialog.setHeaderTitle("Edit Item");
-//
-//                TextField urlEditorField = new TextField("URL");
-//                urlEditorField.setValue(item.getUrl());
-//                TextField descriptionEditorField = new TextField("Description");
-//                descriptionEditorField.setValue(item.getDescription());
-//
-//                VerticalLayout v1 = new VerticalLayout(urlEditorField);
-//                VerticalLayout v2 = new VerticalLayout(descriptionEditorField);
-//
-//                dialog.add(v1, v2);
-//
-//                Button saveButton = new Button("Save", saveEvent -> {
-//                    item.setUrl(urlEditorField.getValue());
-//                    item.setDescription(descriptionEditorField.getValue());
-//                    scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-//                    dialog.close();
-//                });
-//                saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-//
-//                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
-//
-//                dialog.getFooter().add(saveButton, cancelButton);
-//                dialog.open();
-//            });
-//
-//            actionsLayout.add(editButton, deleteButton);
-//            return actionsLayout;
-//        }).setHeader("Actions");
-//
-//        urlField.setWidthFull();
-//        urlField.setRequired(true);
-//
-//        descriptionField.setWidthFull();
-//
-//        addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-//        addButton.addClickListener(event -> {
-//            ScrapWebSite website = ScrapWebSite.builder()
-//                    .url(urlField.getValue())
-//                    .description(descriptionField.getValue())
-//                    .build();
-//
-//            if (appConfig.getScrapWebSites() == null) {
-//                appConfig.setScrapWebSites(new ArrayList<>());
-//            }
-//            appConfig.getScrapWebSites().add(website);
-//            scrapWebsiteGrid.setItems(appConfig.getScrapWebSites());
-//
-//            urlField.clear();
-//            descriptionField.clear();
-//        });
-//
-//        HorizontalLayout inputLayout = new HorizontalLayout(urlField, descriptionField, addButton);
-//        inputLayout.setWidthFull();
-//        inputLayout.setFlexGrow(1, urlField, descriptionField);
-//        inputLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
-//
-//        Div scrapWebsiteDiv = new Div(new H3("AI Chat - Web scraping"), inputLayout, scrapWebsiteGrid);
-//        scrapWebsiteDiv.addClassName("block-container");
-//        scrapWebsiteDiv.setWidth("80%");
-//        scrapWebsiteDiv.setMaxWidth("1200px");
-//        scrapWebsiteDiv.getStyle().set("margin", "0 auto");
-//
-//        scrapWebsiteGrid.getColumnByKey("url").setAutoWidth(true);
-//        scrapWebsiteGrid.getColumnByKey("description").setAutoWidth(true);
-//
-//        contentLayout.add(scrapWebsiteDiv);
-//    }
 
     private void configureServiceNameBlock() {
         if (appConfig.getServiceNames() != null) {
@@ -331,44 +193,6 @@ public class AppConfigView extends BaseView {
                 dialog.getFooter().add(confirmButton, cancelButton);
                 dialog.open();
             });
-
-//            Button editButton = new Button("Edit");
-//            editButton.addThemeVariants(ButtonVariant.LUMO_SMALL);
-//            editButton.addClickListener(event -> {
-//                Dialog dialog = new Dialog();
-//                dialog.setHeaderTitle("Edit Item");
-//
-//                TextField nameEditorField = new TextField("Name");
-//                nameEditorField.setValue(item.getName());
-//
-//                TextField descriptionEditorField = new TextField("Description");
-//                descriptionEditorField.setValue(item.getDescription());
-//
-//                ComboBox<APIServiceType> serviceTypeComboBoxField = new ComboBox<>("Service Type");
-//                serviceTypeComboBoxField.setItems(APIServiceType.values());
-//                serviceTypeComboBoxField.setValue(item.getType());
-//
-//                VerticalLayout v1 = new VerticalLayout(nameEditorField);
-//                VerticalLayout v2 = new VerticalLayout(descriptionEditorField);
-//                VerticalLayout v3 = new VerticalLayout(serviceTypeComboBoxField);
-//
-//                dialog.add(v1, v2, v3);
-//
-//                Button saveButton = new Button("Save", saveEvent -> {
-//                    item.setName(nameEditorField.getValue());
-//                    item.setDescription(descriptionEditorField.getValue());
-//                    item.setType(serviceTypeComboBoxField.getValue());
-//                    serviceNameGrid.setItems(appConfig.getServiceNames());
-//                    appConfigService.save(appConfig);
-//                    dialog.close();
-//                });
-//                saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-//
-//                Button cancelButton = new Button("Cancel", cancelEvent -> dialog.close());
-//
-//                dialog.getFooter().add(saveButton, cancelButton);
-//                dialog.open();
-//            });
 
             //actionsLayout.add(editButton, deleteButton);
             actionsLayout.add(deleteButton);
@@ -564,7 +388,7 @@ public class AppConfigView extends BaseView {
                     );
         });
 
-        // Add a Update Only button
+        // Add an Update Only button
         dialog.setRejectable(true); // Allow rejecting
         dialog.setRejectText("Update Only");
         dialog.addRejectListener(event -> {
@@ -616,7 +440,9 @@ public class AppConfigView extends BaseView {
             dialog.open();
         });
 
-        Div div = new Div(new H3("Last update Knowledge Database and AI Knowledge"), lastUpdateLayout, btnSaveRagData);
+
+
+        Div div = new Div(new H3("Last update Knowledge Database and AI Knowledge"), lastUpdateLayout, this.createTaskConfigLayout(), btnSaveRagData);
         div.addClassName("block-container");
         div.setWidth("95%");
         div.setMaxWidth("1200px");
@@ -624,6 +450,155 @@ public class AppConfigView extends BaseView {
 
         contentLayout.add(div);
     }
+
+    private HorizontalLayout createTaskConfigLayout() {
+        // 1. Create all UI components ONCE and assign them to member fields
+        taskNamesCombo = new ComboBox<>("Service Name");
+        periodCombo = new ComboBox<>("Execution Period");
+        statusTxt = new Text("-"); // Already a field
+        taskButton = new Button("Run"); // Already a field
+
+        // 2. Configure the components
+        configureTaskNamesCombo();
+        configurePeriodCombo();
+        taskButton.setEnabled(false); // Initially disabled
+
+        // 3. Add event listeners that call dedicated handler methods
+        taskNamesCombo.addValueChangeListener(event -> onTaskSelectionChange(event.getValue()));
+        periodCombo.addValueChangeListener(event -> updateButtonState());
+        taskButton.addClickListener(event -> onTaskActionButtonClick());
+
+        // 4. Assemble the layout
+        HorizontalLayout taskConfigLayout = new HorizontalLayout(taskNamesCombo, periodCombo, statusTxt, taskButton);
+        taskConfigLayout.setWidth("98%");
+        taskConfigLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        taskNamesCombo.setWidth("50%");
+        periodCombo.setWidth("30%");
+
+        return taskConfigLayout;
+    }
+
+    private void configureTaskNamesCombo() {
+        List<TaskScheduleConfig> taskConfigs = this.appConfigService.getTaskConfigs();
+        taskNamesCombo.setItems(taskConfigs);
+        taskNamesCombo.setItemLabelGenerator(TaskScheduleConfig::getTaskName);
+    }
+
+    private void configurePeriodCombo() {
+        List<PeriodRecord> periodOptions = List.of(
+                new PeriodRecord("10 sec", 10000L),
+                new PeriodRecord("30 sec", 30000L),
+                new PeriodRecord("1 min", 60000L),
+                new PeriodRecord("10 min", 600000L),
+                new PeriodRecord("30 min", 1800000L),
+                new PeriodRecord("1 hour", 3600000L)
+        );
+        periodCombo.setItems(periodOptions);
+        periodCombo.setItemLabelGenerator(PeriodRecord::label);
+    }
+
+    // --- Event Handler and UI Update Logic ---
+
+    private void onTaskSelectionChange(TaskScheduleConfig selectedConfig) {
+        this.taskScheduleConfig = selectedConfig; // Update the view's state
+        updateUiState();
+    }
+
+    private void onTaskActionButtonClick() {
+        if (this.taskScheduleConfig == null) return;
+
+        boolean isCurrentlyActive = this.taskScheduleConfig.isActive();
+
+        if (isCurrentlyActive) {
+            // --- ACTION: STOP THE TASK ---
+            logger.info("Stopping Task...");
+            this.taskScheduleConfig.setActive(false);
+            this.taskScheduleConfigService.save(this.taskScheduleConfig); // Persist the change
+            this.taskRegister.cancelTask(this.taskScheduleConfig.getTaskName());
+            NotificationUtils.showSuccessNotification("Task '" + this.taskScheduleConfig.getTaskName() + "' stopped successfully.");
+        } else {
+            // --- ACTION: START THE TASK ---
+            if (periodCombo.getValue() == null) {
+                NotificationUtils.showErrorNotification("Please select an execution period.");
+                return;
+            }
+            logger.info("Starting Task...");
+
+            // Update the config object with the new period from the UI
+            this.taskScheduleConfig.setActive(true);
+            this.taskScheduleConfig.setFixedRateMilliseconds(periodCombo.getValue().milliseconds());
+            this.taskScheduleConfigService.save(this.taskScheduleConfig); // Persist the change
+
+            // Create a config DTO for the scheduler
+            TaskConfig runConfig = TaskConfig.builder()
+                    .taskName(this.taskScheduleConfig.getTaskName())
+                    .fixedRateMilliseconds(this.taskScheduleConfig.getFixedRateMilliseconds())
+                    .initialDelayMilliseconds(0L) // Start immediately for manual trigger
+                    .active(true)
+                    .build();
+
+            this.taskRegister.scheduleTask(ragDataUpdate, runConfig); // Use the generic scheduler
+            NotificationUtils.showSuccessNotification("Task '" + runConfig.getTaskName() + "' started successfully.");
+        }
+
+        // Refresh the UI to reflect the new state
+        updateUiState();
+    }
+
+    /**
+     * A single, central method to update the UI based on the current state of 'taskScheduleConfig'.
+     */
+    private void updateUiState() {
+        if (this.taskScheduleConfig == null) {
+            // Reset to initial state if nothing is selected
+            statusTxt.setText("-");
+            statusTxt.getStyle().clear(); // Remove any custom color
+            taskButton.setText("Run");
+            periodCombo.clear();
+            periodCombo.setEnabled(false);
+            taskButton.setEnabled(false);
+        } else {
+            boolean isActive = this.taskScheduleConfig.isActive();
+
+            // *** THE FIX IS HERE ***
+            // Update the properties of the EXISTING statusTxt component.
+            if (isActive) {
+                statusTxt.setText("Running"); // Use .set("property", "value")
+            } else {
+                statusTxt.setText("Stopped");
+            }
+
+            taskButton.setText(isActive ? "Stop" : "Run");
+            periodCombo.setEnabled(!isActive); // Can only change period when stopped
+
+            // Automatically select the period currently stored in the database
+            findAndSelectPeriod(this.taskScheduleConfig.getFixedRateMilliseconds());
+
+            updateButtonState();
+        }
+    }
+
+    /**
+     * Enables or disables the main action button based on the current selections.
+     */
+    private void updateButtonState() {
+        if (this.taskScheduleConfig == null) {
+            taskButton.setEnabled(false);
+        } else {
+            boolean isActive = this.taskScheduleConfig.isActive();
+            // Button is enabled if the task is active (to stop it) OR if a period is selected (to run it).
+            taskButton.setEnabled(isActive || periodCombo.getValue() != null);
+        }
+    }
+
+    private void findAndSelectPeriod(Long milliseconds) {
+        // Helper to find and select the matching PeriodRecord in the combo box
+        periodCombo.getDataProvider().fetch(new com.vaadin.flow.data.provider.Query<>())
+                .filter(p -> p.milliseconds().equals(milliseconds))
+                .findFirst()
+                .ifPresent(periodCombo::setValue);
+    }
+
 
     private void configureContentLayout() {
         contentLayout.setWidthFull();
@@ -633,5 +608,20 @@ public class AppConfigView extends BaseView {
         contentLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         getContent().add(contentLayout);
         getContent().setSizeFull();
+    }
+
+    @Override
+    public Onboarding createTour() {
+        return new TourUtils().build()
+                .addStep(apiAddressLayout,
+                        "AI Chat API endpoint address",
+                        new Html("<p>This is the component that register the API address of the AI endpoint.</br>Enter here the correct address and check if it is valid.</p>"),
+                        PopupPosition.BOTTOM)
+                .getOnboarding();
+    }
+
+    @Override
+    public Boolean startDemoTour() {
+        return false;
     }
 }

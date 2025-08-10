@@ -7,6 +7,8 @@ import com.vaadin.flow.component.UI;
 import com.vaadin.flow.spring.annotation.UIScope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.context.annotation.ScopedProxyMode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -19,6 +21,7 @@ import org.springframework.http.HttpStatusCode;
 import java.time.Duration;
 
 @UIScope
+@Scope(proxyMode = ScopedProxyMode.TARGET_CLASS)
 @Component
 public class APIServiceConnection {
     private static final Logger logger = LoggerFactory.getLogger(APIServiceConnection.class);

@@ -21,11 +21,7 @@ import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.dependency.CssImport;
-import com.vaadin.flow.component.html.Header;
-import com.vaadin.flow.component.html.ListItem;
-import com.vaadin.flow.component.html.Nav;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
@@ -58,7 +54,6 @@ import java.util.stream.Collectors;
  * The main view is a top-level placeholder for other views.
  */
 @PermitAll
-@CssImport("./styles/tour-styles.css")
 public class MainLayout extends AppLayout {
 
     private AvatarComponent avatarComponent = new AvatarComponent();
@@ -139,15 +134,19 @@ public class MainLayout extends AppLayout {
         tourBtn = new Button(VaadinIcon.INFO_CIRCLE.create());
         tourBtn.setTooltipText("Start a guided tour of this page's features.");
         tourBtn.getStyle().setCursor("pointer");
-        tourBtn.getStyle().setBorder("solid 1px blue");
+        //tourBtn.getStyle().setBorder("solid 1px blue");
 
         helpBtn.addClickListener(click -> {
             getUI().ifPresent(ui -> ui.getPage().open(HELP_DOC_PATH, "_blank"));
         });
 
         helpItem.setWhiteSpace(HasText.WhiteSpace.NORMAL);
-        helpBtn.getStyle().setBorder("solid 1px blue");
-        helpItem.add(helpBtn, tourBtn);
+        //helpBtn.getStyle().setBorder("solid 1px blue");
+
+        Div space = new Div();
+        space.setWidth("2px");
+
+        helpItem.add(helpBtn, space, tourBtn);
 
         // 2. Apply the magic style: margin-left: auto
         //    This tells the flex item to consume all available space to its left,

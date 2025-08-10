@@ -3,7 +3,7 @@ package br.ufrj.cos.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "appConfig")
 @Entity
 @Data
 @NoArgsConstructor
@@ -17,6 +17,7 @@ public class ServiceName extends DomainBase {
     private String description;
     @Enumerated(EnumType.STRING)
     private APIServiceType type;
+    @ToString.Exclude
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "app_config_id")
     private AppConfig appConfig;
