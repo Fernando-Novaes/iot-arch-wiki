@@ -8,6 +8,8 @@ import br.ufrj.cos.repository.TaskScheduleConfigRepository;
 import br.ufrj.cos.service.AppConfigService;
 import br.ufrj.cos.service.RAGService;
 import br.ufrj.cos.service.TaskScheduleConfigService;
+import br.ufrj.cos.utils.NotificationUtils;
+import com.vaadin.flow.component.UI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,25 +40,42 @@ public class RAGDataUpdate implements Runnable {
         if (isUpdateNeeded(appConfig)) {
             logger.info("Update required. Starting RAG database update process...");
 
-            TextToRagStoreRequest request = createRequest();
+            //Clear and update
+            String allData = ragService.generateStringData();
+            logger.info(allData);
 
-            // Chain the API calls using Project Reactor's reactive streams
+            TextToRagStoreRequest textToRagStoreRequest = new TextToRagStoreRequest();
+            textToRagStoreRequest.setText(allData);
+            textToRagStoreRequest.setChunk_separator("###CHUNK###");
+
+            // Chain the API calls: Clear first, then Update
             apiServiceConnection.callClearVectorStore()
-                    .then(apiServiceConnection.callTextToRAGAndStore(request))
-                    .subscribe(
-                            // Success handler
+                    .doOnSubscribe(s ->
+                        // Already set to clearing, could refine if needed
+                        logger.info("Clear operation subscribed.")
+                    )
+                    .flatMap(clearResponse -> {
+                        // Clear succeeded, now proceed to update
+                        logger.info("Clear API call successful: {}", clearResponse);
+                        // Update button text for the next stage
+                        return apiServiceConnection.callTextToRAGAndStore(textToRagStoreRequest);
+                    })
+                    .doFinally(signalType ->
+                        logger.info("Clear and Update sequence finished (Signal: {}).", signalType)
+                      )
+                    .subscribe( // Handle final success or error
                             updateAnswer -> {
-                                logger.info("RAG database update successful: {}", updateAnswer);
-                                appConfig.setAiRagDocumentsLastUpdate(Instant.now());
-                                appConfigService.save(appConfig);
-
-                                logger.info("AI knowledge base timestamp updated successfully.");
+                                // Both clear and update succeeded
+                               logger.info("Clear and Update successful: {}", updateAnswer);
+                               appConfig.setAiRagDocumentsLastUpdate(Instant.now());
+                               appConfigService.save(appConfig);
                             },
-                            // Error handler
                             error -> {
-                                logger.error("Error during the RAG update process: {}", error.getMessage(), error);
+                                // An error occurred during either clear OR update
+                                logger.error("Error during Clear and Update process: {}", error.getMessage(), error);
                             }
                     );
+            // End clear and update
         } else {
             logger.info("RAG database is already up-to-date. No action taken.");
         }

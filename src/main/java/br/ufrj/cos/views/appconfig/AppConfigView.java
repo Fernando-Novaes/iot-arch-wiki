@@ -617,6 +617,21 @@ public class AppConfigView extends BaseView implements HasTour {
                         "AI Chat API endpoint address",
                         new Html("<p>This is the component that register the API address of the AI endpoint.</br>Enter here the correct address and check if it is valid.</p>"),
                         PopupPosition.BOTTOM)
+                .addStep(serviceNameField,
+                        "AI Chat Services - Service Name selection",
+                        new Html("<p>Select the name of the API endpoint that will be invoked.</p>"),
+                        PopupPosition.END,
+                        Optional.of(l -> serviceNameField.setOpened(true)))
+                .addStep(serviceDescriptionField,
+                        "AI Chat Services - Service Description",
+                        new Html("<p>Enter a description for the service that will be invoked.</p>"),
+                        PopupPosition.END,
+                        Optional.of(l -> serviceNameField.setOpened(false)))
+                .addStep(serviceTypeComboBox,
+                        "AI Chat Services - Service Type selection",
+                        new Html("<p>Select the type of the service that will handler the response in the application.</p>"),
+                        PopupPosition.END,
+                        Optional.of(l -> serviceTypeComboBox.setOpened(true)))
                 .getOnboarding();
     }
 

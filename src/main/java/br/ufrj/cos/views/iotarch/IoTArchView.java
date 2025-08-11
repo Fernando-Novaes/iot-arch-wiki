@@ -253,7 +253,7 @@ public class IoTArchView extends BaseView implements HasTour {
     }
 
     private Button createCancelButton() {
-        Button button = new Button("Cancel", VaadinIcon.CLOSE_CIRCLE_O.create());
+        Button button = new Button("Reset", VaadinIcon.CLOSE_CIRCLE_O.create());
         button.addThemeVariants(ButtonVariant.LUMO_ERROR);
         button.setVisible(false);
         button.getStyle().setCursor("pointer");
