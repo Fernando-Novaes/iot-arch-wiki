@@ -80,10 +80,11 @@ public class AnnotationDialog extends Dialog {
         Button closeButton = new Button("Close", event -> close());
         Button saveButton = new Button("Save", buttonClickEvent -> {
             Annotation notes = this.annotationData;
+            notes.setTopic(this.annotationData.getTopic());
             if (this.textEditor.getValue().isEmpty()) {
                 notes.setText("");
             } else {
-                notes.setText(this.textEditor.getValue());
+                notes.setText(this.textEditor.getHtmlValue());
             }
             notes.setLastUpdate(new Date());
             this.lastUpdate = notes.getLastUpdate();

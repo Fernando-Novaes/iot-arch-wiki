@@ -5,6 +5,7 @@ import br.ufrj.cos.repository.AnnotationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -52,5 +53,9 @@ public class AnnotationService {
 
     public Annotation getAnnotationById(Long id) {
         return annotationRepository.findById(id).orElse(null); // Handle the case where the annotation is not found
+    }
+
+    public Optional<List<Annotation>> findAllAnnotationsByUserApplication(UserApplication userApplication) {
+        return this.annotationRepository.findMostRecentByUserApplication(userApplication);
     }
 }

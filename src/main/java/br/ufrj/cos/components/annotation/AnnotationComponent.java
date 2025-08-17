@@ -73,7 +73,7 @@ public class AnnotationComponent {
 
             if (node.getData() instanceof IoTDomain domain) {
                 a = this.annotationService.findMostRecentOnlyUserAppAndDomain(user, domain)
-                        .orElse(Annotation.builder().userApplication(user).build());
+                        .orElse(Annotation.builder().userApplication(user).topic(domain.getName()).title("IoT Domain").build());
 
                 if (a.getAnnotationDomains() == null) {
                     a.setAnnotationDomains(new ArrayList<>());
@@ -84,7 +84,7 @@ public class AnnotationComponent {
                             (a.getAnnotationDomains() != null) ? AnnotationAction.ADD : AnnotationAction.EDIT));
             } else if (node.getData() instanceof ArchitectureSolution architecture) {
                 a = this.annotationService.findMostRecentAnnotation(user, architecture.getIoTDomain(), architecture.getArchitecture())
-                        .orElse(Annotation.builder().userApplication(user).build());
+                        .orElse(Annotation.builder().userApplication(user).topic(architecture.getArchitecture().getName()).title("Architecture").build());
 
                 if (a.getAnnotationDomains() == null) {
                     a.setAnnotationDomains(new ArrayList<>());
@@ -98,7 +98,7 @@ public class AnnotationComponent {
                 Architecture arch = ((ArchitectureSolution) node.getParent().getData()).getArchitecture();
 
                 a = this.annotationService.findMostRecentAnnotation(user, d, arch, qr)
-                        .orElse(Annotation.builder().userApplication(user).build());
+                        .orElse(Annotation.builder().userApplication(user).title(qr.getName()).topic("Quality Requirement").build());
 
                 if (a.getAnnotationDomains() == null) {
                     a.setAnnotationDomains(new ArrayList<>());
@@ -113,7 +113,7 @@ public class AnnotationComponent {
                 QualityRequirement qr = ((QualityRequirement) node.getParent().getData());
 
                 a = this.annotationService.findMostRecentAnnotation(user, d, arch, qr, tech)
-                        .orElse(Annotation.builder().userApplication(user).build());
+                        .orElse(Annotation.builder().userApplication(user).title(tech.getDescription()).topic("Technology").build());
 
                 if (a.getAnnotationDomains() == null) {
                     a.setAnnotationDomains(new ArrayList<>());

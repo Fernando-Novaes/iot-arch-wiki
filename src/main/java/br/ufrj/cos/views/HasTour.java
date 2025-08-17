@@ -1,9 +1,6 @@
 package br.ufrj.cos.views;
 
 import com.vaadin.componentfactory.onboarding.Onboarding;
-import com.vaadin.componentfactory.onboarding.OnboardingStep;
-
-import java.util.List;
 
 public interface HasTour {
 

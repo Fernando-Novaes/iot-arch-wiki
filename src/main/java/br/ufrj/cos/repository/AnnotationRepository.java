@@ -6,10 +6,20 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface AnnotationRepository extends JpaRepository<Annotation, Long> {
+
+    // Finds most recent annotation ONLY based on UserApplication and IoTDomain.
+    @Query("SELECT a FROM Annotation a " +
+            "JOIN a.annotationDomains ad " +
+            "WHERE a.userApplication = :userApplication " +
+            "ORDER BY a.lastUpdate DESC")
+    Optional<List<Annotation>> findMostRecentByUserApplication(
+            @Param("userApplication") UserApplication userApplication
+    );
 
     // Finds most recent annotation ONLY based on UserApplication and IoTDomain.
     @Query("SELECT a FROM Annotation a " +

@@ -1,5 +1,6 @@
 package br.ufrj.cos.views.datamanager;
 
+import br.ufrj.cos.components.richtext.RichTextField;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.utils.GridCRUDUtils;
@@ -10,6 +11,7 @@ import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.tabs.Tab;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.vaadin.crudui.crud.CrudOperation;
 import org.vaadin.crudui.crud.impl.GridCrud;
 import org.vaadin.crudui.form.impl.field.provider.ComboBoxProvider;
+import org.vaadin.crudui.layout.impl.WindowBasedCrudLayout;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -185,7 +188,7 @@ public class DataManagerView extends BaseView {
      * @return GridCrud<Technology>
      */
     private GridCrud<Technology> createTechnolgyGridCrud() {
-        GridCrud<Technology> gridTechs = new GridCrud<>(Technology.class);
+        GridCrud<Technology> gridTechs = new GridCrud<>(Technology.class, new WindowBasedCrudLayout());
         gridTechs.setShowNotifications(false);
         gridTechs.setSizeFull();
         gridTechs.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
@@ -235,6 +238,7 @@ public class DataManagerView extends BaseView {
         TextField filter = GridCRUDUtils.createGridTextFilter(gridTechs,"Filter by Technology","400px");
         gridTechs.setFindAllOperation( () -> this.technologyService.findByDescription(filter.getValue()));
 
+        ((WindowBasedCrudLayout)gridTechs.getCrudLayout()).setFormWindowWidth("80%");
         return gridTechs;
     }
 
@@ -307,6 +311,8 @@ public class DataManagerView extends BaseView {
         // additional components
         TextField filter = GridCRUDUtils.createGridTextFilter(gridPapers,"Filter by Paper Title","400px");
         gridPapers.setFindAllOperation( () -> this.paperReferenceService.findByPaperReferenceTitle(filter.getValue()));
+
+        ((WindowBasedCrudLayout)gridPapers.getCrudLayout()).setFormWindowWidth("80%");
 
         return gridPapers;
     }
@@ -383,6 +389,8 @@ public class DataManagerView extends BaseView {
             }
             return qrs;
         });
+
+        ((WindowBasedCrudLayout)gridQualityRequirements.getCrudLayout()).setFormWindowWidth("80%");
 
         return gridQualityRequirements;
     }
@@ -461,6 +469,8 @@ public class DataManagerView extends BaseView {
 
         GridCRUDUtils.setColumnsOrder(gridArchs, "id", "name", "architectureSolutions");
 
+        ((WindowBasedCrudLayout)gridArchs.getCrudLayout()).setFormWindowWidth("50%");
+
         return gridArchs;
     }
 
@@ -520,6 +530,7 @@ public class DataManagerView extends BaseView {
         });
 
         GridCRUDUtils.setColumnsOrder(gridDomains, "id", "name", "description");
+        ((WindowBasedCrudLayout)gridDomains.getCrudLayout()).setFormWindowWidth("50%");
 
         return gridDomains;
     }

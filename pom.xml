@@ -220,6 +220,16 @@
             <artifactId>popup</artifactId>
             <version>24.1.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.wontlost</groupId>
+            <artifactId>ckeditor-vaadin</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.vaadin.addons.matthew</groupId>
+            <artifactId>flip-layout</artifactId>
+            <version>1.1.0</version>
+        </dependency>
     </dependencies>
 
     <build>

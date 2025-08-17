@@ -18,7 +18,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  * and some desktop browsers.
  *
  */
-@PWA(name = "", shortName = "")
+@PWA(name = "ArchIoTect", shortName = "ArchIoTect", iconPath = "icons/icon.png")
 @SpringBootApplication
 @Theme(value = "iot-arch-wiki", variant = Material.LIGHT)
 @Push(PushMode.AUTOMATIC)

@@ -1,5 +1,6 @@
 package br.ufrj.cos.views.datamanager;
 
+import br.ufrj.cos.components.richtext.RichTextField;
 import br.ufrj.cos.domain.*;
 import br.ufrj.cos.service.*;
 import br.ufrj.cos.utils.NotificationUtils;
@@ -17,9 +18,16 @@ import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.shared.ThemeVariant;
 import com.vaadin.flow.component.textfield.TextArea;
 import com.vaadin.flow.dom.Style;
+import com.vaadin.flow.dom.ThemeList;
 import com.vaadin.flow.spring.annotation.UIScope;
+import com.vaadin.flow.theme.Theme;
+import com.wontlost.ckeditor.Config;
+import com.wontlost.ckeditor.Constants;
+import com.wontlost.ckeditor.VaadinCKEditor;
+import com.wontlost.ckeditor.VaadinCKEditorBuilder;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -41,13 +49,14 @@ class ArchitectureSolutionDataManager {
     private final TechnologyService technologyService;
     private final ArchitectureService architectureService;
     private final QualityRequirementTechnologyService qualityRequirementTechnologyService;
+    private RichTextField archNotes;
 
     @Autowired
     public ArchitectureSolutionDataManager(
             ArchitectureSolutionService architectureSolutionService,
             IoTDomainService ioTDomainService,
             PaperReferenceService paperReferenceService, QualityRequirementService qualityRequirementService,
-            TechnologyService technologyService, ArchitectureService architectureService, QualityRequirementTechnologyService qualityRequirementTechnologyService) {
+            TechnologyService technologyService, ArchitectureService architectureService, QualityRequirementTechnologyService qualityRequirementTechnologyService, RichTextField archNotes) {
 
         this.architectureSolutionService = architectureSolutionService;
         this.ioTDomainService = ioTDomainService;
@@ -56,6 +65,7 @@ class ArchitectureSolutionDataManager {
         this.technologyService = technologyService;
         this.architectureService = architectureService;
         this.qualityRequirementTechnologyService = qualityRequirementTechnologyService;
+        this.archNotes = archNotes;
     }
 
     /***
@@ -68,7 +78,7 @@ class ArchitectureSolutionDataManager {
 
         VerticalLayout vl = new VerticalLayout();
         vl.setWidthFull();
-        vl.setHeight("80%");
+        vl.setHeight("90%");
         vl.setSpacing(true);
         vl.getStyle().setOverflow(Style.Overflow.AUTO);
 
@@ -91,9 +101,18 @@ class ArchitectureSolutionDataManager {
         qualityRequirementGrid.setWidthFull();
         qualityRequirementGrid.getColumnByKey("id").setVisible(false);
 
-        TextArea archNotes = new TextArea("Architecture Solution notes");
-        archNotes.setClearButtonVisible(true);
-        archNotes.setWidth("90%");
+//        TextArea archNotes = new TextArea("Architecture Solution notes");
+//        archNotes.setClearButtonVisible(true);
+//        archNotes.setWidth("90%");
+
+        archNotes.addDefaultToolBar();
+        archNotes.setDefaultLayout();
+        archNotes.get().setWidth("95%");
+        archNotes.get().setMinHeight("200px");
+        archNotes.get().setMaxHeight("200px");
+        archNotes.get().getStyle().setOverflow(Style.Overflow.AUTO);
+        archNotes.get().getStyle().setBorder("1px solid lightgrey");
+        archNotes.get().setLabel("Architecture Solution Notes");
 
         HorizontalLayout buttons = new HorizontalLayout();
         buttons.setVisible(false);
@@ -153,7 +172,7 @@ class ArchitectureSolutionDataManager {
             this.architectureSolution.setIoTDomain(comboBoxDomain.getValue());
             this.architectureSolution.setPaperReference(comboPaper.getValue());
             this.architectureSolution.setArchitecture(comboBoxArch.getValue());
-            this.architectureSolution.setDescription(archNotes.getValue());
+            this.architectureSolution.setDescription(archNotes.get().getValue());
             this.architectureSolutionService.saveAndUpdate(this.architectureSolution);
 
             NotificationUtils.showSuccessNotification("Architecture Solution saved.");
@@ -165,14 +184,14 @@ class ArchitectureSolutionDataManager {
         cancelBtn.addClickListener(click -> {
             this.paperReference = null;
             this.architectureSolution = null;
-            this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, archNotes, buttons, addButton);
+            this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, archNotes, qualityRequirementGrid, buttons, addButton);
         });
 
         comboPaper.addValueChangeListener(ref -> {
             if (ref.getValue() != null) {
                 this.paperReference = ref.getValue();
                 this.architectureSolution = ref.getValue().getArchitectureSolution();
-                this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, qualityRequirementGrid, archNotes, buttons, addButton);
+                this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, archNotes, qualityRequirementGrid, buttons, addButton);
             }
         });
 
@@ -182,7 +201,7 @@ class ArchitectureSolutionDataManager {
 
         buttons.add(saveBtn, cancelBtn);
 
-        vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes, hlGrid, buttons);
+        vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes.get(), hlGrid, buttons);
 
         return vl;
     }
@@ -194,7 +213,7 @@ class ArchitectureSolutionDataManager {
      * @param paperReferenceComboBox
      * @param qualityRequirementGrid
      */
-    private void prepareRegisterForm(ComboBox comboBoxArch, ComboBox iotDomainComboBox, ComboBox paperReferenceComboBox, Grid qualityRequirementGrid, TextArea archNotes, HorizontalLayout buttons, Button addButton) {
+    private void prepareRegisterForm(ComboBox comboBoxArch, ComboBox iotDomainComboBox, ComboBox paperReferenceComboBox,RichTextField archNotes,  Grid qualityRequirementGrid, HorizontalLayout buttons, Button addButton) {
         iotDomainComboBox.setEnabled(this.paperReference != null);
         //paperReferenceComboBox.setEnabled(this.paperReference != null);
         comboBoxArch.setEnabled(this.paperReference != null);
@@ -207,14 +226,14 @@ class ArchitectureSolutionDataManager {
                 qualityRequirementGrid.setItems(this.paperReference.getArchitectureSolution().getQualityRequirementTechnologies());
                 comboBoxArch.setValue(this.paperReference.getArchitectureSolution().getArchitecture());
                 this.architectureSolution = this.paperReference.getArchitectureSolution();
-                if (this.architectureSolution.getDescription() != null) archNotes.setValue(this.architectureSolution.getDescription());
-                else archNotes.setValue("");
+                if (this.architectureSolution.getDescription() != null) archNotes.get().setValue(this.architectureSolution.getDescription());
+                else archNotes.get().setValue("");
             } else {
                 this.architectureSolution = new ArchitectureSolution();
                 comboBoxArch.setItems(this.architectureService.findAll());
                 iotDomainComboBox.setItems(this.ioTDomainService.findAllOrderByName());
                 qualityRequirementGrid.setItems(new ArrayList<>());
-                archNotes.clear();
+                archNotes.get().clear();
             }
             addButton.setEnabled(true);
             buttons.setVisible(true);
@@ -223,7 +242,7 @@ class ArchitectureSolutionDataManager {
             iotDomainComboBox.setItems(this.ioTDomainService.findAllOrderByName());
             paperReferenceComboBox.setItems(this.paperReferenceService.finAllOrderByPaperReferenceTitle());
             qualityRequirementGrid.setItems(new ArrayList<>());
-            archNotes.clear();
+            archNotes.get().clear();
             buttons.setVisible(false);
             addButton.setEnabled(false);
             this.architectureSolution = new ArchitectureSolution();
