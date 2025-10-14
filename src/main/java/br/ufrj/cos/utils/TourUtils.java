@@ -7,6 +7,7 @@ import com.vaadin.componentfactory.onboarding.Onboarding;
 import com.vaadin.componentfactory.onboarding.OnboardingStep;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.dom.Style;
@@ -71,6 +72,20 @@ public class TourUtils {
 
             l.getStyle().setBorder("solid 1px gray");
             l.getStyle().setFontWeight("bold");
+            l.getStyle().setBoxShadow("0 4px 6px rgba(0, 0, 0, 2.0)");
+            l.addPopupOpenChangedEventListener(e -> {
+                if (e.isOpened()) {
+                    // Ensure opacity is within the valid range [0, 1]
+                    double clampedOpacity = Math.max(0.0, Math.min(1.0, 0.6));
+
+                    UI.getCurrent().getPage().executeJs(
+                            String.format("const style = document.createElement('style');" +
+                            "style.textContent = 'vcf-popup-overlay::part(backdrop) { background-color: rgba(0, 0, 0, %f); }';" +
+                            "document.head.appendChild(style);", clampedOpacity));
+
+                    System.out.println("Opacity applied: " + clampedOpacity);
+                }
+            });
 
             listener.ifPresent(c -> c.accept(l));
         });

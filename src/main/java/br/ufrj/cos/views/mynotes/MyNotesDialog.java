@@ -19,8 +19,6 @@ import com.vaadin.flow.data.binder.BeanValidationBinder;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.shared.Registration;
-import com.wontlost.ckeditor.VaadinCKEditor;
-import com.wontlost.ckeditor.VaadinCKEditorBuilder;
 
 import java.util.Date;
 
@@ -92,7 +90,7 @@ public class MyNotesDialog extends Dialog {
         cancelButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         // Add keyboard shortcuts
-        saveButton.addClickShortcut(Key.ENTER);
+        //saveButton.addClickShortcut(Key.ENTER);
         cancelButton.addClickShortcut(Key.ESCAPE);
 
         // Add click listeners

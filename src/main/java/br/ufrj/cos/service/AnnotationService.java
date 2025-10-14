@@ -58,4 +58,8 @@ public class AnnotationService {
     public Optional<List<Annotation>> findAllAnnotationsByUserApplication(UserApplication userApplication) {
         return this.annotationRepository.findMostRecentByUserApplication(userApplication);
     }
+
+    public void delete(Annotation annotation) {
+        annotationRepository.delete(annotation);
+    }
 }

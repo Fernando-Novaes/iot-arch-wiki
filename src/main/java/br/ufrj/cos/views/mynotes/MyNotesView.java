@@ -1,9 +1,9 @@
 package br.ufrj.cos.views.mynotes;
 
-import br.ufrj.cos.api.APIServiceConnection;
 import br.ufrj.cos.domain.Annotation;
 import br.ufrj.cos.service.AnnotationService;
 import br.ufrj.cos.service.UserApplicationService;
+import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.utils.TourUtils;
 import br.ufrj.cos.views.BaseView;
@@ -12,10 +12,11 @@ import br.ufrj.cos.views.MainLayout;
 import com.vaadin.componentfactory.PopupPosition;
 import com.vaadin.componentfactory.onboarding.Onboarding;
 import com.vaadin.flow.component.Html;
-import com.vaadin.flow.component.Text;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
+import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
+import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
@@ -36,9 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vaadin.addons.matthew.fliplayout.FlipLayout;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @PageTitle("My Notes")
@@ -58,7 +57,7 @@ public class MyNotesView extends BaseView implements HasTour {
     private final HorizontalLayout filterLayout = new HorizontalLayout();
     private final TextField searchField = new TextField();
     private final ComboBox<String> categoryComboBox = new ComboBox<>();
-    private final Button searchButton = new Button("Search", VaadinIcon.SEARCH.create());
+    private final Button searchButton = new Button("Filter", VaadinIcon.SEARCH.create());
     private final Button clearButton = new Button("Clear", VaadinIcon.ERASER.create());
 
     //New note
@@ -71,7 +70,7 @@ public class MyNotesView extends BaseView implements HasTour {
         this.annotationService = annotationService;
 
         createHeader("My Notes");
-        createSearchContainer("Search Notes", "Search by content...", "Filter by title...");
+        createSearchContainer("Filter Notes", "Filter by content...", "Filter by title...");
         initializeCardContainer();
         createNewFloatButton();
     }
@@ -188,7 +187,7 @@ public class MyNotesView extends BaseView implements HasTour {
 
                     return matchesSearch && matchesTitle;
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         logger.info(String.format("Displaying %d filtered annotations", filteredAnnotations.size()));
 
@@ -196,69 +195,129 @@ public class MyNotesView extends BaseView implements HasTour {
             cardContainer.add(new Span("No notes match your criteria."));
         } else {
             filteredAnnotations.forEach(annotation -> {
-                FlipLayout card = createCard(
-                        annotation.getTitle(),
-                        annotation.getTopic(),
-                        annotation.getLastUpdate() != null ? annotation.getLastUpdate().toString() : "N/A",
-                        annotation.getText()
-                );
+                FlipLayout card = createCard(annotation);
                 cardContainer.add(card);
             });
         }
     }
 
-    private FlipLayout createCard(String title, String topic, String lastUpdate, String fullText) {
+    private FlipLayout createCard(Annotation annotation) {
+        // --- FlipLayout Configuration (created first) ---
+        FlipLayout flipLayout = new FlipLayout();
+
         // --- Front of the Card ---
         VerticalLayout frontForm = new VerticalLayout();
+        // ... (rest of the frontForm setup is the same)
         frontForm.setPadding(true);
         frontForm.setSpacing(false);
         frontForm.getStyle().set("box-shadow", "var(--lumo-box-shadow-s)");
         frontForm.getStyle().set("border-radius", "var(--lumo-border-radius-l)");
         frontForm.getStyle().setBackgroundColor("var(--lumo-contrast-10pct)");
         frontForm.setWidth("45em");
-        frontForm.setHeight("25em"); // Give cards a consistent height
+        frontForm.setHeight("25em");
 
-        H3 cardTitle = new H3(title != null ? title : "No Title");
+        // --- Card Header with Title and Delete Button ---
+        H1 cardTitle = new H1(annotation.getTitle() != null ? annotation.getTitle() : "No Title");
         cardTitle.getStyle().set("margin-top", "0");
         cardTitle.getStyle().set("margin-bottom", "0.5em");
+        cardTitle.getStyle().set("font-size", "var(--lumo-font-size-xl)");
 
-        Span cardTopic = new Span(topic != null ? topic : "");
+        Button deleteButton = new Button(VaadinIcon.TRASH.create());
+        deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
+        deleteButton.setTooltipText("Delete this note");
+        deleteButton.getStyle().set("margin-left", "auto");
+
+        // *** KEY CHANGE: Pass the flipLayout to the confirmAndDelete method ***
+        deleteButton.addClickListener(e -> confirmAndDelete(annotation, flipLayout));
+
+        HorizontalLayout headerLayout = new HorizontalLayout(cardTitle, deleteButton);
+        headerLayout.setWidthFull();
+        headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        // ... (rest of the frontForm body setup is the same) ...
+        Span cardTopic = new Span(annotation.getTopic() != null ? annotation.getTopic() : "");
         cardTopic.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        cardTopic.getStyle().set("font-size", "var(--lumo-font-size-s)");
-        cardTopic.getStyle().set("margin-bottom", "auto"); // Pushes the date and button to the bottom
+        cardTopic.getStyle().set("font-size", "var(--lumo-font-size-m)");
+        cardTopic.getStyle().set("margin-bottom", "auto");
 
-        Span cardLastUpdate = new Span("Last Update: " + lastUpdate);
+        Span cardLastUpdate = new Span("Last Update: " + (annotation.getLastUpdate() != null ? annotation.getLastUpdate().toString() : "N/A"));
         cardLastUpdate.getStyle().set("color", "var(--lumo-tertiary-text-color)");
-        cardLastUpdate.getStyle().set("font-size", "var(--lumo-font-size-xs)");
+        cardLastUpdate.getStyle().set("font-size", "var(--lumo-font-size-m)");
 
         Button flipButton = new Button("View Details", VaadinIcon.ARROW_FORWARD.create());
         flipButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 
-        frontForm.add(cardTitle, cardTopic, cardLastUpdate, flipButton);
-        frontForm.setAlignItems(FlexComponent.Alignment.START);
+        frontForm.add(headerLayout, cardTopic, cardLastUpdate, flipButton);
+        frontForm.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         // --- Back of the Card ---
         VerticalLayout backForm = new VerticalLayout();
+        // ... (rest of the backForm setup is the same) ...
         backForm.setPadding(true);
         backForm.getStyle().set("box-shadow", "var(--lumo-box-shadow-s)");
         backForm.getStyle().set("border-radius", "var(--lumo-border-radius-l)");
         backForm.setWidth(frontForm.getWidth());
         backForm.setHeight(frontForm.getHeight());
 
-        Html cardFullText = new Html("<div style='overflow: auto; height: 100%;'>" + (fullText != null ? fullText : "") + "</div>");
-
+        Html cardFullText = new Html("<div style='overflow: auto; height: 100%;'>" + (annotation.getText() != null ? annotation.getText() : "") + "</div>");
         Button unflipButton = new Button("Back to Summary", VaadinIcon.ARROW_BACKWARD.create());
         unflipButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
 
         backForm.add(cardFullText, unflipButton);
-        backForm.expand(cardFullText); // Make the text area take up available space
+        backForm.expand(cardFullText);
 
-        // --- FlipLayout Configuration ---
-        FlipLayout flipLayout = new FlipLayout(frontForm, backForm);
+        // --- Final FlipLayout Configuration ---
+        flipLayout.setFrontComponent(frontForm);
+        flipLayout.setBackComponent(backForm);
         flipButton.addClickListener(event -> flipLayout.flip());
         unflipButton.addClickListener(event -> flipLayout.flip());
 
         return flipLayout;
+    }
+
+    // *** NEW METHOD for delete confirmation and logic ***
+    private void confirmAndDelete(Annotation annotation, FlipLayout card) {
+        ConfirmDialog dialog = new ConfirmDialog();
+        dialog.setHeader("Delete Note: '" + annotation.getTitle() + "'");
+        dialog.setText("Are you sure you want to permanently delete this note?");
+        dialog.setCancelable(true);
+        dialog.setConfirmText("Delete");
+        dialog.setConfirmButtonTheme("error primary");
+
+        // --- Get the style object for the card's front component ---
+        // We style the front component as it's the one that's visible.
+        Style cardStyle = card.getFrontComponent().getStyle();
+
+        // --- Apply the style when the dialog opens ---
+        cardStyle.set("border", "2px solid var(--lumo-error-color)");
+        cardStyle.set("box-shadow", "0 0 10px var(--lumo-error-color-50pct)");
+
+        // --- Remove the style when the dialog is closed for any reason ---
+        dialog.addDetachListener(e -> {
+            cardStyle.remove("border");
+            // Reset the box-shadow to its original state
+            cardStyle.set("box-shadow", "var(--lumo-box-shadow-s)");
+        });
+
+        // --- Define the action on confirmation ---
+        dialog.addConfirmListener(event -> deleteAnnotation(annotation));
+
+        dialog.open();
+    }
+
+    private void deleteAnnotation(Annotation annotation) {
+        try {
+            if (annotation.getUserApplication() != null) {
+                // Just by removing it from the list, JPA will automatically delete the "orphaned" annotation.
+                annotation.getUserApplication().getAnnotations().remove(annotation);
+            }
+            annotationService.delete(annotation);
+            NotificationUtils.showSuccessNotification("Note deleted successfully.");
+            filterAndDisplayCards(); // Refresh the view
+        } catch (Exception e) {
+            logger.error("Error deleting annotation with ID: " + annotation.getId(), e);
+            NotificationUtils.showErrorNotification("Error deleting note. Please try again.");
+        }
     }
 
     // Method to open the dialog for a new note
@@ -293,12 +352,14 @@ public class MyNotesView extends BaseView implements HasTour {
     @Override
     public Onboarding createTour() {
         return new TourUtils().build()
-                .addStep(filterLayout, "Filter options", new Html("<div>The filtering mechanism allows for precise refinement of the available notes.</div>"), PopupPosition.BOTTOM)
-                .addStep(searchField, "Filter by content", new Html("<div>Here you can search a Note by its content.</div>"), PopupPosition.BOTTOM)
-                .addStep(categoryComboBox, "Filter by topic", new Html("<div>Select the available topic to search a note.</div>"), PopupPosition.BOTTOM)
-                .addStep(searchButton, "Search button", new Html("<div>Perform the filter by clicking on the Search button.</div>"), PopupPosition.BOTTOM)
-                .addStep(clearButton, "Clear button", new Html("<div>Clear all filter options and all notes will be visible.</div>"), PopupPosition.BOTTOM)
-                .addStep(floatingButton, "New note button", new Html("<div>Add a Note hitting this button.</div>"), PopupPosition.BOTTOM)
+                .addStep(filterLayout, "Filter Options", new Html("<div>This section allows you to refine the list of notes.</div>"), PopupPosition.BOTTOM)
+                .addStep(searchField, "Search by Content", new Html("<div>Enter a keyword to search within your notes.</div>"), PopupPosition.BOTTOM)
+                .addStep(categoryComboBox, "Filter by Topic", new Html("<div>Narrow the list by selecting a topic.</div>"), PopupPosition.BOTTOM)
+                .addStep(searchButton, "Apply Filters", new Html("<div>Click here to apply your search term and topic filter to the list of notes.</div>"), PopupPosition.BOTTOM)
+                .addStep(clearButton, "Clear Filters", new Html("<div>ick this button to remove all filters and view all of your notes again.</div>"), PopupPosition.BOTTOM)
+                .addStep(floatingButton, "Create a New Note", new Html("<div>Click here to start a new note.</div>"), PopupPosition.BOTTOM)
+                .addStep(cardContainer, "Notes",
+                        new Html("<div>Your notes are organized as cards. The front of each card shows key details like the title and topic. Click the 'View Details' button to flip the card and read the full text.</div>"), PopupPosition.BOTTOM)
                 .getOnboarding();
     }
 

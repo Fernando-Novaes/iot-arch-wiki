@@ -29,13 +29,14 @@ public class Annotation {
     @Column(columnDefinition = "CLOB")
     private String text;
 
+    @Column
     private Date lastUpdate;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_application_id")
     private UserApplication userApplication;
 
-    @OneToMany(mappedBy = "annotation", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "annotation", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<AnnotationDomain> annotationDomains;
 
     public DomainBase getAnnotationDomainType(AnnotationDomain annotationDomain) {
