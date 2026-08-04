@@ -39,11 +39,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import reactor.core.Disposable;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import com.vaadin.flow.component.dependency.CssImport;
+import com.vaadin.flow.data.value.ValueChangeMode;
 
 @PageTitle("Architecture Builder")
 @Route(value = "builder", layout = MainLayout.class)
@@ -109,6 +111,12 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     private final TechnologyService technologyService;
     private final QualityRequirementService qualityRequirementService;
 
+    // Cached Master Data
+    private List<String> cachedDomains = null;
+    private List<String> cachedPatterns = null;
+    private List<String> cachedTechnologies = null;
+    private List<String> cachedQualityRequirements = null;
+
     // State of active design
     private SavedArchitecture currentArchitecture = new SavedArchitecture();
     private String selectedDomain = null;
@@ -139,17 +147,18 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     private final Div rightPanelContainer = new Div();
     private boolean isRightPanelOpen = true;
 
-    // Left Collapsible Side Drawer Panel & State
     private boolean isDrawerOpen = true;
     private int openAccordionIndex = 0;
     private final VerticalLayout paletteDrawerPanel = new VerticalLayout();
     private final Div accordionContainer = new Div();
-    private final Button togglePaletteBtn = new Button("Hide Palette", VaadinIcon.ANGLE_DOUBLE_LEFT.create());
 
     // Floating AI Report Widget State
     private boolean isAiReportWindowOpen = false;
     private final Div aiReportFloatingWindow = new Div();
     private final Button aiReportFab = new Button();
+    private String lastAiEvaluationReport = null;
+    private final Map<String, String> arrowPositionsMap = new LinkedHashMap<>();
+    private final Button exportPdfBtn = new Button("Export PDF", VaadinIcon.FILE_TEXT.create());
 
     // Floating Architectural Notes Widget State
     private boolean isNotesWindowOpen = false;
@@ -286,12 +295,6 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
         HorizontalLayout leftGroup = new HorizontalLayout();
 
-        togglePaletteBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        togglePaletteBtn.getStyle()
-                .set("background", "linear-gradient(135deg, #2563eb, #1d4ed8)")
-                .set("font-weight", "600");
-        togglePaletteBtn.addClickListener(e -> toggleDrawerState());
-
         openButton.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
         openButton.addClickListener(e -> openGalleryDialog());
 
@@ -305,8 +308,15 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
         newButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         newButton.addClickListener(e -> resetCanvas());
+        leftGroup.add(openButton, saveButton, exportImageButton, newButton);
 
-        leftGroup.add(togglePaletteBtn, openButton, saveButton, exportImageButton, newButton);
+        notesFab.setIcon(VaadinIcon.NOTEBOOK.create());
+        notesFab.setText("Notes");
+        notesFab.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        notesFab.getStyle()
+                .set("background", "linear-gradient(135deg, #7c3aed, #6d28d9)")
+                .set("font-weight", "700");
+        notesFab.addClickListener(e -> toggleNotesWindow());
 
         evaluateButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         evaluateButton.getStyle()
@@ -314,14 +324,55 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("font-weight", "700");
         evaluateButton.addClickListener(e -> runAiEvaluation());
 
-        layout.add(leftGroup, evaluateButton);
+        HorizontalLayout rightGroup = new HorizontalLayout(notesFab, evaluateButton);
+        rightGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+        rightGroup.setSpacing(true);
+
+        layout.add(leftGroup, rightGroup);
         actionBar.add(layout);
         return actionBar;
     }
 
     private void createLeftDrawerPanel() {
+        paletteDrawerPanel.removeAll();
         paletteDrawerPanel.setPadding(false);
         paletteDrawerPanel.setSpacing(true);
+
+        if (!isDrawerOpen) {
+            paletteDrawerPanel.getStyle()
+                    .set("background", "var(--lumo-base-color)")
+                    .set("border", "1px solid var(--lumo-contrast-15pct)")
+                    .set("border-radius", "16px")
+                    .set("padding", "0.75rem 0.5rem")
+                    .set("box-shadow", "0 4px 14px rgba(0, 0, 0, 0.04)")
+                    .set("width", "56px")
+                    .set("min-width", "56px")
+                    .set("display", "flex")
+                    .set("flex-direction", "column")
+                    .set("align-items", "center")
+                    .set("box-sizing", "border-box")
+                    .set("transition", "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)");
+
+            Button expandBtn = new Button(VaadinIcon.ANGLE_DOUBLE_RIGHT.create(), e -> toggleDrawerState());
+            expandBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            expandBtn.setTooltipText("Show Architecture Solution Palette");
+
+            Span verticalLabel = new Span("🧩 Architecture Solution Palette");
+            verticalLabel.getStyle()
+                    .set("writing-mode", "vertical-rl")
+                    .set("transform", "rotate(180deg)")
+                    .set("font-weight", "700")
+                    .set("font-size", "0.82rem")
+                    .set("color", "var(--lumo-secondary-text-color)")
+                    .set("margin-top", "1rem")
+                    .set("cursor", "pointer");
+
+            verticalLabel.addClickListener(e -> toggleDrawerState());
+
+            paletteDrawerPanel.add(expandBtn, verticalLabel);
+            return;
+        }
+
         paletteDrawerPanel.getStyle()
                 .set("background", "var(--lumo-base-color)")
                 .set("border", "1px solid var(--lumo-contrast-15pct)")
@@ -336,20 +387,21 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("box-sizing", "border-box")
                 .set("transition", "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)");
 
-        // Header with title and close action
+        // Header with title and Hide Toggle Button
         HorizontalLayout drawerHeader = new HorizontalLayout();
         drawerHeader.setWidthFull();
         drawerHeader.setAlignItems(FlexComponent.Alignment.CENTER);
         drawerHeader.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        H3 title = new H3("🧩 Block Palette");
+        H3 title = new H3("🧩 Architecture Solution Palette");
         title.getStyle().set("margin", "0").set("font-size", "1.05rem");
 
-        Button closeAction = new Button(VaadinIcon.ANGLE_DOUBLE_LEFT.create(), e -> toggleDrawerState());
-        closeAction.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
-        closeAction.setTooltipText("Collapse Side Drawer");
+        Button hideBtn = new Button(VaadinIcon.ANGLE_DOUBLE_LEFT.create(), e -> toggleDrawerState());
+        hideBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
+        hideBtn.getStyle().set("font-weight", "600");
+        hideBtn.setTooltipText("Hide Architecture Solution Palette");
 
-        drawerHeader.add(title, closeAction);
+        drawerHeader.add(title, hideBtn);
         paletteDrawerPanel.add(drawerHeader);
 
         // Accordion Container with internal scroll
@@ -364,16 +416,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
     private void toggleDrawerState() {
         isDrawerOpen = !isDrawerOpen;
-        if (isDrawerOpen) {
-            paletteDrawerPanel.getStyle().set("display", "flex");
-            paletteDrawerPanel.getStyle().set("width", "380px");
-            togglePaletteBtn.setText("Hide Palette");
-            togglePaletteBtn.setIcon(VaadinIcon.ANGLE_DOUBLE_LEFT.create());
-        } else {
-            paletteDrawerPanel.getStyle().set("display", "none");
-            togglePaletteBtn.setText("Show Palette");
-            togglePaletteBtn.setIcon(VaadinIcon.ANGLE_DOUBLE_RIGHT.create());
-        }
+        refreshAllViews();
     }
 
     private void createFloatingAiReportWidget() {
@@ -428,11 +471,23 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         H3 title = new H3("🤖 AI Diagnostic Report");
         title.getStyle().set("margin", "0").set("font-size", "1.05rem").set("font-weight", "700");
 
+        exportPdfBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+        exportPdfBtn.getStyle()
+                .set("background", "linear-gradient(135deg, #2563eb, #1d4ed8)")
+                .set("font-weight", "600");
+        exportPdfBtn.setTooltipText("Export high-resolution technical PDF report with architecture diagram");
+        exportPdfBtn.addClickListener(e -> exportAiReportAsPdf());
+        exportPdfBtn.setEnabled(lastAiEvaluationReport != null && !lastAiEvaluationReport.trim().isEmpty());
+
         Button closeBtn = new Button(VaadinIcon.CLOSE.create(), e -> toggleAiReportWindow());
         closeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
         closeBtn.setTooltipText("Hide Report Window");
 
-        header.add(title, closeBtn);
+        HorizontalLayout headerActions = new HorizontalLayout(exportPdfBtn, closeBtn);
+        headerActions.setAlignItems(FlexComponent.Alignment.CENTER);
+        headerActions.setSpacing(true);
+
+        header.add(title, headerActions);
 
         // Content Area inside floating window
         aiReportDiv.getStyle()
@@ -463,36 +518,141 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         aiReportFloatingWindow.getStyle().set("display", "flex");
     }
 
+    private void exportAiReportAsPdf() {
+        if (lastAiEvaluationReport == null || lastAiEvaluationReport.trim().isEmpty()) {
+            NotificationUtils.showErrorNotification("Please run AI Evaluation before exporting PDF.");
+            return;
+        }
+
+        String username = SecurityUtils.getUsername();
+        if (username == null || username.isEmpty()) {
+            username = "Architect User";
+        }
+        String dateStr = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm").format(LocalDateTime.now());
+
+        NotificationUtils.showSuccessNotification("Opening Technical PDF Report...");
+
+        String script = """
+            (function(appName, viewName, dateStr, username, reportContentHtml) {
+                function loadScript(url, callback) {
+                    if (window.html2pdf) { callback(true); return; }
+                    var script = document.createElement('script');
+                    script.src = url;
+                    script.onload = function() { callback(true); };
+                    script.onerror = function() { callback(false); };
+                    document.head.appendChild(script);
+                }
+
+                var html2pdfCdn = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+                var html2canvasCdn = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+
+                loadScript(html2canvasCdn, function() {
+                    loadScript(html2pdfCdn, function() {
+                        generatePdfReport();
+                    });
+                });
+
+                function generatePdfReport() {
+                    var canvasContainer = document.getElementById('architecture-canvas-container');
+
+                    if (window.html2canvas && canvasContainer) {
+                        html2canvas(canvasContainer, {
+                            scale: 2,
+                            useCORS: true,
+                            backgroundColor: '#ffffff'
+                        }).then(function(canvas) {
+                            var imgData = canvas.toDataURL('image/png');
+                            buildAndSavePdf(imgData, reportContentHtml);
+                        }).catch(function(err) {
+                            console.error("html2canvas error:", err);
+                            buildAndSavePdf(null, reportContentHtml);
+                        });
+                    } else {
+                        buildAndSavePdf(null, reportContentHtml);
+                    }
+                }
+
+                function buildAndSavePdf(imgDataUrl, reportHtmlContent) {
+                    var reportContainer = document.createElement('div');
+                    reportContainer.style.cssText = 'padding: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color: #1e293b; background: #ffffff; width: 100%; max-width: 680px; margin: 0 auto; box-sizing: border-box;';
+
+                    var headerHtml = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 20px; width: 100%; box-sizing: border-box;">
+                            <div style="flex-grow: 1;">
+                                <h1 style="margin: 0; font-size: 24px; color: #0f172a; font-weight: 800; letter-spacing: -0.5px;">${appName}</h1>
+                                <h2 style="margin: 4px 0 0 0; font-size: 13px; color: #2563eb; font-weight: 700;">${viewName} — Technical Audit & Evaluation Report</h2>
+                            </div>
+                            <div style="flex-shrink: 0; text-align: right; font-size: 11px; color: #475569; line-height: 1.6; background: #f8fafc; padding: 6px 14px; border-radius: 8px; border: 1px solid #cbd5e1; box-sizing: border-box; margin-left: 15px;">
+                                <div><strong>Date:</strong> ${dateStr}</div>
+                                <div><strong>User / Architect:</strong> ${username}</div>
+                            </div>
+                        </div>
+                    `;
+
+                    var imageHtml = imgDataUrl ? `
+                        <div style="margin-bottom: 22px; page-break-inside: avoid;">
+                            <h3 style="font-size: 13px; color: #0f172a; border-left: 4px solid #2563eb; padding-left: 8px; margin: 0 0 10px 0; font-weight: 700;">
+                                📐 Architecture Stack Blueprint Diagram
+                            </h3>
+                            <div style="border: 1px solid #e2e8f0; border-radius: 10px; padding: 10px; background: #f8fafc; text-align: center;">
+                                <img src="${imgDataUrl}" style="max-width: 100%; height: auto; max-height: 350px; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);" />
+                            </div>
+                        </div>
+                    ` : '';
+
+                    var contentHtml = `
+                        <div style="margin-bottom: 20px;">
+                            <h3 style="font-size: 13px; color: #0f172a; border-left: 4px solid #10b981; padding-left: 8px; margin: 0 0 12px 0; font-weight: 700;">
+                                🤖 AI Architecture Evaluation & Trade-off Audit
+                            </h3>
+                            <div style="font-size: 11.5px; line-height: 1.6; color: #334155;">
+                                ${reportHtmlContent}
+                            </div>
+                        </div>
+                    `;
+
+                    reportContainer.innerHTML = headerHtml + imageHtml + contentHtml;
+
+                    if (window.html2pdf) {
+                        var opt = {
+                            margin:       [10, 10, 14, 10],
+                            filename:     'ArchIoTect_Technical_Report.pdf',
+                            image:        { type: 'jpeg', quality: 0.98 },
+                            html2canvas:  { scale: 2, useCORS: true, logging: false },
+                            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+                        };
+
+                        html2pdf().set(opt).from(reportContainer).toPdf().get('pdf').then(function(pdf) {
+                            var totalPages = pdf.internal.getNumberOfPages();
+                            for (var i = 1; i <= totalPages; i++) {
+                                pdf.setPage(i);
+                                pdf.setFontSize(8);
+                                pdf.setTextColor(100, 116, 139);
+                                pdf.text('Page ' + i + ' of ' + totalPages, pdf.internal.pageSize.getWidth() - 25, pdf.internal.pageSize.getHeight() - 6);
+                                pdf.text('ArchIoTect — Architecture Builder Technical Report', 10, pdf.internal.pageSize.getHeight() - 6);
+                            }
+                        }).save();
+                    } else {
+                        var printWin = window.open('', '_blank');
+                        printWin.document.write('<html><head><title>ArchIoTect Technical Report</title><style>@page{size:A4 portrait;margin:12mm;} body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#fff;color:#1e293b;margin:0;padding:0;}</style></head><body>' + reportContainer.innerHTML + '</body></html>');
+                        printWin.document.close();
+                        printWin.focus();
+                        setTimeout(function(){ printWin.print(); printWin.close(); }, 400);
+                    }
+                }
+            })($0, $1, $2, $3, $4);
+            """;
+
+        UI.getCurrent().getPage().executeJs(script, "ArchIoTect", "Architecture Builder", dateStr, username, lastAiEvaluationReport);
+    }
+
     private void createFloatingNotesWidget() {
-        // 1. Floating Action Button (FAB) for Notes
-        notesFab.setIcon(VaadinIcon.NOTEBOOK.create());
-        notesFab.setText("Notes");
-        notesFab.getStyle()
-                .set("position", "fixed")
-                .set("bottom", "28px")
-                .set("right", "165px")
-                .set("z-index", "1000")
-                .set("height", "48px")
-                .set("padding", "0 1.25rem")
-                .set("border-radius", "24px")
-                .set("background", "linear-gradient(135deg, #7c3aed, #6d28d9)")
-                .set("color", "#ffffff")
-                .set("font-weight", "700")
-                .set("font-size", "0.88rem")
-                .set("box-shadow", "0 8px 24px rgba(124, 58, 237, 0.4)")
-                .set("border", "none")
-                .set("cursor", "pointer")
-                .set("display", "flex")
-                .set("align-items", "center")
-                .set("gap", "0.5rem");
-
-        notesFab.addClickListener(e -> toggleNotesWindow());
-
-        // 2. Floating Window Card for Notes
+        // Floating Window Card for Notes
         notesFloatingWindow.getStyle()
                 .set("position", "fixed")
-                .set("bottom", "90px")
-                .set("right", "165px")
+                .set("top", "140px")
+                .set("right", "28px")
                 .set("z-index", "1000")
                 .set("width", "460px")
                 .set("max-height", "480px")
@@ -535,7 +695,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         notesTextArea.addValueChangeListener(e -> updateSaveButtonState());
 
         notesFloatingWindow.add(header, notesTextArea, helper);
-        getContent().add(notesFab, notesFloatingWindow);
+        getContent().add(notesFloatingWindow);
     }
 
     private void toggleNotesWindow() {
@@ -553,6 +713,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     }
 
     private void refreshAllViews() {
+        createLeftDrawerPanel();
         refreshCanvasView();
         refreshPaletteView();
         createRightPanel();
@@ -564,6 +725,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     public void deleteFlowArrowById(String arrowId) {
         if (arrowId != null) {
             activeFlowArrows.removeIf(a -> a.id().equalsIgnoreCase(arrowId));
+            arrowPositionsMap.remove(arrowId);
             refreshAllViews();
             updateSaveButtonState();
             NotificationUtils.showSuccessNotification("Deleted flow arrow connection.");
@@ -585,18 +747,33 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                         if (!canvas) return;
                         canvas.style.position = 'relative';
 
+                        function getVaadinServer() {
+                            var el = canvas;
+                            while (el) {
+                                if (el.$server) return el.$server;
+                                el = el.parentElement || el.parentNode || (el.getRootNode ? el.getRootNode().host : null);
+                            }
+                            return null;
+                        }
+
                         if (!canvas.hasAttribute('data-delete-listener')) {
                             canvas.setAttribute('data-delete-listener', 'true');
                             canvas.addEventListener('delete-arrow', function(e) {
-                                var viewEl = document.getElementById('architecture-canvas-container').closest('div');
-                                if (viewEl && viewEl.$server) {
-                                    viewEl.$server.deleteFlowArrowById(e.detail);
+                                var server = getVaadinServer();
+                                if (server && server.deleteFlowArrowById) {
+                                    server.deleteFlowArrowById(e.detail);
                                 }
                             });
                             canvas.addEventListener('render-arrows', function(e) {
-                                var viewEl = document.getElementById('architecture-canvas-container').closest('div');
-                                if (viewEl && viewEl.$server) {
-                                    viewEl.$server.triggerReRenderArrows();
+                                var server = getVaadinServer();
+                                if (server && server.triggerReRenderArrows) {
+                                    server.triggerReRenderArrows();
+                                }
+                            });
+                            canvas.addEventListener('update-arrow-position', function(e) {
+                                var server = getVaadinServer();
+                                if (server && server.updateArrowPosition) {
+                                    server.updateArrowPosition(e.detail.id, JSON.stringify(e.detail));
                                 }
                             });
                         }
@@ -700,6 +877,9 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                             var ctrlX = (stored && typeof stored.x === 'number') ? stored.x : defaultCtrlX;
                             var ctrlY = (stored && typeof stored.y === 'number') ? stored.y : defaultCtrlY;
 
+                            var arrowG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                            arrowG.style.cssText = 'pointer-events: auto;';
+
                             function getPathD(sX, sY, cX, cY, eX, eY) {
                                 return 'M ' + sX + ',' + sY + ' Q ' + cX + ',' + cY + ' ' + eX + ',' + eY;
                             }
@@ -711,21 +891,9 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                             path.setAttribute('fill', 'none');
                             path.setAttribute('stroke-linecap', 'round');
                             path.setAttribute('marker-end', 'url(#' + markerId + ')');
-                            path.style.cssText = 'pointer-events: stroke; cursor: pointer; transition: stroke 0.15s ease;';
+                            path.style.cssText = 'pointer-events: stroke; cursor: pointer; transition: stroke 0.15s ease, stroke-width 0.15s ease;';
 
-                            path.onmouseenter = function() {
-                                path.setAttribute('stroke', '#ef4444');
-                                path.setAttribute('stroke-width', '5');
-                            };
-                            path.onmouseleave = function() {
-                                path.setAttribute('stroke', color);
-                                path.setAttribute('stroke-width', '3.5');
-                            };
-                            path.onclick = function() {
-                                canvas.dispatchEvent(new CustomEvent('delete-arrow', { detail: arrow.id, bubbles: true }));
-                            };
-
-                            svg.appendChild(path);
+                            arrowG.appendChild(path);
 
                             // Protocol Badge
                             var badgeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -760,22 +928,110 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                             badgeG.appendChild(text);
                             updateBadgePos(startX, startY, ctrlX, ctrlY, endX, endY);
 
-                            badgeG.onclick = function(e) {
-                                e.stopPropagation();
-                                canvas.dispatchEvent(new CustomEvent('delete-arrow', { detail: arrow.id, bubbles: true }));
-                            };
+                            arrowG.appendChild(badgeG);
 
-                            svg.appendChild(badgeG);
+                            function notifyPosChange() {
+                                canvas.dispatchEvent(new CustomEvent('update-arrow-position', {
+                                    detail: { id: arrow.id, startX: startX, startY: startY, endX: endX, endY: endY, ctrlX: ctrlX, ctrlY: ctrlY },
+                                    bubbles: true
+                                }));
+                            }
 
                             // Draggable Start Anchor Circle (Origin Element Edge Anchor)
                             var startAnchor = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
                             startAnchor.setAttribute('cx', startX);
                             startAnchor.setAttribute('cy', startY);
-                            startAnchor.setAttribute('r', '6');
+                            startAnchor.setAttribute('r', '6.5');
                             startAnchor.setAttribute('fill', '#ffffff');
                             startAnchor.setAttribute('stroke', color);
                             startAnchor.setAttribute('stroke-width', '2.5');
-                            startAnchor.style.cssText = 'pointer-events: auto; cursor: crosshair; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
+                            startAnchor.style.cssText = 'opacity: 0; pointer-events: none; cursor: crosshair; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transition: opacity 0.15s ease;';
+
+                            // Draggable End Anchor Circle (Destination Element Edge Anchor)
+                            var endAnchor = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            endAnchor.setAttribute('cx', endX);
+                            endAnchor.setAttribute('cy', endY);
+                            endAnchor.setAttribute('r', '6.5');
+                            endAnchor.setAttribute('fill', '#ffffff');
+                            endAnchor.setAttribute('stroke', color);
+                            endAnchor.setAttribute('stroke-width', '2.5');
+                            endAnchor.style.cssText = 'opacity: 0; pointer-events: none; cursor: crosshair; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transition: opacity 0.15s ease;';
+
+                            // Draggable Handle Circle (Midpoint Curve Control Point)
+                            var handleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            handleCircle.setAttribute('cx', ctrlX);
+                            handleCircle.setAttribute('cy', ctrlY);
+                            handleCircle.setAttribute('r', '7.5');
+                            handleCircle.setAttribute('fill', color);
+                            handleCircle.setAttribute('stroke', '#ffffff');
+                            handleCircle.setAttribute('stroke-width', '2');
+                            handleCircle.style.cssText = 'opacity: 0; pointer-events: none; cursor: move; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); transition: opacity 0.15s ease;';
+
+                            arrowG.appendChild(startAnchor);
+                            arrowG.appendChild(endAnchor);
+                            arrowG.appendChild(handleCircle);
+
+                            var isSelected = false;
+
+                            function showHandles() {
+                                startAnchor.style.opacity = '1';
+                                startAnchor.style.pointerEvents = 'auto';
+                                endAnchor.style.opacity = '1';
+                                endAnchor.style.pointerEvents = 'auto';
+                                handleCircle.style.opacity = '1';
+                                handleCircle.style.pointerEvents = 'auto';
+                            }
+
+                            function hideHandles() {
+                                if (!isSelected) {
+                                    startAnchor.style.opacity = '0';
+                                    startAnchor.style.pointerEvents = 'none';
+                                    endAnchor.style.opacity = '0';
+                                    endAnchor.style.pointerEvents = 'none';
+                                    handleCircle.style.opacity = '0';
+                                    handleCircle.style.pointerEvents = 'none';
+                                }
+                            }
+
+                            arrowG.onmouseenter = function() {
+                                showHandles();
+                                path.setAttribute('stroke-width', '5');
+                            };
+
+                            arrowG.onmouseleave = function() {
+                                if (!isSelected) {
+                                    path.setAttribute('stroke-width', '3.5');
+                                    hideHandles();
+                                }
+                            };
+
+                            path.onclick = function(e) {
+                                e.stopPropagation();
+                                isSelected = !isSelected;
+                                if (isSelected) {
+                                    showHandles();
+                                    path.setAttribute('stroke', '#2563eb');
+                                    path.setAttribute('stroke-width', '5');
+                                } else {
+                                    path.setAttribute('stroke', color);
+                                    path.setAttribute('stroke-width', '3.5');
+                                    hideHandles();
+                                }
+                            };
+
+                            badgeG.onclick = function(e) {
+                                e.stopPropagation();
+                                isSelected = !isSelected;
+                                if (isSelected) {
+                                    showHandles();
+                                    path.setAttribute('stroke', '#2563eb');
+                                    path.setAttribute('stroke-width', '5');
+                                } else {
+                                    path.setAttribute('stroke', color);
+                                    path.setAttribute('stroke-width', '3.5');
+                                    hideHandles();
+                                }
+                            };
 
                             startAnchor.onmousedown = function(e) {
                                 e.preventDefault();
@@ -802,21 +1058,12 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                                 function onUp() {
                                     window.removeEventListener('mousemove', onMove);
                                     window.removeEventListener('mouseup', onUp);
+                                    notifyPosChange();
                                 }
 
                                 window.addEventListener('mousemove', onMove);
                                 window.addEventListener('mouseup', onUp);
                             };
-
-                            // Draggable End Anchor Circle (Destination Element Edge Anchor)
-                            var endAnchor = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                            endAnchor.setAttribute('cx', endX);
-                            endAnchor.setAttribute('cy', endY);
-                            endAnchor.setAttribute('r', '6');
-                            endAnchor.setAttribute('fill', '#ffffff');
-                            endAnchor.setAttribute('stroke', color);
-                            endAnchor.setAttribute('stroke-width', '2.5');
-                            endAnchor.style.cssText = 'pointer-events: auto; cursor: crosshair; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
 
                             endAnchor.onmousedown = function(e) {
                                 e.preventDefault();
@@ -843,24 +1090,12 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                                 function onUp() {
                                     window.removeEventListener('mousemove', onMove);
                                     window.removeEventListener('mouseup', onUp);
+                                    notifyPosChange();
                                 }
 
                                 window.addEventListener('mousemove', onMove);
                                 window.addEventListener('mouseup', onUp);
                             };
-
-                            svg.appendChild(startAnchor);
-                            svg.appendChild(endAnchor);
-
-                            // Draggable Handle Circle (Midpoint Curve Control Point)
-                            var handleCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-                            handleCircle.setAttribute('cx', ctrlX);
-                            handleCircle.setAttribute('cy', ctrlY);
-                            handleCircle.setAttribute('r', '7');
-                            handleCircle.setAttribute('fill', color);
-                            handleCircle.setAttribute('stroke', '#ffffff');
-                            handleCircle.setAttribute('stroke-width', '2');
-                            handleCircle.style.cssText = 'pointer-events: auto; cursor: move; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));';
 
                             handleCircle.onmousedown = function(e) {
                                 e.preventDefault();
@@ -889,11 +1124,14 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                                 function onUp() {
                                     window.removeEventListener('mousemove', onMove);
                                     window.removeEventListener('mouseup', onUp);
+                                    notifyPosChange();
                                 }
 
                                 window.addEventListener('mousemove', onMove);
                                 window.addEventListener('mouseup', onUp);
                             };
+
+                            svg.appendChild(arrowG);
 
                             handleCircle.ondblclick = function(e) {
                                 e.stopPropagation();
@@ -912,6 +1150,95 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                         canvas.appendChild(svg);
                     }, 120);
                 })($0, $1);
+
+                (function() {
+                    if (window.__dnd_builder_initialized) return;
+                    window.__dnd_builder_initialized = true;
+
+                    function getVaadinServer() {
+                        var el = document.getElementById('architecture-canvas-container');
+                        while (el) {
+                            if (el.$server) return el.$server;
+                            el = el.parentElement || el.parentNode || (el.getRootNode ? el.getRootNode().host : null);
+                        }
+                        return null;
+                    }
+
+                    document.addEventListener('dragstart', function(e) {
+                        var pill = e.target.closest('[data-pill-name]');
+                        if (pill) {
+                            var name = pill.getAttribute('data-pill-name');
+                            var cat = pill.getAttribute('data-pill-category') || 'tech';
+                            e.dataTransfer.setData('text/plain', name);
+                            e.dataTransfer.setData('category', cat);
+                            e.dataTransfer.effectAllowed = 'copy';
+                        }
+                    });
+
+                    document.addEventListener('dragover', function(e) {
+                        var dropBox = e.target.closest('[data-drop-layer]');
+                        if (dropBox) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'copy';
+                            dropBox.style.border = '2px dashed #2563eb';
+                            dropBox.style.backgroundColor = 'rgba(37, 99, 235, 0.08)';
+                        }
+                    });
+
+                    document.addEventListener('dragleave', function(e) {
+                        var dropBox = e.target.closest('[data-drop-layer]');
+                        if (dropBox) {
+                            dropBox.style.border = '';
+                            dropBox.style.backgroundColor = '';
+                        }
+                    });
+
+                    document.addEventListener('drop', function(e) {
+                        var dropBox = e.target.closest('[data-drop-layer]');
+                        if (dropBox) {
+                            e.preventDefault();
+                            dropBox.style.border = '';
+                            dropBox.style.backgroundColor = '';
+                            var techName = e.dataTransfer.getData('text/plain');
+                            var category = e.dataTransfer.getData('category') || 'tech';
+                            var targetLayer = dropBox.getAttribute('data-drop-layer');
+                            if (techName && targetLayer) {
+                                var server = getVaadinServer();
+                                if (server && server.dropPillOnLayer) {
+                                    server.dropPillOnLayer(techName, category, targetLayer);
+                                }
+                            }
+                        }
+                    });
+
+                    document.addEventListener('keydown', function(e) {
+                        if (e.key === 'Escape' || e.key === 'Esc' || e.keyCode === 27) {
+                            var shadow = document.getElementById('arrow-ghost-shadow');
+                            if (shadow && shadow.style.display !== 'none') {
+                                shadow.style.display = 'none';
+                                var server = getVaadinServer();
+                                if (server && server.cancelArrowTool) {
+                                    server.cancelArrowTool();
+                                }
+                            }
+                        }
+                    });
+
+                    document.addEventListener('click', function(e) {
+                        var shadow = document.getElementById('arrow-ghost-shadow');
+                        if (shadow && shadow.style.display !== 'none') {
+                            var isCanvasBox = e.target.closest('[data-drop-layer]') || e.target.closest('.canvas-layer-box') || e.target.closest('.pill-badge');
+                            var isArrowToolBtn = e.target.closest('[data-arrow-tool-btn]');
+                            if (!isCanvasBox && !isArrowToolBtn) {
+                                shadow.style.display = 'none';
+                                var server = getVaadinServer();
+                                if (server && server.cancelArrowTool) {
+                                    server.cancelArrowTool();
+                                }
+                            }
+                        }
+                    }, true);
+                })();
                 """;
             UI.getCurrent().getPage().executeJs(script, "architecture-canvas-container", arrowsJson);
         } catch (Exception ex) {
@@ -943,7 +1270,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             this.openAccordionIndex = 0;
             refreshAllViews();
             NotificationUtils.showSuccessNotification("Domain set to: " + pill);
-        })));
+        }, "domain")));
 
         // 2. Patterns (index 1)
         panels.add(accordion.add("🏛️ Architecture Pattern (" + patternList.size() + ")", createPillFlexLayout(patternList, COLOR_PATTERN, pill -> pill.equals(selectedPattern), pill -> {
@@ -951,41 +1278,28 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             this.openAccordionIndex = 1;
             refreshAllViews();
             NotificationUtils.showSuccessNotification("Pattern set to: " + pill);
-        })));
+        }, "pattern")));
 
-        // 3. Edge Layer Techs (index 2)
-        panels.add(accordion.add("⚡ Edge Layer Techs (" + edgeList.size() + ")", createPillFlexLayout(edgeList, COLOR_EDGE, edgeTechs::contains, pill -> {
-            this.edgeTechs.add(pill);
-            this.openAccordionIndex = 2;
-            refreshAllViews();
-            NotificationUtils.showSuccessNotification("Added to Edge: " + pill);
-        })));
+        // 3. Unified Technologies (index 2)
+        Set<String> allTechsSet = new LinkedHashSet<>();
+        allTechsSet.addAll(edgeList);
+        allTechsSet.addAll(fogList);
+        allTechsSet.addAll(cloudList);
+        allTechsSet.addAll(techList);
+        List<String> allTechsList = new ArrayList<>(allTechsSet);
+        allTechsList.sort(String::compareToIgnoreCase);
 
-        // 4. Fog Layer Techs (index 3)
-        panels.add(accordion.add("🌉 Fog / Gateway Techs (" + fogList.size() + ")", createPillFlexLayout(fogList, COLOR_FOG, fogTechs::contains, pill -> {
-            this.fogTechs.add(pill);
-            this.openAccordionIndex = 3;
-            refreshAllViews();
-            NotificationUtils.showSuccessNotification("Added to Fog: " + pill);
-        })));
+        panels.add(accordion.add("⚡ Technologies (" + allTechsList.size() + ")", createUnifiedTechPanel(allTechsList)));
 
-        // 5. Cloud Techs (index 4)
-        panels.add(accordion.add("☁️ Cloud & Enterprise Techs (" + cloudList.size() + ")", createPillFlexLayout(cloudList, COLOR_CLOUD, cloudTechs::contains, pill -> {
-            this.cloudTechs.add(pill);
-            this.openAccordionIndex = 4;
-            refreshAllViews();
-            NotificationUtils.showSuccessNotification("Added to Cloud: " + pill);
-        })));
-
-        // 6. Quality Reqs (index 5)
+        // 4. Quality Reqs (index 3)
         panels.add(accordion.add("🛡️ Quality ISO 25010 (" + qualityList.size() + ")", createPillFlexLayout(qualityList, COLOR_QUALITY, qualityReqs::contains, pill -> {
             this.qualityReqs.add(pill);
-            this.openAccordionIndex = 5;
+            this.openAccordionIndex = 3;
             refreshAllViews();
             NotificationUtils.showSuccessNotification("Added Requirement: " + pill);
-        })));
+        }, "quality")));
 
-        // 7. Custom Block Section (index 6)
+        // 5. Custom Block Section (index 4)
         panels.add(accordion.add("➕ Add Custom Block / Pill", createCustomBlockSection()));
 
         accordion.addOpenedChangeListener(e -> {
@@ -1005,19 +1319,126 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         return accordion;
     }
 
-    private Component createPillFlexLayout(List<String> items, String colorHex, java.util.function.Predicate<String> isSelectedPredicate, java.util.function.Consumer<String> onSelect) {
+    private String getColorForInitialLetter(String text) {
+        if (text == null || text.trim().isEmpty()) return "#2563eb";
+        char c = Character.toUpperCase(text.trim().charAt(0));
+        int index = (c >= 'A' && c <= 'Z') ? (c - 'A') : Math.abs(c) % 16;
+        String[] paletteColors = new String[]{
+            "#2563eb", // A - Royal Blue
+            "#059669", // B - Emerald Green
+            "#d97706", // C - Amber Gold
+            "#7c3aed", // D - Purple
+            "#dc2626", // E - Crimson Red
+            "#0891b2", // F - Cyan
+            "#4f46e5", // G - Indigo
+            "#ea580c", // H - Deep Orange
+            "#9333ea", // I - Dark Violet
+            "#0284c7", // J - Sky Blue
+            "#be185d", // K - Rose Pink
+            "#0d9488", // L - Teal
+            "#16a34a", // M - Green
+            "#c026d3", // N - Fuchsia
+            "#2563eb", // O - Blue
+            "#059669"  // P..Z fallback cycling
+        };
+        return paletteColors[index % paletteColors.length];
+    }
+
+    private void addTechToAppropriateLayer(String tech) {
+        List<String> edgeList = getCategorizedEdgeTechs(fetchDbTechnologies());
+        List<String> fogList = getCategorizedFogTechs(fetchDbTechnologies());
+        List<String> cloudList = getCategorizedCloudTechs(fetchDbTechnologies());
+
+        if (edgeList.contains(tech)) {
+            this.edgeTechs.add(tech);
+            NotificationUtils.showSuccessNotification("Added to Edge Layer: " + tech);
+        } else if (fogList.contains(tech)) {
+            this.fogTechs.add(tech);
+            NotificationUtils.showSuccessNotification("Added to Fog / Gateway Layer: " + tech);
+        } else if (cloudList.contains(tech)) {
+            this.cloudTechs.add(tech);
+            NotificationUtils.showSuccessNotification("Added to Cloud Layer: " + tech);
+        } else {
+            this.edgeTechs.add(tech);
+            NotificationUtils.showSuccessNotification("Added to Edge Layer: " + tech);
+        }
+    }
+
+    private Component createUnifiedTechPanel(List<String> allTechList) {
+        VerticalLayout container = new VerticalLayout();
+        container.setPadding(false);
+        container.setSpacing(true);
+        container.getStyle().set("padding", "0.5rem 0");
+
+        TextField searchFilter = new TextField();
+        searchFilter.setPlaceholder("Filter technologies by name...");
+        searchFilter.setPrefixComponent(VaadinIcon.SEARCH.create());
+        searchFilter.setClearButtonVisible(true);
+        searchFilter.setWidthFull();
+        searchFilter.setValueChangeMode(ValueChangeMode.LAZY);
+
+        FlexLayout pillsFlex = new FlexLayout();
+        pillsFlex.getStyle().set("gap", "0.45rem").set("flex-wrap", "wrap").set("padding", "0.5rem 0");
+
+        List<String> sortedTechs = new ArrayList<>(allTechList);
+        sortedTechs.sort(String::compareToIgnoreCase);
+
+        Runnable renderPills = () -> {
+            pillsFlex.removeAll();
+            String filterText = searchFilter.getValue() != null ? searchFilter.getValue().trim().toLowerCase() : "";
+
+            for (String tech : sortedTechs) {
+                if (!filterText.isEmpty() && !tech.toLowerCase().contains(filterText)) {
+                    continue;
+                }
+
+                boolean isSelected = edgeTechs.contains(tech) || fogTechs.contains(tech) || cloudTechs.contains(tech);
+                String initialColor = getColorForInitialLetter(tech);
+                Span pill = createPill(tech, initialColor, !isSelected, isSelected, "tech");
+
+                if (!isSelected) {
+                    pill.addClickListener(e -> {
+                        addTechToAppropriateLayer(tech);
+                        this.openAccordionIndex = 2;
+                        refreshAllViews();
+                    });
+                } else {
+                    pill.addClickListener(e -> {
+                        edgeTechs.remove(tech);
+                        fogTechs.remove(tech);
+                        cloudTechs.remove(tech);
+                        this.openAccordionIndex = 2;
+                        refreshAllViews();
+                    });
+                }
+                pillsFlex.add(pill);
+            }
+        };
+
+        renderPills.run();
+        searchFilter.addValueChangeListener(e -> renderPills.run());
+
+        container.add(searchFilter, pillsFlex);
+        return container;
+    }
+
+    private Component createPillFlexLayout(List<String> items, String colorHex, java.util.function.Predicate<String> isSelectedPredicate, java.util.function.Consumer<String> onSelect, String category) {
         FlexLayout pillsFlex = new FlexLayout();
         pillsFlex.getStyle().set("gap", "0.45rem").set("flex-wrap", "wrap").set("padding", "0.5rem 0");
 
         for (String item : items) {
             boolean isSelected = isSelectedPredicate.test(item);
-            Span pill = createPill(item, colorHex, !isSelected, isSelected);
+            Span pill = createPill(item, colorHex, !isSelected, isSelected, category);
             if (!isSelected) {
                 pill.addClickListener(e -> onSelect.accept(item));
             }
             pillsFlex.add(pill);
         }
         return pillsFlex;
+    }
+
+    private Component createPillFlexLayout(List<String> items, String colorHex, java.util.function.Predicate<String> isSelectedPredicate, java.util.function.Consumer<String> onSelect) {
+        return createPillFlexLayout(items, colorHex, isSelectedPredicate, onSelect, "tech");
     }
 
     private static final Set<String> PURE_ISO_QUALITY_REQUIREMENTS = Set.of(
@@ -1104,59 +1525,87 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     }
 
     private List<String> fetchDbDomains() {
+        if (cachedDomains != null) {
+            return cachedDomains;
+        }
         try {
             List<String> domains = ioTDomainService.findAllOrderByName().stream()
                     .map(IoTDomain::getName)
                     .filter(Objects::nonNull)
                     .distinct()
                     .collect(Collectors.toList());
-            if (!domains.isEmpty()) return domains;
+            if (!domains.isEmpty()) {
+                cachedDomains = domains;
+                return cachedDomains;
+            }
         } catch (Exception e) {
             logger.warn("Could not fetch DB domains", e);
         }
-        return List.of("Smart Farming", "Industry 4.0", "Healthcare", "Smart City", "Generic");
+        cachedDomains = List.of("Smart Farming", "Industry 4.0", "Healthcare", "Smart City", "Generic");
+        return cachedDomains;
     }
 
     private List<String> fetchDbPatterns() {
+        if (cachedPatterns != null) {
+            return cachedPatterns;
+        }
         try {
             List<String> patterns = architectureService.findAll().stream()
                     .map(Architecture::getName)
                     .filter(Objects::nonNull)
                     .distinct()
                     .collect(Collectors.toList());
-            if (!patterns.isEmpty()) return patterns;
+            if (!patterns.isEmpty()) {
+                cachedPatterns = patterns;
+                return cachedPatterns;
+            }
         } catch (Exception e) {
             logger.warn("Could not fetch DB patterns", e);
         }
-        return List.of("3-Tier (Edge-Fog-Cloud)", "4-Tier (Enterprise-Cloud-Fog-Edge)", "Microservices Architecture", "Event-Driven Architecture", "Lambda Architecture");
+        cachedPatterns = List.of("3-Tier (Edge-Fog-Cloud)", "4-Tier (Enterprise-Cloud-Fog-Edge)", "Microservices Architecture", "Event-Driven Architecture", "Lambda Architecture");
+        return cachedPatterns;
     }
 
     private List<String> fetchDbTechnologies() {
+        if (cachedTechnologies != null) {
+            return cachedTechnologies;
+        }
         try {
             List<String> techs = technologyService.findAllOrderedByDescription().stream()
                     .map(Technology::getDescription)
                     .filter(Objects::nonNull)
                     .distinct()
                     .collect(Collectors.toList());
-            if (!techs.isEmpty()) return techs;
+            if (!techs.isEmpty()) {
+                cachedTechnologies = techs;
+                return cachedTechnologies;
+            }
         } catch (Exception e) {
             logger.warn("Could not fetch DB technologies", e);
         }
-        return List.of("LoRaWAN", "MQTT", "CoAP", "Zigbee", "Modbus", "BLE", "Edge Sensors", "Edge Gateway", "Node-RED", "TPM Module", "TLS 1.3 / DTLS", "SQLite Local Buffer", "Docker Container", "AWS IoT Core", "Apache Kafka", "Time-Series DB", "Kubernetes Cluster", "OAuth2 / JWT Auth");
+        cachedTechnologies = List.of("LoRaWAN", "MQTT", "CoAP", "Zigbee", "Modbus", "BLE", "Edge Sensors", "Edge Gateway", "Node-RED", "TPM Module", "TLS 1.3 / DTLS", "SQLite Local Buffer", "Docker Container", "AWS IoT Core", "Apache Kafka", "Time-Series DB", "Kubernetes Cluster", "OAuth2 / JWT Auth");
+        return cachedTechnologies;
     }
 
     private List<String> fetchDbQualityRequirements() {
+        if (cachedQualityRequirements != null) {
+            return cachedQualityRequirements;
+        }
         try {
             List<String> qrs = qualityRequirementService.listAllByNameDistinct().stream()
                     .map(QualityRequirement::getName)
                     .filter(Objects::nonNull)
                     .distinct()
                     .collect(Collectors.toList());
-            if (!qrs.isEmpty()) return qrs;
+            if (!qrs.isEmpty()) {
+                cachedQualityRequirements = qrs;
+                return cachedQualityRequirements;
+            }
         } catch (Exception e) {
             logger.warn("Could not fetch DB quality requirements", e);
         }
-        return List.of("Security", "Performance / Low Latency", "High Availability", "Scalability", "Fault Tolerance", "Interoperability");
+        cachedQualityRequirements = List.of("Security", "Performance / Low Latency", "High Availability", "Scalability", "Fault Tolerance", "Interoperability");
+        return cachedQualityRequirements;
     }
 
     private Component createCustomBlockSection() {
@@ -1227,7 +1676,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         titleLayout.setSpacing(true);
         titleLayout.getStyle().set("margin-bottom", "0.8rem");
 
-        H3 title = new H3("🎨 Active Architecture Stack Canvas");
+        H3 title = new H3("🎨 Active Architecture Solution Canvas");
         title.getStyle().set("margin", "0").set("font-size", "1.05rem");
 
         titleLayout.add(title);
@@ -1260,7 +1709,8 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             canvasLayout.add(banner);
         }
 
-        canvasLayout.add(createCanvasLayerBox("🌐 Selected Domain & Pattern", domainContainer, patternContainer));
+        canvasLayout.add(createCanvasLayerBox("🌐 Selected Domain", domainContainer));
+        canvasLayout.add(createCanvasLayerBox("🏛️ Selected Architecture Pattern", patternContainer));
         canvasLayout.add(createCanvasLayerBox("⚡ Edge Layer (Devices & Sensors)", edgeContainer));
 
         // Inter-layer gap between Edge Layer and Fog Layer (Image 2 location)
@@ -1453,23 +1903,30 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                     .set("display", "flex")
                     .set("flex-direction", "column")
                     .set("align-items", "center")
-                    .set("box-sizing", "border-box");
+                    .set("box-sizing", "border-box")
+                    .set("transition", "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)");
 
             Button expandBtn = new Button(VaadinIcon.ANGLE_DOUBLE_LEFT.create(), e -> {
                 isRightPanelOpen = true;
                 refreshAllViews();
             });
             expandBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            expandBtn.setTooltipText("Show Communication Arrow Palette");
+            expandBtn.setTooltipText("Show Communication Palette");
 
-            Span verticalLabel = new Span("🏹 Arrow Palette");
+            Span verticalLabel = new Span("🏹 Communication Palette");
             verticalLabel.getStyle()
                     .set("writing-mode", "vertical-rl")
                     .set("transform", "rotate(180deg)")
                     .set("font-weight", "700")
                     .set("font-size", "0.82rem")
                     .set("color", "var(--lumo-secondary-text-color)")
-                    .set("margin-top", "1rem");
+                    .set("margin-top", "1rem")
+                    .set("cursor", "pointer");
+
+            verticalLabel.addClickListener(e -> {
+                isRightPanelOpen = true;
+                refreshAllViews();
+            });
 
             rightPanelContainer.add(expandBtn, verticalLabel);
             return;
@@ -1494,8 +1951,8 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         header.setAlignItems(FlexComponent.Alignment.CENTER);
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
 
-        H3 title = new H3("🏹 Communication Palette");
-        title.getStyle().set("margin", "0").set("font-size", "1.02rem");
+        H3 titleRight = new H3("🏹 Communication Palette");
+        titleRight.getStyle().set("margin", "0").set("font-size", "1.02rem");
 
         Button hideBtn = new Button(VaadinIcon.ANGLE_DOUBLE_RIGHT.create(), e -> {
             isRightPanelOpen = false;
@@ -1503,9 +1960,9 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         });
         hideBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_SMALL);
         hideBtn.getStyle().set("font-weight", "600");
-        hideBtn.setTooltipText("Hide Communication Arrow Palette");
+        hideBtn.setTooltipText("Hide Communication Palette");
 
-        header.add(title, hideBtn);
+        header.add(titleRight, hideBtn);
         rightPanelContainer.add(header);
 
         // Accordion for Arrow Tools & Legend
@@ -1524,9 +1981,6 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         paletteGrid.add(createCustomArrowToolPill());
 
         accordion.add("🎯 Communication Arrow Tools", paletteGrid);
-
-        // Panel 2: Color Legend
-        accordion.add("🎨 Color Legend", createLegendBox());
 
         rightPanelContainer.add(accordion);
 
@@ -1551,7 +2005,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                     .set("font-size", "0.76rem")
                     .set("color", "var(--lumo-secondary-text-color)")
                     .set("text-align", "center");
-            emptyState.setText("No arrows connected yet. Select an Arrow Tool above, then click Origem ➔ Destino.");
+            emptyState.setText("No arrows connected yet. Select an Arrow Tool above, then click Origin ➔ Destination.");
             flowListDiv.add(emptyState);
         } else {
             for (CommunicationArrowRecord arrow : activeFlowArrows) {
@@ -1559,9 +2013,6 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             }
         }
         rightPanelContainer.add(flowListDiv);
-
-        // Legend Box
-        rightPanelContainer.add(createLegendBox());
     }
 
     private Component createRightPanelActiveArrowRow(CommunicationArrowRecord arrow) {
@@ -1705,7 +2156,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                     document.body.appendChild(shadow);
                 }
                 shadow.style.background = color;
-                shadow.innerText = '🏹 ' + proto + ' ━━━━► (Click 1: Select Origem)';
+                shadow.innerText = '🏹 ' + proto + ' ━━━━► (Click 1: Select Origin)';
                 shadow.style.display = 'block';
 
                 window.onmousemove = function(evt) {
@@ -1717,6 +2168,14 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
         refreshAllViews();
         NotificationUtils.showSuccessNotification("Activated Arrow Tool: " + protocol + ". Click 1 = ORIGIN, Click 2 = DESTINATION.");
+    }
+
+    @ClientCallable
+    public void cancelArrowTool() {
+        if (isArrowConnectionActive) {
+            deactivateArrowTool();
+            NotificationUtils.showWarningNotification("Arrow Tool cancelled.");
+        }
     }
 
     private void deactivateArrowTool() {
@@ -1744,7 +2203,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 (function(name, proto) {
                     var shadow = document.getElementById('arrow-ghost-shadow');
                     if (shadow) {
-                        shadow.innerText = '🏹 ' + proto + ' [' + name + '] ━━━━► (Click 2: Select Destino)';
+                        shadow.innerText = '🏹 ' + proto + ' [' + name + '] ━━━━► (Click 2: Select Destination)';
                     }
                 })($0, $1);
                 """, selectedOriginName, activeToolProtocol);
@@ -1941,6 +2400,65 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         dialog.open();
     }
 
+    @ClientCallable
+    public void dropPillOnLayer(String pillName, String category, String targetLayer) {
+        if (pillName == null || targetLayer == null || pillName.trim().isEmpty()) return;
+
+        String lowerLayer = targetLayer.toLowerCase().trim();
+        String cat = category != null ? category.toLowerCase().trim() : "tech";
+
+        if (lowerLayer.contains("domain")) {
+            if (!"domain".equals(cat)) {
+                NotificationUtils.showWarningNotification("Only IoT Domain items can be added to Selected Domain.");
+                return;
+            }
+            this.selectedDomain = pillName;
+            NotificationUtils.showSuccessNotification("Domain set to: " + pillName);
+        } else if (lowerLayer.contains("pattern")) {
+            if (!"pattern".equals(cat)) {
+                NotificationUtils.showWarningNotification("Only Architecture Pattern items can be added to Selected Pattern.");
+                return;
+            }
+            this.selectedPattern = pillName;
+            NotificationUtils.showSuccessNotification("Pattern set to: " + pillName);
+        } else if (lowerLayer.contains("quality") || lowerLayer.contains("iso")) {
+            if (!"quality".equals(cat)) {
+                NotificationUtils.showWarningNotification("Only Quality Requirements can be added to Target Quality Requirements.");
+                return;
+            }
+            if (!this.qualityReqs.contains(pillName)) {
+                this.qualityReqs.add(pillName);
+                NotificationUtils.showSuccessNotification("Added Requirement: " + pillName);
+            }
+        } else if (lowerLayer.contains("edge") || lowerLayer.contains("fog") || lowerLayer.contains("gateway") || lowerLayer.contains("cloud") || lowerLayer.contains("enterprise")) {
+            // Target is a technology stack layer!
+            if ("domain".equals(cat) || "pattern".equals(cat) || "quality".equals(cat)) {
+                NotificationUtils.showWarningNotification("Domains, Patterns, and Quality Requirements cannot be added to Technology layers.");
+                return;
+            }
+
+            if (lowerLayer.contains("edge")) {
+                if (!this.edgeTechs.contains(pillName)) {
+                    this.edgeTechs.add(pillName);
+                    NotificationUtils.showSuccessNotification("Added to Edge Layer: " + pillName);
+                }
+            } else if (lowerLayer.contains("fog") || lowerLayer.contains("gateway")) {
+                if (!this.fogTechs.contains(pillName)) {
+                    this.fogTechs.add(pillName);
+                    NotificationUtils.showSuccessNotification("Added to Fog / Gateway Layer: " + pillName);
+                }
+            } else if (lowerLayer.contains("cloud") || lowerLayer.contains("enterprise")) {
+                if (!this.cloudTechs.contains(pillName)) {
+                    this.cloudTechs.add(pillName);
+                    NotificationUtils.showSuccessNotification("Added to Cloud Layer: " + pillName);
+                }
+            }
+        }
+
+        refreshAllViews();
+        updateSaveButtonState();
+    }
+
     private void exportCanvasAsImage() {
         String script = """
             (function(containerId, domainName) {
@@ -1987,6 +2505,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         String cleanLayerName = titleText.replace("⚡ ", "").replace("🌉 ", "").replace("☁️ ", "").replace("🌐 ", "").replace("🛡️ ", "");
         String domId = "canvas-layer-" + cleanLayerName.replaceAll("[^a-zA-Z0-9_-]", "_").toLowerCase();
         box.setId(domId);
+        box.getElement().setAttribute("data-drop-layer", cleanLayerName);
 
         boolean isSelectedOrigin = isArrowConnectionActive && cleanLayerName.equalsIgnoreCase(selectedOriginName);
 
@@ -2028,9 +2547,19 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             map.put("cloud", new ArrayList<>(cloudTechs));
             map.put("quality", new ArrayList<>(qualityReqs));
             map.put("notes", notesTextArea.getValue() != null ? notesTextArea.getValue().trim() : "");
+            map.put("activeFlowArrows", new ArrayList<>(activeFlowArrows));
+            map.put("arrowPositions", new LinkedHashMap<>(arrowPositionsMap));
             return objectMapper.writeValueAsString(map);
         } catch (Exception e) {
             return "";
+        }
+    }
+
+    @ClientCallable
+    public void updateArrowPosition(String arrowId, String posJson) {
+        if (arrowId != null && posJson != null) {
+            arrowPositionsMap.put(arrowId, posJson);
+            updateSaveButtonState();
         }
     }
 
@@ -2150,7 +2679,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         }
     }
 
-    private Span createPill(String label, String bgColor, boolean clickable, boolean disabled) {
+    private Span createPill(String label, String bgColor, boolean clickable, boolean disabled, String category) {
         Span pill = new Span(label);
         if (disabled) {
             pill.getStyle()
@@ -2165,6 +2694,9 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                     .set("user-select", "none")
                     .set("filter", "grayscale(70%)");
         } else {
+            pill.getElement().setAttribute("draggable", "true");
+            pill.getElement().setAttribute("data-pill-name", label);
+            pill.getElement().setAttribute("data-pill-category", category != null ? category : "tech");
             pill.getStyle()
                     .set("font-size", "0.72rem")
                     .set("font-weight", "600")
@@ -2173,7 +2705,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                     .set("background", bgColor)
                     .set("color", "#ffffff")
                     .set("box-shadow", "0 2px 6px rgba(0,0,0,0.1)")
-                    .set("cursor", clickable ? "pointer" : "default")
+                    .set("cursor", "grab")
                     .set("user-select", "none")
                     .set("transition", "transform 0.15s ease");
 
@@ -2183,6 +2715,10 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             }
         }
         return pill;
+    }
+
+    private Span createPill(String label, String bgColor, boolean clickable, boolean disabled) {
+        return createPill(label, bgColor, clickable, disabled, "tech");
     }
 
     private Span createRemovablePill(String label, String bgColor, Runnable onRemove) {
@@ -2389,7 +2925,12 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             }
 
             if (arch.getAiEvaluationReport() != null && !arch.getAiEvaluationReport().isEmpty()) {
+                this.lastAiEvaluationReport = arch.getAiEvaluationReport();
                 aiReportDiv.getElement().setProperty("innerHTML", arch.getAiEvaluationReport());
+                exportPdfBtn.setEnabled(true);
+            } else {
+                this.lastAiEvaluationReport = null;
+                exportPdfBtn.setEnabled(false);
             }
 
             refreshAllViews();
@@ -2472,6 +3013,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         String query = promptBuilder.toString();
         aiReportDiv.getElement().setProperty("innerHTML", promptSummaryHtml + "<p>⏳ <em>Evaluating your architecture stack with AI Assistant...</em> <span class='cursor-blink'>▌</span></p>");
         evaluateButton.setEnabled(false);
+        exportPdfBtn.setEnabled(false);
 
         var ui = UI.getCurrent();
         StringBuilder responseBuf = new StringBuilder();
@@ -2496,6 +3038,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                                 ui.access(() -> {
                                     aiReportDiv.getElement().setProperty("innerHTML", promptSummaryHtml + "<p style='color: var(--lumo-error-text-color);'>Error evaluating architecture: " + error.getMessage() + "</p>");
                                     evaluateButton.setEnabled(true);
+                                    exportPdfBtn.setEnabled(lastAiEvaluationReport != null && !lastAiEvaluationReport.trim().isEmpty());
                                     ui.push();
                                 });
                             }
@@ -2504,9 +3047,11 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                             if (ui != null) {
                                 ui.access(() -> {
                                     String finalReport = promptSummaryHtml + responseBuf.toString().trim();
+                                    this.lastAiEvaluationReport = finalReport;
                                     aiReportDiv.getElement().setProperty("innerHTML", finalReport);
                                     currentArchitecture.setAiEvaluationReport(finalReport);
                                     evaluateButton.setEnabled(true);
+                                    exportPdfBtn.setEnabled(true);
                                     NotificationUtils.showSuccessNotification("AI Architecture Evaluation Complete!");
                                     ui.push();
                                 });
@@ -2518,7 +3063,6 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     @Override
     public Onboarding createTour() {
         return new TourUtils().build()
-                .addStep(togglePaletteBtn, "Toggle Block Palette Drawer", new Html("<div>Click here to show or collapse the vertical side drawer with all available blocks.</div>"), PopupPosition.BOTTOM)
                 .addStep(openButton, "Open Saved Work", new Html("<div>Click here to open a gallery of your saved architecture designs.</div>"), PopupPosition.BOTTOM)
                 .addStep(saveButton, "Save Blueprint", new Html("<div>Save your active block layout and AI report directly to the database.</div>"), PopupPosition.BOTTOM)
                 .addStep(exportImageButton, "Export Image PNG", new Html("<div>Export and download a high-resolution PNG image blueprint of your active architecture canvas.</div>"), PopupPosition.BOTTOM)

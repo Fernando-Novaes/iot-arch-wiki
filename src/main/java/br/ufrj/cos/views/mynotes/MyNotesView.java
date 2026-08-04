@@ -38,7 +38,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.annotation.security.PermitAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.vaadin.addons.matthew.fliplayout.FlipLayout;
 
 import java.util.List;
 import java.util.stream.Collectors;

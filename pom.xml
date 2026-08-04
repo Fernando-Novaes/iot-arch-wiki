@@ -225,11 +225,6 @@
             <artifactId>ckeditor-vaadin</artifactId>
             <version>4.0.0</version>
         </dependency>
-        <dependency>
-            <groupId>org.vaadin.addons.matthew</groupId>
-            <artifactId>flip-layout</artifactId>
-            <version>1.1.0</version>
-        </dependency>
 
         <!-- LangChain4j for Native Java RAG & Gemini AI -->
         <dependency>

@@ -59,4 +59,27 @@ public class NotificationUtils {
         notification.open();
     }
 
+    public static void showWarningNotification(String message){
+        Notification notification = new Notification();
+        notification.setPosition(Notification.Position.TOP_CENTER);
+        notification.addThemeVariants(NotificationVariant.LUMO_PRIMARY);
+
+        Div text = new Div(new Text(message));
+
+        Button closeButton = new Button(new Icon("lumo", "cross"));
+        closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        closeButton.setAriaLabel("Close");
+        closeButton.addClickListener(event -> {
+            notification.close();
+        });
+
+        HorizontalLayout layout = new HorizontalLayout(text, closeButton);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        notification.setDuration(5000);
+        notification.add(layout);
+
+        notification.open();
+    }
+
 }
