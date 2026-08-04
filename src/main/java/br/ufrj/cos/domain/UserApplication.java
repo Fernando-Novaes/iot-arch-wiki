@@ -35,6 +35,8 @@ public class UserApplication {
     @Basic(fetch = FetchType.LAZY)
     private String notes;
 
+    private Boolean allowExternalContext;
+
     @OneToMany(mappedBy = "userApplication", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Annotation> annotations;
 

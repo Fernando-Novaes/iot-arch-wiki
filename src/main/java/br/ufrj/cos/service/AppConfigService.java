@@ -51,8 +51,12 @@ public class AppConfigService {
     }
 
     public AppConfig getAppConfig() {
-        return
-                (appConfigRepository.findAll().isEmpty())? new AppConfig() : appConfigRepository.findAll().getFirst();
+        List<AppConfig> all = appConfigRepository.findAll();
+        if (all.isEmpty()) {
+            AppConfig config = new AppConfig();
+            return appConfigRepository.saveAndFlush(config);
+        }
+        return all.get(0);
     }
 
     public ServiceName getServiceNameByType(APIServiceType serviceType) {

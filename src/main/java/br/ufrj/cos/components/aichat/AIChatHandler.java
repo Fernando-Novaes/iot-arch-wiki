@@ -16,7 +16,9 @@ public class AIChatHandler {
         this.eventPublisher = eventPublisher;
     }
 
-    @Async  // Run this method asynchronously
+    // Disabled legacy listener to prevent duplicate user messages in UI
+    /*
+    @Async
     @EventListener
     public void handleChatMessageSent(ChatMessageSentEvent event) {
         AIChatMessage userMessage = event.getMessage();
@@ -24,4 +26,5 @@ public class AIChatHandler {
         eventPublisher.publishEvent(
                 new ChatMessageReceivedEvent(this, userMessage));
     }
+    */
 }

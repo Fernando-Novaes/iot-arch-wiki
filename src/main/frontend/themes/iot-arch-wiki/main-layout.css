@@ -1,26 +1,316 @@
-header nav a:any-link {
-  text-decoration: none;
-  padding: 0 var(--lumo-space-s);
-  border-radius: var(--lumo-border-radius-m);
-  outline: 0;
+/* ══════════════════════════════════════════════════════════
+   Main Layout — Top Navbar & Vertically Centered Left Icon Sidebar
+   Compact 64px width, icon-only navigation with tooltips
+   ══════════════════════════════════════════════════════════ */
+
+/* ── Top Navbar ──────────────────────────────────────────── */
+.header-navbar {
+  height: 56px !important;
+  padding: 0 1.25rem !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  position: relative !important;
+  z-index: 100 !important;
 }
 
-header nav a:hover {
-  color: var(--lumo-header-text-color);
+/* dark navbar */
+html[theme~="dark"] .header-navbar {
+  background: hsla(220, 14%, 9%, 0.92) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid hsla(220, 10%, 55%, 0.12) !important;
+  box-shadow: 0 4px 20px hsla(220, 20%, 4%, 0.35) !important;
 }
 
-header nav a:active {
-  background-color: var(--lumo-contrast-5pct);
+/* light navbar */
+html:not([theme~="dark"]) .header-navbar {
+  background: hsla(0, 0%, 100%, 0.92) !important;
+  backdrop-filter: blur(20px) saturate(160%) !important;
+  border-bottom: 1px solid hsla(214, 15%, 35%, 0.12) !important;
+  box-shadow: 0 2px 10px hsla(214, 20%, 35%, 0.06) !important;
 }
 
-header nav a:focus-visible {
-  box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct);
+/* Accent line on top of navbar */
+.header-navbar::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2.5px;
+  pointer-events: none;
 }
 
-header nav a[highlight] vaadin-icon {
-  color: var(--lumo-primary-text-color);
+html[theme~="dark"] .header-navbar::before {
+  background: linear-gradient(90deg, transparent, hsl(30, 95%, 52%) 35%, hsl(38, 95%, 58%) 65%, transparent);
+  opacity: 0.85;
 }
 
-header nav a[highlight] {
-  background-color: var(--lumo-primary-color-10pct);
+html:not([theme~="dark"]) .header-navbar::before {
+  background: linear-gradient(90deg, transparent, hsl(214, 88%, 52%) 35%, hsl(200, 82%, 58%) 65%, transparent);
+  opacity: 0.75;
+}
+
+/* ── Logo Container ──────────────────────────────────────── */
+.header-logo-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.8rem !important;
+}
+
+.header-logo-sub {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.02em !important;
+  padding: 4px 12px !important;
+  border-radius: 20px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  cursor: default !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+html[theme~="dark"] .header-logo-sub {
+  background: hsla(220, 20%, 18%, 0.6) !important;
+  color: hsla(215, 25%, 88%, 0.95) !important;
+  border: 1px solid hsla(38, 95%, 58%, 0.3) !important;
+  box-shadow: 0 2px 8px hsla(0, 0%, 0%, 0.25) !important;
+}
+
+html[theme~="dark"] .header-logo-sub:hover {
+  background: hsla(38, 95%, 58%, 0.15) !important;
+  border-color: hsla(38, 95%, 58%, 0.6) !important;
+  color: hsl(38, 95%, 72%) !important;
+  box-shadow: 0 4px 16px hsla(38, 95%, 58%, 0.3) !important;
+  transform: translateY(-1px) !important;
+}
+
+html:not([theme~="dark"]) .header-logo-sub {
+  background: hsla(214, 88%, 97%, 0.85) !important;
+  color: hsl(214, 75%, 35%) !important;
+  border: 1px solid hsla(214, 88%, 52%, 0.25) !important;
+  box-shadow: 0 2px 8px hsla(214, 30%, 50%, 0.08) !important;
+}
+
+html:not([theme~="dark"]) .header-logo-sub:hover {
+  background: hsla(214, 88%, 93%, 1) !important;
+  border-color: hsla(214, 88%, 52%, 0.5) !important;
+  color: hsl(214, 88%, 40%) !important;
+  box-shadow: 0 4px 16px hsla(214, 88%, 52%, 0.25) !important;
+  transform: translateY(-1px) !important;
+}
+
+.header-logo-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif);
+  font-size: 1.65rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  line-height: 1.2 !important;
+  display: inline-block !important;
+  background-size: 200% auto !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  background-clip: text !important;
+  animation: headerShimmer 7s linear infinite !important;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s ease !important;
+  cursor: pointer !important;
+}
+
+.header-logo-title:hover {
+  transform: translateY(-1px) scale(1.04) !important;
+}
+
+html[theme~="dark"] .header-logo-title {
+  background-image: linear-gradient(135deg, hsl(30, 100%, 72%), hsl(38, 95%, 65%) 45%, hsl(20, 95%, 60%) 70%, hsl(30, 100%, 72%)) !important;
+}
+
+html[theme~="dark"] .header-logo-title:hover {
+  filter: drop-shadow(0 0 16px rgba(245, 158, 11, 0.65)) !important;
+}
+
+html:not([theme~="dark"]) .header-logo-title {
+  background-image: linear-gradient(135deg, hsl(214, 88%, 42%), hsl(200, 85%, 48%) 45%, hsl(220, 88%, 50%) 70%, hsl(214, 88%, 42%)) !important;
+}
+
+html:not([theme~="dark"]) .header-logo-title:hover {
+  filter: drop-shadow(0 0 16px rgba(37, 99, 235, 0.55)) !important;
+}
+
+@keyframes headerShimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+
+
+/* ── Header Right Actions ────────────────────────────────── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+vaadin-button.header-action-btn {
+  background: transparent !important;
+  border: none !important;
+  color: var(--lumo-secondary-text-color) !important;
+  border-radius: var(--lumo-border-radius-m) !important;
+  padding: 4px 8px !important;
+  cursor: pointer !important;
+  transition: color 0.2s, background 0.2s !important;
+}
+
+html[theme~="dark"] vaadin-button.header-action-btn:hover {
+  background: hsla(30, 95%, 52%, 0.12) !important;
+  color: hsl(30, 100%, 65%) !important;
+}
+
+html:not([theme~="dark"]) vaadin-button.header-action-btn:hover {
+  background: hsla(214, 88%, 50%, 0.08) !important;
+  color: hsl(214, 88%, 40%) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Left Drawer Container — Fixed 64px Width, 3D Shadow
+   ══════════════════════════════════════════════════════════ */
+html, body, vaadin-app-layout {
+  overflow-x: hidden !important;
+}
+
+vaadin-app-layout {
+  --vaadin-app-layout-drawer-width: 64px !important;
+  --vaadin-app-layout-drawer-offset-left: 64px !important;
+}
+
+/* Target Vaadin Shadow DOM drawer part directly */
+vaadin-app-layout::part(drawer) {
+  width: 64px !important;
+  min-width: 64px !important;
+  max-width: 64px !important;
+  height: 100% !important;
+  z-index: 10 !important;
+}
+
+/* dark drawer background — Primary Orange Gradient & 3D shadow */
+html[theme~="dark"] vaadin-app-layout::part(drawer) {
+  background: linear-gradient(180deg, hsl(30, 90%, 44%) 0%, hsl(16, 92%, 30%) 100%) !important;
+  border-right: 1px solid hsla(30, 90%, 60%, 0.25) !important;
+  box-shadow: 6px 0 24px hsla(0, 0%, 0%, 0.50) !important;
+}
+
+/* light drawer background — Primary Blue Gradient & 3D shadow */
+html:not([theme~="dark"]) vaadin-app-layout::part(drawer) {
+  background: linear-gradient(180deg, hsl(214, 88%, 46%) 0%, hsl(224, 76%, 36%) 100%) !important;
+  border-right: 1px solid hsla(214, 88%, 65%, 0.25) !important;
+  box-shadow: 5px 0 20px hsla(214, 50%, 20%, 0.25) !important;
+}
+
+/* Slot inside drawer */
+vaadin-app-layout [slot="drawer"] {
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* Hide any scrollbars on drawer */
+vaadin-app-layout [slot="drawer"]::-webkit-scrollbar,
+.drawer-nav::-webkit-scrollbar,
+.drawer-menu-list::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Drawer navigation wrapper — vertically centered */
+.drawer-nav {
+  padding: 1rem 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  align-items: center !important;
+  height: 100% !important;
+  width: 100% !important;
+}
+
+.drawer-menu-list {
+  list-style: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.85rem !important;
+  width: 100% !important;
+}
+
+/* ── Navigation Links (Square Icon Buttons) ───────────────── */
+.drawer-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  text-decoration: none !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  position: relative !important;
+  transition: background 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s !important;
+}
+
+/* Icon inside link */
+.drawer-link-icon {
+  font-size: 1.35rem !important;
+  width: 26px !important;
+  height: 26px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  transition: transform 0.2s, color 0.2s !important;
+}
+
+/* Hover link state */
+.drawer-link:hover {
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px) scale(1.06);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.20) !important;
+}
+
+.drawer-link:hover .drawer-link-icon {
+  color: #ffffff !important;
+}
+
+/* Active route state (Current page) */
+.drawer-link[highlight],
+.drawer-link[aria-current="page"] {
+  font-weight: 700 !important;
+  background: rgba(255, 255, 255, 0.28) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.drawer-link[highlight] .drawer-link-icon,
+.drawer-link[aria-current="page"] .drawer-link-icon {
+  color: #ffffff !important;
+}
+
+.drawer-link[highlight]::before,
+.drawer-link[aria-current="page"]::before {
+  content: '';
+  position: absolute;
+  left: -10px; top: 10px; bottom: 10px;
+  width: 4px;
+  background: #ffffff;
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
 }

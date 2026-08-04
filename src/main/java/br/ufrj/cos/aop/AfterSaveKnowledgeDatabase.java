@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 
 @Aspect
 @Component
@@ -32,9 +33,9 @@ public class AfterSaveKnowledgeDatabase {
             "target(br.ufrj.cos.repository.TechnologyRepository)"
             )
     public void updateKnowledgeDatabaseModificationDate() {
-        AppConfig appConfig = appConfigRepository.findAll().getFirst();
-
-        if (appConfig != null) {
+        List<AppConfig> configs = appConfigRepository.findAll();
+        if (!configs.isEmpty()) {
+            AppConfig appConfig = configs.get(0);
             appConfig.setKnowledgeDatabaseLastUpdate(Instant.now());
             appConfigRepository.save(appConfig);
         }

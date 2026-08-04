@@ -1,0 +1,281 @@
+/* ══════════════════════════════════════════════════════════
+   Home View — Card & Typography Styling
+   ══════════════════════════════════════════════════════════ */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
+}
+
+/* ─── Root View Container ────────────────────────────────── */
+.home-view-root {
+  min-height: 100%;
+  height: auto !important;
+  overflow-y: auto !important;
+  flex-grow: 1;
+}
+
+/* ─── Main Presentation Card ─────────────────────────────── */
+.home-card {
+  position: relative;
+  overflow: visible !important;
+  height: auto !important;
+  max-height: none !important;
+  width: 100% !important;
+  max-width: 1320px !important;
+  padding: clamp(1.5rem, 3vw, 2.25rem) !important;
+  margin: var(--lumo-space-m) auto !important;
+  border-radius: 20px !important;
+  box-sizing: border-box !important;
+  flex-shrink: 0 !important;
+  animation: fadeSlideUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* dark theme card surface */
+html[theme~="dark"] .home-card {
+  background: linear-gradient(
+    145deg,
+    hsla(220, 14%, 13%, 0.95) 0%,
+    hsla(220, 12%, 11%, 0.98) 60%,
+    hsla(220, 14%, 14%, 0.95) 100%
+  ) !important;
+  border: 1px solid hsla(220, 10%, 55%, 0.14) !important;
+  box-shadow:
+    0 0 0 1px hsla(30, 95%, 52%, 0.10),
+    0 8px 40px hsla(220, 20%, 3%, 0.50),
+    inset 0 1px 0 hsla(220, 10%, 80%, 0.04) !important;
+}
+
+/* light theme card surface */
+html:not([theme~="dark"]) .home-card {
+  background: hsl(0, 0%, 100%) !important;
+  border: 1px solid hsla(214, 15%, 35%, 0.12) !important;
+  box-shadow:
+    0 1px 3px hsla(214, 20%, 35%, 0.06),
+    0 8px 32px hsla(214, 20%, 35%, 0.10) !important;
+}
+
+/* Top accent stripe */
+.home-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 2.5px;
+  pointer-events: none;
+}
+
+html[theme~="dark"] .home-card::before {
+  background: linear-gradient(90deg, transparent, hsl(30, 95%, 52%) 40%, hsl(38, 95%, 60%) 60%, transparent);
+  opacity: 0.85;
+}
+
+html:not([theme~="dark"]) .home-card::before {
+  background: linear-gradient(90deg, transparent, hsl(214, 88%, 52%) 40%, hsl(200, 82%, 58%) 60%, transparent);
+  opacity: 0.70;
+}
+
+/* ─── Header ─────────────────────────────────────────────── */
+/* ─── Hero Banner ────────────────────────────────────────── */
+.home-hero-banner {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 16px;
+  padding: 2rem 2.25rem;
+  margin-bottom: var(--lumo-space-l);
+  position: relative;
+  overflow: hidden;
+  animation: fadeSlideUp 0.6s ease-out both;
+}
+
+html[theme~="dark"] .home-hero-banner {
+  background: linear-gradient(135deg, #1e293b, #2563eb);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.25);
+}
+
+html:not([theme~="dark"]) .home-hero-banner {
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+}
+
+.home-hero-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: clamp(1.5rem, 2.5vw, 2.0rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.25 !important;
+  margin: 0 0 0.5rem 0 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.home-hero-subtitle {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: 0.95rem !important;
+  line-height: 1.5 !important;
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.88) !important;
+  font-weight: 400 !important;
+}
+
+/* ─── 2-Column Grid Layout ───────────────────────────────── */
+.home-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 1.25rem;
+  width: 100%;
+  margin-bottom: var(--lumo-space-m);
+}
+
+/* ─── Sub-cards (Grid Columns) ───────────────────────────── */
+.home-subcard {
+  padding: 1.25rem 1.4rem !important;
+  border-radius: 14px !important;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+html[theme~="dark"] .home-subcard {
+  background: hsla(220, 14%, 9%, 0.45) !important;
+  border: 1px solid hsla(220, 10%, 55%, 0.10) !important;
+}
+
+html[theme~="dark"] .home-subcard:hover {
+  border-color: hsla(30, 95%, 52%, 0.30) !important;
+  transform: translateY(-2px);
+}
+
+html:not([theme~="dark"]) .home-subcard {
+  background: hsla(214, 20%, 97%, 0.70) !important;
+  border: 1px solid hsla(214, 15%, 35%, 0.08) !important;
+}
+
+html:not([theme~="dark"]) .home-subcard:hover {
+  border-color: hsla(214, 88%, 52%, 0.25) !important;
+  transform: translateY(-2px);
+}
+
+.home-subcard h3 {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  margin: 0 0 var(--lumo-space-s) 0 !important;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+html[theme~="dark"] .home-subcard h3 {
+  color: hsl(30, 100%, 68%) !important;
+}
+
+html:not([theme~="dark"]) .home-subcard h3 {
+  color: hsl(214, 88%, 40%) !important;
+}
+
+.home-subcard h3::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 28px; height: 2.5px;
+  border-radius: 2px;
+  transition: width 0.3s;
+}
+
+html[theme~="dark"] .home-subcard h3::after {
+  background: linear-gradient(90deg, hsl(30, 95%, 52%), hsl(38, 90%, 60%));
+}
+
+html:not([theme~="dark"]) .home-subcard h3::after {
+  background: linear-gradient(90deg, hsl(214, 88%, 50%), hsl(200, 82%, 56%));
+}
+
+.home-subcard h3:hover::after { width: 100%; }
+
+/* ─── List items ─────────────────────────────────────────── */
+.home-card ul {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 0 !important;
+}
+
+.home-card ul li {
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
+  position: relative;
+  padding-left: 1.6em !important;
+  margin-bottom: var(--lumo-space-s) !important;
+  color: var(--lumo-body-text-color);
+}
+
+.home-card ul li::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0.52em;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+}
+
+html[theme~="dark"] .home-card ul li::before {
+  background: linear-gradient(135deg, hsl(30, 95%, 55%), hsl(38, 90%, 62%));
+  box-shadow: 0 0 6px hsla(30, 95%, 52%, 0.45);
+}
+
+html:not([theme~="dark"]) .home-card ul li::before {
+  background: linear-gradient(135deg, hsl(214, 88%, 52%), hsl(200, 82%, 58%));
+  box-shadow: 0 0 5px hsla(214, 88%, 50%, 0.30);
+}
+
+.home-list-label {
+  font-weight: 700 !important;
+}
+
+html[theme~="dark"] .home-list-label {
+  color: hsl(30, 100%, 72%);
+}
+
+html:not([theme~="dark"]) .home-list-label {
+  color: hsl(214, 88%, 36%);
+}
+
+/* ─── Footer CTA ─────────────────────────────────────────── */
+.home-footer {
+  text-align: center;
+  width: 100%;
+  padding-top: var(--lumo-space-xs);
+}
+
+.home-closing {
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.875rem !important;
+  line-height: 1.55 !important;
+  margin: 0 0 var(--lumo-space-xs) 0 !important;
+  color: var(--lumo-secondary-text-color);
+}
+
+.home-cta {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-style: normal !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em !important;
+  display: inline-block;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+html[theme~="dark"] .home-cta {
+  background-image: linear-gradient(135deg, hsl(30, 100%, 68%), hsl(38, 95%, 62%));
+}
+
+html:not([theme~="dark"]) .home-cta {
+  background-image: linear-gradient(135deg, hsl(214, 88%, 42%), hsl(200, 82%, 50%));
+}

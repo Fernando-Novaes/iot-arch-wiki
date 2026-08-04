@@ -19,6 +19,10 @@ public class QualityRequirementTechnologyService {
         this.qualityRequirementTechnologyRepository.saveAndFlush(qualityRequirementTechnology);
     }
 
+    public void save(QualityRequirementTechnology qualityRequirementTechnology) {
+        this.saveAndUpdate(qualityRequirementTechnology);
+    }
+
     public void delete(QualityRequirementTechnology qualityRequirementTechnology) {
         this.qualityRequirementTechnologyRepository.delete(qualityRequirementTechnology);
     }

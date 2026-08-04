@@ -153,14 +153,17 @@ public class AnnotationDialog extends Dialog {
         AnnotationAction action = event.getAction();
         Annotation notes = (event.getAnnotation() != null)? event.getAnnotation() : new Annotation();
 
-        if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof IoTDomain domain) {
-            setHeaderTitle(String.format("Annotation viewer [%s - %s]", domain.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-        } else if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof ArchitectureSolution architecture) {
-            setHeaderTitle(String.format("Annotation viewer [%s - %s]", architecture.getArchitecture().getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-        } else if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof QualityRequirement qr) {
-            setHeaderTitle(String.format("Annotation viewer [%s - %s]", qr.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
-        } else if (notes.getAnnotationDomainType(notes.getAnnotationDomains().getFirst()) instanceof Technology tech) {
-            setHeaderTitle(String.format("Annotation viewer [%s - %s]", tech.getDescription(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
+        if (!notes.getAnnotationDomains().isEmpty()) {
+            AnnotationDomain firstDomain = notes.getAnnotationDomains().get(0);
+            if (notes.getAnnotationDomainType(firstDomain) instanceof IoTDomain domain) {
+                setHeaderTitle(String.format("Annotation viewer [%s - %s]", domain.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
+            } else if (notes.getAnnotationDomainType(firstDomain) instanceof ArchitectureSolution architecture) {
+                setHeaderTitle(String.format("Annotation viewer [%s - %s]", architecture.getArchitecture().getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
+            } else if (notes.getAnnotationDomainType(firstDomain) instanceof QualityRequirement qr) {
+                setHeaderTitle(String.format("Annotation viewer [%s - %s]", qr.getName(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
+            } else if (notes.getAnnotationDomainType(firstDomain) instanceof Technology tech) {
+                setHeaderTitle(String.format("Annotation viewer [%s - %s]", tech.getDescription(), (action.equals(AnnotationAction.ADD))? "Adding" : "Editing"));
+            }
         }
 
         notes.setText(notes.getText());

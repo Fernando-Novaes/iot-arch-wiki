@@ -98,8 +98,18 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                 // Add appropriate class based on message type
                 if (message.getAiMessageType().equals(AIMessageType.USER)) {
                     messageContainer.addClassName("user-message-container");
+                    messageContainer.getStyle().set("align-self", "flex-end");
+                    messageContainer.getStyle().set("margin-left", "auto");
+                    messageContainer.getStyle().set("margin-right", "0");
+                    messageContainer.getStyle().set("display", "flex");
+                    messageContainer.getStyle().set("justify-content", "flex-end");
                 } else if ((message.getAiMessageType().equals(AIMessageType.ASSISTANT)) || (message.getAiMessageType().equals(AIMessageType.HELLO_MESSAGE))) {
                     messageContainer.addClassName("assistant-message-container");
+                    messageContainer.getStyle().set("align-self", "flex-start");
+                    messageContainer.getStyle().set("margin-right", "auto");
+                    messageContainer.getStyle().set("margin-left", "0");
+                    messageContainer.getStyle().set("display", "flex");
+                    messageContainer.getStyle().set("justify-content", "flex-start");
                 }
 
                 // Create the message bubble
@@ -159,6 +169,35 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
         }
 
         log.info("Finished adding message elements to HtmlMessageList.");
+    }
+
+    /**
+     * Updates only the content of the last assistant message bubble without rebuilding the entire list.
+     * This avoids DOM flickering during streaming responses.
+     */
+    public boolean updateLastMessageContent(String newHtml) {
+        int componentCount = getComponentCount();
+        if (componentCount == 0) return false;
+
+        // Walk backwards to find the last assistant message container
+        for (int i = componentCount - 1; i >= 0; i--) {
+            com.vaadin.flow.component.Component comp = getComponentAt(i);
+            if (comp instanceof Div container && container.hasClassName("assistant-message-container")) {
+                // Find the message-content div inside the bubble and scroll scroller to bottom
+                container.getElement().executeJs(
+                        "var contentDiv = this.querySelector('.message-content');" +
+                        "if (contentDiv) {" +
+                        "  contentDiv.innerHTML = $0;" +
+                        "  var scroller = this.closest('vaadin-scroller') || document.querySelector('vaadin-scroller');" +
+                        "  if (scroller) { scroller.scrollTop = scroller.scrollHeight; }" +
+                        "  return true;" +
+                        "} return false;",
+                        newHtml
+                );
+                return true;
+            }
+        }
+        return false;
     }
 
     // formatChatTime method remains the same...

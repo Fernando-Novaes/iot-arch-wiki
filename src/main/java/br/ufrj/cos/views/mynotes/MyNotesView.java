@@ -11,13 +11,16 @@ import br.ufrj.cos.views.HasTour;
 import br.ufrj.cos.views.MainLayout;
 import com.vaadin.componentfactory.PopupPosition;
 import com.vaadin.componentfactory.onboarding.Onboarding;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
-import com.vaadin.flow.component.html.H1;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -52,33 +55,71 @@ public class MyNotesView extends BaseView implements HasTour {
     private final AnnotationService annotationService;
 
     // --- UI Components ---
-
-    //Search
     private final HorizontalLayout filterLayout = new HorizontalLayout();
     private final TextField searchField = new TextField();
     private final ComboBox<String> categoryComboBox = new ComboBox<>();
     private final Button searchButton = new Button("Filter", VaadinIcon.SEARCH.create());
     private final Button clearButton = new Button("Clear", VaadinIcon.ERASER.create());
 
-    //New note
-    Button floatingButton = new Button();
-
-    private FlexLayout cardContainer; // Use FlexLayout for responsive card grid
+    private final Button floatingButton = new Button();
+    private FlexLayout cardContainer;
 
     public MyNotesView(UserApplicationService userApplicationService, AnnotationService annotationService) {
         this.userApplicationService = userApplicationService;
         this.annotationService = annotationService;
 
-        createHeader("My Notes");
-        createSearchContainer("Filter Notes", "Filter by content...", "Filter by title...");
-        initializeCardContainer();
+        VerticalLayout mainContainer = new VerticalLayout();
+        mainContainer.setWidthFull();
+        mainContainer.setPadding(true);
+        mainContainer.setSpacing(true);
+
+        // Hero Banner Header
+        mainContainer.add(createHeroCard());
+
+        // Search & Filter Card
+        createSearchContainer("Filter Notes", "Filter by content...", "Filter by title...", mainContainer);
+
+        // Cards Container
+        initializeCardContainer(mainContainer);
+
+        // Floating Action Button
         createNewFloatButton();
+
+        getContent().add(mainContainer);
     }
 
     @PostConstruct
     private void init() {
-        // Initial load of all cards
         filterAndDisplayCards();
+    }
+
+    private Component createHeroCard() {
+        Div heroCard = new Div();
+        heroCard.getStyle()
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("border-radius", "16px")
+                .set("padding", "1.75rem 2rem")
+                .set("color", "#ffffff")
+                .set("box-shadow", "0 10px 25px rgba(37, 99, 235, 0.2)")
+                .set("width", "100%")
+                .set("box-sizing", "border-box");
+
+        H2 title = new H2("My Notes & Annotations");
+        title.getStyle()
+                .set("margin", "0 0 0.4rem 0")
+                .set("font-size", "1.8rem")
+                .set("font-weight", "700")
+                .set("color", "#ffffff");
+
+        Paragraph subtitle = new Paragraph("Organize, search, and manage your personal IoT architecture research notes and insights");
+        subtitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "0.95rem")
+                .set("opacity", "0.9")
+                .set("line-height", "1.5");
+
+        heroCard.add(title, subtitle);
+        return heroCard;
     }
 
     private void createNewFloatButton() {
@@ -87,35 +128,39 @@ public class MyNotesView extends BaseView implements HasTour {
         Style buttonStyle = floatingButton.getStyle();
 
         buttonStyle.set("position", "fixed");
-        buttonStyle.set("bottom", "25px");
-        buttonStyle.set("right", "25px");
+        buttonStyle.set("bottom", "28px");
+        buttonStyle.set("right", "28px");
         buttonStyle.set("z-index", "1000");
         buttonStyle.set("width", "56px");
         buttonStyle.set("height", "56px");
         buttonStyle.set("border-radius", "50%");
-        buttonStyle.set("background-color", "var(--lumo-primary-color)");
-        buttonStyle.set("color", "var(--lumo-primary-contrast-color)");
-        buttonStyle.set("box-shadow", "0 4px 12px rgba(0, 0, 0, 0.25)");
+        buttonStyle.set("background", "linear-gradient(135deg, #2563eb, #1d4ed8)");
+        buttonStyle.set("color", "#ffffff");
+        buttonStyle.set("box-shadow", "0 6px 20px rgba(37, 99, 235, 0.4)");
         buttonStyle.set("border", "none");
         buttonStyle.set("cursor", "pointer");
         buttonStyle.set("display", "flex");
         buttonStyle.set("align-items", "center");
         buttonStyle.set("justify-content", "center");
 
-        plusIcon.getStyle().set("width", "24px");
-        plusIcon.getStyle().set("height", "24px");
+        plusIcon.getStyle().set("width", "24px").set("height", "24px");
 
         Tooltip.forComponent(floatingButton).withText("Create a new note");
-        floatingButton.addClickListener(event -> {
-            this.createNewNote();
-        });
+        floatingButton.addClickListener(event -> this.createNewNote());
 
-        // Add the button to the main content of the view
         getContent().add(floatingButton);
     }
 
-    private void createSearchContainer(String title, String searchPlaceholder, String titlePlaceholder) {
-        H3 header = new H3(title);
+    private void createSearchContainer(String title, String searchPlaceholder, String titlePlaceholder, VerticalLayout parentContainer) {
+        Div searchCard = new Div();
+        searchCard.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("border-radius", "14px")
+                .set("box-shadow", "0 4px 14px rgba(0, 0, 0, 0.04)")
+                .set("padding", "1rem 1.25rem")
+                .set("width", "100%")
+                .set("box-sizing", "border-box");
 
         searchField.setPlaceholder(searchPlaceholder);
         searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -123,7 +168,7 @@ public class MyNotesView extends BaseView implements HasTour {
 
         categoryComboBox.setPlaceholder(titlePlaceholder);
         categoryComboBox.setClearButtonVisible(true);
-        // Populate the category combo box with actual titles from the user's notes
+
         List<String> titles = this.userApplicationService.findByUserName(SecurityUtils.getUsername())
                 .getAnnotations().stream()
                 .map(Annotation::getTitle)
@@ -132,43 +177,42 @@ public class MyNotesView extends BaseView implements HasTour {
         categoryComboBox.setItems(titles);
 
         searchButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        searchButton.getStyle()
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("border-radius", "8px")
+                .set("font-weight", "600");
         searchButton.addClickListener(click -> filterAndDisplayCards());
 
         clearButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         clearButton.addClickListener(e -> {
             searchField.clear();
             categoryComboBox.clear();
-            filterAndDisplayCards(); // Re-run to show all cards
+            filterAndDisplayCards();
         });
 
+        filterLayout.removeAll();
         filterLayout.add(searchField, categoryComboBox, searchButton, clearButton);
         filterLayout.setWidthFull();
         filterLayout.setFlexGrow(1, searchField);
-        filterLayout.setAlignItems(FlexComponent.Alignment.BASELINE);
-        filterLayout.getStyle().setBorder("1px solid grey");
+        filterLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         filterLayout.setSpacing(true);
-        filterLayout.setPadding(true);
 
-        VerticalLayout searchContainer = new VerticalLayout(header, filterLayout);
-        searchContainer.setWidthFull();
-        searchContainer.setPadding(false);
-        searchContainer.setSpacing(false);
-
-        getContent().add(searchContainer);
+        searchCard.add(filterLayout);
+        parentContainer.add(searchCard);
     }
 
-    private void initializeCardContainer() {
+    private void initializeCardContainer(VerticalLayout parentContainer) {
         cardContainer = new FlexLayout();
         cardContainer.setWidthFull();
-        cardContainer.setFlexWrap(FlexLayout.FlexWrap.WRAP); // Automatically wraps cards to new lines
+        cardContainer.setFlexWrap(FlexLayout.FlexWrap.WRAP);
         cardContainer.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
-        cardContainer.getStyle().set("gap", "1em"); // Consistent spacing between cards
-        cardContainer.getStyle().set("padding-top", "1em");
-        getContent().add(cardContainer);
+        cardContainer.getStyle().set("gap", "1.25rem");
+        cardContainer.getStyle().set("padding-top", "0.5rem");
+        parentContainer.add(cardContainer);
     }
 
     private void filterAndDisplayCards() {
-        cardContainer.removeAll(); // Clear any existing cards before displaying new results
+        cardContainer.removeAll();
 
         String searchTerm = searchField.getValue().trim().toLowerCase();
         String selectedTitle = categoryComboBox.getValue();
@@ -192,7 +236,13 @@ public class MyNotesView extends BaseView implements HasTour {
         logger.info(String.format("Displaying %d filtered annotations", filteredAnnotations.size()));
 
         if (filteredAnnotations.isEmpty()) {
-            cardContainer.add(new Span("No notes match your criteria."));
+            Div emptyState = new Div();
+            emptyState.getStyle()
+                    .set("padding", "2rem")
+                    .set("color", "var(--lumo-secondary-text-color)")
+                    .set("font-size", "0.95rem");
+            emptyState.setText("No notes match your criteria.");
+            cardContainer.add(emptyState);
         } else {
             filteredAnnotations.forEach(annotation -> {
                 FlipLayout card = createCard(annotation);
@@ -202,71 +252,100 @@ public class MyNotesView extends BaseView implements HasTour {
     }
 
     private FlipLayout createCard(Annotation annotation) {
-        // --- FlipLayout Configuration (created first) ---
         FlipLayout flipLayout = new FlipLayout();
 
         // --- Front of the Card ---
         VerticalLayout frontForm = new VerticalLayout();
-        // ... (rest of the frontForm setup is the same)
         frontForm.setPadding(true);
-        frontForm.setSpacing(false);
-        frontForm.getStyle().set("box-shadow", "var(--lumo-box-shadow-s)");
-        frontForm.getStyle().set("border-radius", "var(--lumo-border-radius-l)");
-        frontForm.getStyle().setBackgroundColor("var(--lumo-contrast-10pct)");
-        frontForm.setWidth("45em");
-        frontForm.setHeight("25em");
+        frontForm.setSpacing(true);
+        frontForm.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("border-radius", "16px")
+                .set("box-shadow", "0 6px 18px rgba(0, 0, 0, 0.06)")
+                .set("width", "360px")
+                .set("height", "240px")
+                .set("box-sizing", "border-box")
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("justify-content", "space-between");
 
-        // --- Card Header with Title and Delete Button ---
-        H1 cardTitle = new H1(annotation.getTitle() != null ? annotation.getTitle() : "No Title");
-        cardTitle.getStyle().set("margin-top", "0");
-        cardTitle.getStyle().set("margin-bottom", "0.5em");
-        cardTitle.getStyle().set("font-size", "var(--lumo-font-size-xl)");
+        H3 cardTitle = new H3(annotation.getTitle() != null ? annotation.getTitle() : "No Title");
+        cardTitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "1.1rem")
+                .set("font-weight", "600")
+                .set("color", "var(--lumo-header-text-color)");
 
         Button deleteButton = new Button(VaadinIcon.TRASH.create());
         deleteButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
         deleteButton.setTooltipText("Delete this note");
         deleteButton.getStyle().set("margin-left", "auto");
 
-        // *** KEY CHANGE: Pass the flipLayout to the confirmAndDelete method ***
         deleteButton.addClickListener(e -> confirmAndDelete(annotation, flipLayout));
 
         HorizontalLayout headerLayout = new HorizontalLayout(cardTitle, deleteButton);
         headerLayout.setWidthFull();
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // ... (rest of the frontForm body setup is the same) ...
-        Span cardTopic = new Span(annotation.getTopic() != null ? annotation.getTopic() : "");
-        cardTopic.getStyle().set("color", "var(--lumo-secondary-text-color)");
-        cardTopic.getStyle().set("font-size", "var(--lumo-font-size-m)");
-        cardTopic.getStyle().set("margin-bottom", "auto");
+        Span cardTopic = new Span(annotation.getTopic() != null ? annotation.getTopic() : "General Note");
+        cardTopic.getStyle()
+                .set("font-size", "0.75rem")
+                .set("font-weight", "700")
+                .set("padding", "3px 10px")
+                .set("border-radius", "12px")
+                .set("background", "var(--lumo-contrast-5pct)")
+                .set("color", "var(--lumo-primary-color)")
+                .set("border", "1px solid var(--lumo-contrast-10pct)")
+                .set("width", "fit-content");
 
-        Span cardLastUpdate = new Span("Last Update: " + (annotation.getLastUpdate() != null ? annotation.getLastUpdate().toString() : "N/A"));
-        cardLastUpdate.getStyle().set("color", "var(--lumo-tertiary-text-color)");
-        cardLastUpdate.getStyle().set("font-size", "var(--lumo-font-size-m)");
+        Span cardLastUpdate = new Span("Updated: " + (annotation.getLastUpdate() != null ? annotation.getLastUpdate().toString() : "N/A"));
+        cardLastUpdate.getStyle()
+                .set("color", "var(--lumo-tertiary-text-color)")
+                .set("font-size", "0.8rem");
 
         Button flipButton = new Button("View Details", VaadinIcon.ARROW_FORWARD.create());
         flipButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        flipButton.getStyle()
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("border-radius", "8px")
+                .set("font-weight", "600")
+                .set("width", "100%");
 
         frontForm.add(headerLayout, cardTopic, cardLastUpdate, flipButton);
-        frontForm.setAlignItems(FlexComponent.Alignment.STRETCH);
 
         // --- Back of the Card ---
         VerticalLayout backForm = new VerticalLayout();
-        // ... (rest of the backForm setup is the same) ...
         backForm.setPadding(true);
-        backForm.getStyle().set("box-shadow", "var(--lumo-box-shadow-s)");
-        backForm.getStyle().set("border-radius", "var(--lumo-border-radius-l)");
-        backForm.setWidth(frontForm.getWidth());
-        backForm.setHeight(frontForm.getHeight());
+        backForm.setSpacing(true);
+        backForm.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("border-radius", "16px")
+                .set("box-shadow", "0 6px 18px rgba(0, 0, 0, 0.06)")
+                .set("width", "360px")
+                .set("height", "240px")
+                .set("box-sizing", "border-box")
+                .set("display", "flex")
+                .set("flex-direction", "column");
 
-        Html cardFullText = new Html("<div style='overflow: auto; height: 100%;'>" + (annotation.getText() != null ? annotation.getText() : "") + "</div>");
-        Button unflipButton = new Button("Back to Summary", VaadinIcon.ARROW_BACKWARD.create());
-        unflipButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE);
+        Html cardFullText = new Html("<div style='overflow: auto; height: 100%; font-size: 0.875rem; line-height: 1.5; color: var(--lumo-body-text-color);'>" + (annotation.getText() != null ? annotation.getText() : "") + "</div>");
 
-        backForm.add(cardFullText, unflipButton);
+        Button editButton = new Button("Edit Note", VaadinIcon.EDIT.create());
+        editButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        editButton.getStyle().set("margin-right", "auto");
+        editButton.addClickListener(e -> editNote(annotation));
+
+        Button unflipButton = new Button("Back", VaadinIcon.ARROW_BACKWARD.create());
+        unflipButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        unflipButton.getStyle().set("margin-left", "auto");
+
+        HorizontalLayout backActions = new HorizontalLayout(editButton, unflipButton);
+        backActions.setWidthFull();
+
+        backForm.add(cardFullText, backActions);
         backForm.expand(cardFullText);
 
-        // --- Final FlipLayout Configuration ---
         flipLayout.setFrontComponent(frontForm);
         flipLayout.setBackComponent(backForm);
         flipButton.addClickListener(event -> flipLayout.flip());
@@ -275,7 +354,6 @@ public class MyNotesView extends BaseView implements HasTour {
         return flipLayout;
     }
 
-    // *** NEW METHOD for delete confirmation and logic ***
     private void confirmAndDelete(Annotation annotation, FlipLayout card) {
         ConfirmDialog dialog = new ConfirmDialog();
         dialog.setHeader("Delete Note: '" + annotation.getTitle() + "'");
@@ -284,59 +362,44 @@ public class MyNotesView extends BaseView implements HasTour {
         dialog.setConfirmText("Delete");
         dialog.setConfirmButtonTheme("error primary");
 
-        // --- Get the style object for the card's front component ---
-        // We style the front component as it's the one that's visible.
         Style cardStyle = card.getFrontComponent().getStyle();
-
-        // --- Apply the style when the dialog opens ---
         cardStyle.set("border", "2px solid var(--lumo-error-color)");
         cardStyle.set("box-shadow", "0 0 10px var(--lumo-error-color-50pct)");
 
-        // --- Remove the style when the dialog is closed for any reason ---
         dialog.addDetachListener(e -> {
             cardStyle.remove("border");
-            // Reset the box-shadow to its original state
-            cardStyle.set("box-shadow", "var(--lumo-box-shadow-s)");
+            cardStyle.set("box-shadow", "0 6px 18px rgba(0, 0, 0, 0.06)");
         });
 
-        // --- Define the action on confirmation ---
         dialog.addConfirmListener(event -> deleteAnnotation(annotation));
-
         dialog.open();
     }
 
     private void deleteAnnotation(Annotation annotation) {
         try {
             if (annotation.getUserApplication() != null) {
-                // Just by removing it from the list, JPA will automatically delete the "orphaned" annotation.
                 annotation.getUserApplication().getAnnotations().remove(annotation);
             }
             annotationService.delete(annotation);
             NotificationUtils.showSuccessNotification("Note deleted successfully.");
-            filterAndDisplayCards(); // Refresh the view
+            filterAndDisplayCards();
         } catch (Exception e) {
             logger.error("Error deleting annotation with ID: " + annotation.getId(), e);
             NotificationUtils.showErrorNotification("Error deleting note. Please try again.");
         }
     }
 
-    // Method to open the dialog for a new note
     private void createNewNote() {
         MyNotesDialog dialog = new MyNotesDialog(annotationService, userApplicationService);
 
-        // Listen for the save event
         dialog.addSaveListener(event -> {
-            // This code runs AFTER a note is successfully saved
             Notification.show("Note saved: " + event.getAnnotation().getTitle());
-            // Refresh your list of note cards
             filterAndDisplayCards();
         });
 
-        // Open the dialog with a new, empty Annotation object
         dialog.open(new Annotation());
     }
 
-    // To edit an existing note (e.g., from a button on a card)
     private void editNote(Annotation annotation) {
         MyNotesDialog dialog = new MyNotesDialog(annotationService, userApplicationService);
 
@@ -345,7 +408,6 @@ public class MyNotesView extends BaseView implements HasTour {
             filterAndDisplayCards();
         });
 
-        // Open the dialog with the existing annotation object
         dialog.open(annotation);
     }
 
@@ -356,7 +418,7 @@ public class MyNotesView extends BaseView implements HasTour {
                 .addStep(searchField, "Search by Content", new Html("<div>Enter a keyword to search within your notes.</div>"), PopupPosition.BOTTOM)
                 .addStep(categoryComboBox, "Filter by Topic", new Html("<div>Narrow the list by selecting a topic.</div>"), PopupPosition.BOTTOM)
                 .addStep(searchButton, "Apply Filters", new Html("<div>Click here to apply your search term and topic filter to the list of notes.</div>"), PopupPosition.BOTTOM)
-                .addStep(clearButton, "Clear Filters", new Html("<div>ick this button to remove all filters and view all of your notes again.</div>"), PopupPosition.BOTTOM)
+                .addStep(clearButton, "Clear Filters", new Html("<div>Click this button to remove all filters and view all of your notes again.</div>"), PopupPosition.BOTTOM)
                 .addStep(floatingButton, "Create a New Note", new Html("<div>Click here to start a new note.</div>"), PopupPosition.BOTTOM)
                 .addStep(cardContainer, "Notes",
                         new Html("<div>Your notes are organized as cards. The front of each card shows key details like the title and topic. Click the 'View Details' button to flip the card and read the full text.</div>"), PopupPosition.BOTTOM)

@@ -30,7 +30,8 @@ public class SliderPanel extends Div {
     private final Div content;
     @Getter
     private final Button toggleButton;
-    private boolean expanded = true; // Default to expanded
+    private boolean expanded = false; // Default to collapsed
+
     private String expandedText = "Hide Details";
     private String collapsedText = "Show Details";
 
@@ -71,17 +72,6 @@ public class SliderPanel extends Div {
 
         content = new Div();
         content.addClassName("slider-content");
-
-        // Set default width for right-side panel
-        //content.getStyle().set("width", "100%"); // REMOVE THIS, controlled by CSS and JS
-
-        // Configure vertical text
-        toggleButton.getElement().getStyle()
-                .set("writing-mode", "vertical-lr")  // Changed to vertical-lr for better readability
-                .set("text-orientation", "mixed")
-                .set("transform", "rotate(180deg)"); // This makes text read from top to bottom
-
-        toggleButton.setIcon(new Icon(VaadinIcon.ANGLE_LEFT));
 
         this.addDetailsContent();
 
@@ -138,42 +128,113 @@ public class SliderPanel extends Div {
     }
 
     private void updateButtonContent(boolean isExpanded) {
-        // Clear existing content
-        //toggleButton.getElement().removeAllChildren();
-
-        // Create icon
-        Icon icon = isExpanded ? VaadinIcon.LEVEL_RIGHT_BOLD.create() :
-                VaadinIcon.LEVEL_LEFT_BOLD.create();
-                ;
-
-        // Configure icon
-        icon.getElement().getStyle()
-                .set("transform", "rotate(180deg)") // Rotate icon to match text orientation
-                .set("display", "block")
-                .set("margin", "4px auto"); // Center the icon
-
-        // Add text first (it will appear at the bottom due to rotation)
-        String text = isExpanded ? expandedText : collapsedText;
-        toggleButton.setText(text);
+        Icon icon = isExpanded ? VaadinIcon.ANGLE_RIGHT.create() : VaadinIcon.ANGLE_LEFT.create();
+        icon.getStyle().set("margin-bottom", "6px");
+        toggleButton.setIcon(icon);
+        toggleButton.setText(isExpanded ? expandedText : collapsedText);
     }
 
     public void toggle() {
-        if (expanded) {
-            toggleButton.setIcon(new Icon(VaadinIcon.ANGLE_LEFT));
+        if (!expanded) {
             addClassName("expanded");
             updateButtonContent(true);
-            expanded = !expanded;
+            expanded = true;
         } else {
-            toggleButton.setIcon(new Icon(VaadinIcon.ANGLE_RIGHT));
             removeClassName("expanded");
             updateButtonContent(false);
-            expanded = !expanded;
+            expanded = false;
         }
     }
 
-    private String formatSlidePanelDetails(String title, String name, String description, String addressedNotes) {
-        return String.format("<div><h3>%s:</h3><b>%s</b></br><div style='font-style: italic; margin-bottom: 5px;'>%s</div></br><div style='font-style: italic; margin-bottom: 5px;'>%s</div></div>",
-                title, name, Optional.ofNullable(description).orElse("No description"), Optional.ofNullable(addressedNotes).orElse("No description"));
+    private Component createFormattedTextComponent(String rawText, String fontSize, String textColor) {
+        if (rawText == null || rawText.isBlank()) return new Div();
+
+        String html = rawText.trim();
+
+        // 1. Standardize newlines
+        html = html.replace("\r\n", "\n");
+
+        // 2. Bold section headers like "Data Collection Layer:", "Fog Layer:", "Purpose:", etc.
+        html = html.replaceAll("(?<=[.!?\\n\\s]|^)([A-Z][A-Za-z0-9\\s\\-/]{2,35}:)", "<br/><strong style=\"color: var(--lumo-primary-text-color); font-weight: 600;\">$1</strong>");
+
+        // 3. Convert markdown bold **text** to <strong>
+        html = html.replaceAll("\\*\\*(.*?)\\*\\*", "<strong>$1</strong>");
+
+        // 4. Convert markdown italic *text* to <em>
+        html = html.replaceAll("(?<!\\*)\\*(?!\\*)(.*?)(?<!\\*)\\*(?!\\*)", "<em>$1</em>");
+
+        // 5. Convert bullet points
+        html = html.replaceAll("(?m)^[•\\-*]\\s+(.*)$", "<div style=\"display: flex; gap: 0.4rem; margin: 0.15rem 0;\"><span>•</span><div>$1</div></div>");
+
+        // 6. Convert double newlines to single breaks
+        html = html.replace("\n\n", "<br/>").replace("\n", "<br/>");
+
+        // 7. Clean leading breaks
+        while (html.startsWith("<br/>")) {
+            html = html.substring(5);
+        }
+
+        // 8. Wrap in root HTML element
+        try {
+            return new Html("<div style=\"font-size: " + fontSize + "; color: " + textColor + "; line-height: 1.45; text-align: justify;\">" + html + "</div>");
+        } catch (Exception e) {
+            Div fallback = new Div(new Text(rawText));
+            fallback.getStyle().set("font-size", fontSize).set("color", textColor).set("line-height", "1.45");
+            return fallback;
+        }
+    }
+
+    private Component createDetailCard(String icon, String categoryTitle, String itemTitle, String description, String secondaryNotes, String headerGradient) {
+        VerticalLayout card = new VerticalLayout();
+        card.setWidthFull();
+        card.setSpacing(false);
+        card.setPadding(true);
+        card.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("border-radius", "12px")
+                .set("box-shadow", "0 2px 8px rgba(0, 0, 0, 0.06)")
+                .set("margin-bottom", "0.5rem");
+
+        Span badge = new Span(icon + " " + categoryTitle.toUpperCase());
+        badge.getStyle()
+                .set("background", headerGradient)
+                .set("color", "#ffffff")
+                .set("padding", "3px 12px")
+                .set("border-radius", "16px")
+                .set("font-weight", "700")
+                .set("font-size", "0.75rem")
+                .set("letter-spacing", "0.5px")
+                .set("margin-bottom", "0.4rem");
+
+        H4 title = new H4(itemTitle);
+        title.getStyle()
+                .set("margin", "0.2rem 0 0.45rem 0")
+                .set("font-size", "1.05rem")
+                .set("font-weight", "600")
+                .set("color", "var(--lumo-header-text-color)");
+
+        card.add(badge, title);
+
+        if (description != null && !description.isBlank() && !"No description".equalsIgnoreCase(description.trim())) {
+            Component formattedDesc = createFormattedTextComponent(description, "0.875rem", "var(--lumo-body-text-color)");
+            card.add(formattedDesc);
+        }
+
+        if (secondaryNotes != null && !secondaryNotes.isBlank()) {
+            Component formattedNotes = createFormattedTextComponent(secondaryNotes, "0.8125rem", "var(--lumo-secondary-text-color)");
+            Div notesBox = new Div(formattedNotes);
+            notesBox.getStyle()
+                    .set("background", "var(--lumo-contrast-5pct)")
+                    .set("padding", "0.5rem 0.75rem")
+                    .set("border-radius", "8px")
+                    .set("border-left", "3px solid var(--lumo-primary-color)")
+                    .set("margin-top", "0.5rem")
+                    .set("width", "100%");
+            card.add(notesBox);
+        }
+
+        return card;
     }
 
     public void setDataDetailsContent(DataDetails dataDetails) {
@@ -201,65 +262,57 @@ public class SliderPanel extends Div {
     }
 
     private void setIoTDomainContent(IoTDomain domain) {
-        iotDomainHL.add(
-                new HorizontalLayout(
-                        new Html(formatSlidePanelDetails("IoT Domain", domain.getName(), domain.getDescription(),  null))
-
-                ));
+        iotDomainHL.add(createDetailCard("🌐", "IoT Domain", domain.getName(), domain.getDescription(), null, "linear-gradient(135deg, #e67e22, #f39c12)"));
     }
 
     private void setArchitectureContent(ArchitectureSolution solution) {
-        archHL.add(new HorizontalLayout(
-                new Html(formatSlidePanelDetails("Architecture", solution.getArchitecture().getName(), solution.getDescription(), null))));
+        archHL.add(createDetailCard("🏛️", "Architecture Solution", solution.getArchitecture().getName(), solution.getDescription(), null, "linear-gradient(135deg, #2980b9, #3498db)"));
     }
 
     private void setQualityRequirementContent(QualityRequirement qr) {
-        qrHL.add(new HorizontalLayout(
-                new Html(formatSlidePanelDetails("Quality Requirement", qr.getName(),
-                        Optional.ofNullable(qr.getDescription()).orElse("No description"), null))
-        ));
+        qrHL.add(createDetailCard("⚡", "Quality Requirement", qr.getName(), qr.getDescription(), null, "linear-gradient(135deg, #8e44ad, #9b59b6)"));
     }
 
     private void setTechnologyContent(DataDetails details) {
-        Optional<QualityRequirementTechnology> qrAddressedNotes = details.getArchitectureSolution().getQualityRequirementTechnologies().stream()
-                .filter(tech -> tech.getTechnology().equals(details.getTechnology()))
-                .filter(qr ->  qr.getQualityRequirement().equals(details.getQualityRequirement()))
-                .findAny();
-
-        techHL.add(new HorizontalLayout(
-                new Html(formatSlidePanelDetails("Technology", details.getTechnology().getDescription(),
-                        Optional.ofNullable(details.getTechnology().getNotes()).orElse("No description"),
-                        String.format("%s: %s", qrAddressedNotes.get().getQualityRequirement(), qrAddressedNotes.get().getNotes())))
-
-        ));
+        String notes = details.getTechnology().getNotes();
+        String addNotes = null;
+        if (details.getArchitectureSolution() != null && details.getArchitectureSolution().getQualityRequirementTechnologies() != null) {
+            Optional<QualityRequirementTechnology> qrAddressedNotes = details.getArchitectureSolution().getQualityRequirementTechnologies().stream()
+                    .filter(tech -> tech.getTechnology().equals(details.getTechnology()))
+                    .filter(qr -> qr.getQualityRequirement().equals(details.getQualityRequirement()))
+                    .findAny();
+            if (qrAddressedNotes.isPresent()) {
+                addNotes = String.format("%s: %s", qrAddressedNotes.get().getQualityRequirement(), qrAddressedNotes.get().getNotes());
+            }
+        }
+        techHL.add(createDetailCard("🛠️", "Technology", details.getTechnology().getDescription(), notes, addNotes, "linear-gradient(135deg, #27ae60, #2ecc71)"));
     }
 
     private void setReferenceDetails(PaperReference reference) {
-        referenceHL.add(new Html(
-                String.format("<div style='font-style: italic;'><center><b>%s, %s</b></center></div>",
-                        reference.getTitle(), reference.getPublishYear())));
+        referenceHL.add(createDetailCard("📜", "Scientific Reference", reference.getTitle(), "Published Year: " + reference.getPublishYear(), reference.getLink(), "linear-gradient(135deg, #475569, #64748b)"));
     }
 
     private Div createHeader() {
         Div header = new Div();
         header.getStyle()
+                .set("display", "flex")
                 .set("align-items", "center")
                 .set("justify-content", "center")
-                .set("background-color", "var(--lumo-primary-color)") // Use primary color for header
-                .set("color", "var(--lumo-primary-contrast-color)") // Use contrast color for text
-                .set("border-radius", "0") // Remove border radius for a cleaner look
+                .set("background", "linear-gradient(135deg, #1e293b, #334155)")
+                .set("color", "#ffffff")
                 .set("width", "100%")
-                .set("padding", "1px"); // Add padding for better spacing
-        //.set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.2)"); // Add a subtle shadow (optional)
+                .set("padding", "0.85rem 1rem")
+                .set("box-shadow", "0 2px 8px rgba(0, 0, 0, 0.15)");
 
-        H3 headerText = new H3("Details");
+        H3 headerText = new H3("📊 Knowledge Base Details");
         headerText.getStyle()
-                .set("color", "var(--lumo-primary-contrast-color)") // Ensure text color matches header
+                .set("color", "#ffffff")
                 .set("text-align", "center")
-                .set("margin", "0"); // Remove default H3 margins
+                .set("margin", "0")
+                .set("font-size", "1.1rem")
+                .set("font-weight", "600");
 
         header.add(headerText);
-
         return header;
     }
 
@@ -369,11 +422,12 @@ public class SliderPanel extends Div {
         if (event.getAction() == OpenCloseEvent.Action.OPEN) {
             addClassName("expanded");
             updateButtonContent(true);
-            expanded = !expanded;
+            expanded = true;
         } else {
             removeClassName("expanded");
             updateButtonContent(false);
             this.clearContents();
+            expanded = false;
         }
     }
 }

@@ -21,15 +21,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class TreeRootSelectionComponent extends HorizontalLayout {
 
-    private static final String BUTTON_FONT_WEIGHT = "--vaadin-button-font-weight";
-    private static final String BUTTON_BACKGROUND = "--vaadin-button-background";
-    private static final String BUTTON_TEXT_COLOR = "--vaadin-button-text-color";
-
-    private static final String COLOR_IOT_DOMAIN = "#ED8312E5";
-    private static final String COLOR_WHITE = "white";
-    private static final String COLOR_YELLOW = "yellow";
-    private static final String COLOR_GREEN = "lightgreen";
-    private static final String COLOR_TEXT = "var(--lumo-body-text-color)";
+    private static final String GRADIENT_IOT_DOMAIN = "linear-gradient(135deg, #e67e22, #f39c12)";
+    private static final String GRADIENT_ARCH_SOL = "linear-gradient(135deg, #2980b9, #3498db)";
+    private static final String GRADIENT_QUALITY_REQ = "linear-gradient(135deg, #8e44ad, #9b59b6)";
+    private static final String GRADIENT_TECH = "linear-gradient(135deg, #27ae60, #2ecc71)";
 
     @Getter
     private TreeViewType treeViewType;
@@ -52,20 +47,26 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     public TreeRootSelectionComponent(ApplicationEventPublisher eventPublisher) {
         this.eventPublisher = eventPublisher;
 
-        // Initialize buttons
+        // Initialize navigation buttons
         this.changeRight = new Button(VaadinIcon.ARROW_CIRCLE_RIGHT.create());
-        this.changeRight.getStyle().setBorder("1px solid black");
+        this.changeRight.getStyle()
+                .set("border", "none")
+                .set("background", "transparent")
+                .set("color", "var(--lumo-primary-color)")
+                .set("cursor", "pointer");
+
         this.changeLeft = new Button(VaadinIcon.ARROW_CIRCLE_LEFT.create());
-        this.changeLeft.getStyle().setBorder("1px solid black");
+        this.changeLeft.getStyle()
+                .set("border", "none")
+                .set("background", "transparent")
+                .set("color", "var(--lumo-primary-color)")
+                .set("cursor", "pointer");
 
         this.rootSelection = createStyledButton("Root");
         this.leafLevelOne = createStyledButton("First Level");
         this.leafLevelTwo = createStyledButton("Second Level");
         this.leafLevelThree = createStyledButton("Third Level");
 
-        // Initialize navigation buttons
-        this.changeRight.getStyle().set("cursor", "pointer");
-        this.changeLeft.getStyle().set("cursor", "pointer");
         this.changeLeft.addClickListener(this::handleChangeLeft);
         this.changeRight.addClickListener(this::handleChangeRight);
 
@@ -129,29 +130,43 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
 
     private Button createStyledButton(String tooltip) {
         Button button = new Button();
-        button.getStyle().set(BUTTON_FONT_WEIGHT, "bold");
-        button.getStyle().set(BUTTON_TEXT_COLOR, COLOR_TEXT);
         button.setTooltipText(tooltip);
-        button.getStyle().setBorder("1px solid black");
+        button.getStyle()
+                .set("border-radius", "20px")
+                .set("font-weight", "600")
+                .set("font-size", "0.8125rem")
+                .set("color", "#ffffff")
+                .set("border", "none")
+                .set("box-shadow", "0 2px 6px rgba(0, 0, 0, 0.15)")
+                .set("padding", "4px 14px")
+                .set("cursor", "pointer")
+                .set("transition", "transform 0.15s ease, box-shadow 0.15s ease");
         return button;
     }
 
     private Button createSeparator() {
-        return new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
+        Button separator = new Button(new Icon(VaadinIcon.ANGLE_DOUBLE_RIGHT));
+        separator.getStyle()
+                .set("background", "transparent")
+                .set("color", "var(--lumo-contrast-50pct)")
+                .set("border", "none")
+                .set("padding", "0 2px");
+        return separator;
     }
 
     private void setupLayout() {
-        // Setup change buttons container
         HorizontalLayout changeContainer = new HorizontalLayout();
         changeContainer.setSpacing(false);
-        changeContainer.getStyle().setPaddingLeft("1em");
+        changeContainer.setAlignItems(Alignment.CENTER);
+        changeContainer.getStyle().setPaddingLeft("0.5em");
         changeContainer.add(changeLeft, changeRight);
 
-        // Setup main layout
-        this.setSpacing(false);
-        this.getStyle().setBorderRadius("8px");
+        this.setSpacing(true);
+        this.setAlignItems(Alignment.CENTER);
+        this.getStyle()
+                .set("padding", "0.25rem 0.5rem")
+                .set("border-radius", "12px");
 
-        // Add components to layout
         this.add(
                 rootSelection,
                 separatorOne,
@@ -211,28 +226,28 @@ public class TreeRootSelectionComponent extends HorizontalLayout {
     private void updateButtonStyles() {
         switch (treeViewType) {
             case IoTDomain, IoTDomain_Filtered -> applyColors(
-                    COLOR_IOT_DOMAIN, COLOR_WHITE, COLOR_YELLOW, COLOR_GREEN
+                    GRADIENT_IOT_DOMAIN, GRADIENT_ARCH_SOL, GRADIENT_QUALITY_REQ, GRADIENT_TECH
             );
             case ArchitectureSolution, ArchitectureSolution_Filtered -> applyColors(
-                    COLOR_WHITE, COLOR_YELLOW, COLOR_GREEN, COLOR_IOT_DOMAIN
+                    GRADIENT_ARCH_SOL, GRADIENT_QUALITY_REQ, GRADIENT_TECH, GRADIENT_IOT_DOMAIN
             );
             case QualityRequirement, QualityRequirement_Filtered -> applyColors(
-                    COLOR_YELLOW, COLOR_GREEN, COLOR_WHITE, COLOR_IOT_DOMAIN
+                    GRADIENT_QUALITY_REQ, GRADIENT_TECH, GRADIENT_ARCH_SOL, GRADIENT_IOT_DOMAIN
             );
             case Technology, Technology_Filtered -> applyColors(
-                    COLOR_GREEN, COLOR_IOT_DOMAIN, COLOR_WHITE, COLOR_YELLOW
+                    GRADIENT_TECH, GRADIENT_IOT_DOMAIN, GRADIENT_ARCH_SOL, GRADIENT_QUALITY_REQ
             );
             default -> applyColors(
-                    COLOR_IOT_DOMAIN, COLOR_WHITE, COLOR_YELLOW, COLOR_GREEN
+                    GRADIENT_IOT_DOMAIN, GRADIENT_ARCH_SOL, GRADIENT_QUALITY_REQ, GRADIENT_TECH
             );
         }
     }
 
     private void applyColors(String root, String level1, String level2, String level3) {
-        rootSelection.getStyle().set(BUTTON_BACKGROUND, root);
-        leafLevelOne.getStyle().set(BUTTON_BACKGROUND, level1);
-        leafLevelTwo.getStyle().set(BUTTON_BACKGROUND, level2);
-        leafLevelThree.getStyle().set(BUTTON_BACKGROUND, level3);
+        rootSelection.getStyle().set("background", root);
+        leafLevelOne.getStyle().set("background", level1);
+        leafLevelTwo.getStyle().set("background", level2);
+        leafLevelThree.getStyle().set("background", level3);
     }
 
     private void updateNavigationTooltips() {

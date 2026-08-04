@@ -19,6 +19,7 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
+import java.util.List;
 
 @Component
 @UIScope
@@ -95,12 +96,40 @@ public class AIChatMessageDisplay extends VerticalLayout {
         }));
     }
 
+    /**
+     * Streaming-optimized update: patches only the last message's innerHTML
+     * instead of rebuilding the entire message list. Scroll is gentle.
+     */
+    public void streamingUpdate(String htmlContent) {
+        getUI().ifPresent(ui -> ui.access(() -> {
+            boolean patched = messageList.updateLastMessageContent(htmlContent);
+            if (!patched) {
+                // Fallback: full rebuild if patch target not found
+                updateMessageList();
+            }
+            // Gentle scroll — only if user is near the bottom
+            smoothScrollToBottom();
+        }));
+    }
+
+    private void smoothScrollToBottom() {
+        getUI().ifPresent(ui -> {
+            Element scrollerElement = scroller.getElement();
+            if (scrollerElement.getNode().isAttached()) {
+                String script = "var s=$0; " +
+                        "var atBottom = (s.scrollHeight - s.scrollTop - s.clientHeight) < 120; " +
+                        "if(atBottom){ s.scrollTo({top: s.scrollHeight, behavior: 'smooth'}); }";
+                ui.getPage().executeJs(script, scrollerElement);
+            }
+        });
+    }
+
     private void updateMessageList() {
         Collection<AIChatMessage> messages = messageService.getMessages();
         messageList.setMessages(messages.stream().toList());
 
-        // Showing load image before chat response
-        if (!messages.isEmpty() && messages.stream().toList().getLast().getAiMessageType().equals(AIMessageType.USER)) {
+        List<AIChatMessage> msgList = messages.stream().toList();
+        if (!msgList.isEmpty() && msgList.get(msgList.size() - 1).getAiMessageType().equals(AIMessageType.USER)) {
             Image load = new Image("/images/dots.gif", "Thinking...");
             load.setWidth("64px"); // Use fixed size for better layout
             load.setHeight("32px");

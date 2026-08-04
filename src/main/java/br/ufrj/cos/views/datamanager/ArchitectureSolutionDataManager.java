@@ -12,6 +12,7 @@ import com.vaadin.flow.component.confirmdialog.ConfirmDialog;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.grid.HeaderRow;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
@@ -78,9 +79,8 @@ class ArchitectureSolutionDataManager {
 
         VerticalLayout vl = new VerticalLayout();
         vl.setWidthFull();
-        vl.setHeight("90%");
+        vl.setPadding(false);
         vl.setSpacing(true);
-        vl.getStyle().setOverflow(Style.Overflow.AUTO);
 
         ComboBox<Architecture> comboBoxArch = new ComboBox<>("Architecture", this.architectureService.findAll());
         comboBoxArch.setWidth("60%");
@@ -92,9 +92,9 @@ class ArchitectureSolutionDataManager {
         comboBoxDomain.setEnabled(false);
         comboBoxDomain.setPlaceholder("Select the IoT Domain");
 
-        ComboBox<PaperReference> comboPaper = new ComboBox<>("Paper Reference", this.paperReferenceService.finAllOrderByPaperReferenceTitle());
+        ComboBox<PaperReference> comboPaper = new ComboBox<>("Paper Reference (APA 7)", this.paperReferenceService.finAllOrderByPaperReferenceTitle());
         comboPaper.setWidth("60%");
-        comboPaper.setPlaceholder("Select the Paper Reference");
+        comboPaper.setPlaceholder("Select the Paper Reference (APA 7)");
         comboPaper.setClearButtonVisible(true);
 
         Grid<QualityRequirementTechnology> qualityRequirementGrid = new Grid<>(QualityRequirementTechnology.class);
@@ -129,19 +129,25 @@ class ArchitectureSolutionDataManager {
         hlGrid.add(qualityRequirementGrid);
 
 
-        // Add a delete button column
+        // Add actions column (Edit + Delete)
         qualityRequirementGrid.addComponentColumn(knowledge -> {
+            Button editButton = new Button("", event -> {
+                this.openQRAndTechDialog(knowledge, qualityRequirementGrid).open();
+            });
+            editButton.setIcon(new Icon(VaadinIcon.EDIT));
+            editButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+            editButton.setTooltipText("Edit Quality Requirement & Technology");
+
             Button deleteButton = new Button("", event -> {
-                // Confirm the deletion
                 ConfirmDialog confirmDialog = new ConfirmDialog();
                 confirmDialog.setHeader("Confirm Deletion");
                 confirmDialog.setText(String.format("Are you sure you want to delete this Quality Requirement [%s] and Technology [%s]?", knowledge.getQualityRequirement(), knowledge.getTechnology()));
                 confirmDialog.setCancelable(true);
                 confirmDialog.setConfirmText("Delete");
                 confirmDialog.addConfirmListener(confirmEvent -> {
-                    // Perform deletion logic
                     this.deleteQualityRequirement(knowledge);
                     qualityRequirementGrid.setItems(this.architectureSolution.getQualityRequirementTechnologies());
+                    qualityRequirementGrid.getDataProvider().refreshAll();
                 });
 
                 confirmDialog.open();
@@ -150,20 +156,32 @@ class ArchitectureSolutionDataManager {
             deleteButton.addThemeVariants(ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
             deleteButton.setTooltipText(String.format("Delete %s - %s", knowledge.getQualityRequirement(), knowledge.getTechnology()));
 
-            return deleteButton;
+            HorizontalLayout actions = new HorizontalLayout(editButton, deleteButton);
+            actions.setSpacing(true);
+            return actions;
         }).setHeader("Actions").setKey("actions");
 
-        // Add a header row with a button in the header
-        HeaderRow headerRow = qualityRequirementGrid.prependHeaderRow();
+        // Create a dedicated toolbar above the Grid
+        Span gridTitle = new Span("Quality Requirements & Technologies");
+        gridTitle.getStyle().set("font-weight", "600").set("font-size", "1.05rem").set("color", "var(--lumo-header-text-color)");
 
-        // Create a button
-        Button addButton = new Button("Add Requirement and Technology", event -> {
-            this.openAddQRAndTech(qualityRequirementGrid).open();
+        Button addButton = new Button("Add Requirement and Technology", new Icon(VaadinIcon.PLUS), event -> {
+            this.openQRAndTechDialog(null, qualityRequirementGrid).open();
         });
         addButton.setEnabled(false);
-
-        // Customize button style
         addButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+
+        HorizontalLayout gridToolbar = new HorizontalLayout(gridTitle, addButton);
+        gridToolbar.setWidthFull();
+        gridToolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        gridToolbar.setAlignItems(FlexComponent.Alignment.CENTER);
+        gridToolbar.getStyle().set("margin-top", "1rem").set("margin-bottom", "0.5rem");
+
+        VerticalLayout vlGrid = new VerticalLayout();
+        vlGrid.setPadding(false);
+        vlGrid.setSpacing(false);
+        vlGrid.setWidthFull();
+        vlGrid.add(gridToolbar, qualityRequirementGrid);
 
         //Save Architecture Solution button
         Button saveBtn = new Button("Save");
@@ -191,37 +209,35 @@ class ArchitectureSolutionDataManager {
             if (ref.getValue() != null) {
                 this.paperReference = ref.getValue();
                 this.architectureSolution = ref.getValue().getArchitectureSolution();
-                this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, archNotes, qualityRequirementGrid, buttons, addButton);
+            } else {
+                this.paperReference = null;
+                this.architectureSolution = null;
             }
+            this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, archNotes, qualityRequirementGrid, buttons, addButton);
         });
-
-        // Add the button to the header of the QualityRequirement column
-        headerRow.getCell(qualityRequirementGrid.getColumnByKey("actions")).setComponent(addButton);
-        headerRow.getCell(qualityRequirementGrid.getColumnByKey("actions")).getComponent().getStyle().setAlignItems(Style.AlignItems.END);
 
         buttons.add(saveBtn, cancelBtn);
 
-        vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes.get(), hlGrid, buttons);
+        if (archNotes != null && archNotes.get() != null) {
+            archNotes.get().getElement().removeFromTree();
+        }
+
+        this.paperReference = null;
+        this.architectureSolution = null;
+        this.prepareRegisterForm(comboBoxArch, comboBoxDomain, comboPaper, archNotes, qualityRequirementGrid, buttons, addButton);
+
+        vl.add(comboPaper, comboBoxArch, comboBoxDomain, archNotes.get(), vlGrid, buttons);
 
         return vl;
     }
 
-    /***
-     * Method to set enabled or disabled the elements of the form
-     *
-     * @param iotDomainComboBox
-     * @param paperReferenceComboBox
-     * @param qualityRequirementGrid
-     */
     private void prepareRegisterForm(ComboBox comboBoxArch, ComboBox iotDomainComboBox, ComboBox paperReferenceComboBox,RichTextField archNotes,  Grid qualityRequirementGrid, HorizontalLayout buttons, Button addButton) {
         iotDomainComboBox.setEnabled(this.paperReference != null);
-        //paperReferenceComboBox.setEnabled(this.paperReference != null);
         comboBoxArch.setEnabled(this.paperReference != null);
 
         if (this.paperReference != null) {
             if (this.paperReference.getArchitectureSolution() != null) {
                 iotDomainComboBox.setValue(this.paperReference.getArchitectureSolution().getIoTDomain());
-                //paperReferenceComboBox.setValue(this.architectureSolution.getPaperReference());
                 qualityRequirementGrid.setItems(new ArrayList());
                 qualityRequirementGrid.setItems(this.paperReference.getArchitectureSolution().getQualityRequirementTechnologies());
                 comboBoxArch.setValue(this.paperReference.getArchitectureSolution().getArchitecture());
@@ -233,7 +249,7 @@ class ArchitectureSolutionDataManager {
                 comboBoxArch.setItems(this.architectureService.findAll());
                 iotDomainComboBox.setItems(this.ioTDomainService.findAllOrderByName());
                 qualityRequirementGrid.setItems(new ArrayList<>());
-                archNotes.get().clear();
+                archNotes.get().setValue("");
             }
             addButton.setEnabled(true);
             buttons.setVisible(true);
@@ -242,82 +258,108 @@ class ArchitectureSolutionDataManager {
             iotDomainComboBox.setItems(this.ioTDomainService.findAllOrderByName());
             paperReferenceComboBox.setItems(this.paperReferenceService.finAllOrderByPaperReferenceTitle());
             qualityRequirementGrid.setItems(new ArrayList<>());
-            archNotes.get().clear();
+            if (archNotes != null && archNotes.get() != null) {
+                archNotes.get().setValue("");
+            }
             buttons.setVisible(false);
             addButton.setEnabled(false);
             this.architectureSolution = new ArchitectureSolution();
-            this.paperReference = new PaperReference();
+            this.paperReference = null;
         }
     }
 
-    /***
-     * Deleting logically ArchitectureSolutionQualityRequirementTechnology
-     *
-     * @param
-     * @return
-     */
     private void deleteQualityRequirement(QualityRequirementTechnology qualityRequirementTechnology) {
-        this.architectureSolution.getQualityRequirementTechnologies().stream().filter(
-                q -> q.getId().equals(qualityRequirementTechnology.getId())).findAny().ifPresent(q -> {
-                    this.architectureSolution.getQualityRequirementTechnologies().remove(q);
-                    this.qualityRequirementTechnologyService.delete(qualityRequirementTechnology);
-                });
+        if (qualityRequirementTechnology == null) return;
 
+        if (this.architectureSolution != null && this.architectureSolution.getQualityRequirementTechnologies() != null) {
+            if (qualityRequirementTechnology.getId() != null) {
+                this.architectureSolution.getQualityRequirementTechnologies().removeIf(q -> 
+                    q != null && q.getId() != null && q.getId().equals(qualityRequirementTechnology.getId()));
+            } else {
+                this.architectureSolution.getQualityRequirementTechnologies().removeIf(q -> q == qualityRequirementTechnology);
+            }
+        }
+
+        if (qualityRequirementTechnology.getId() != null) {
+            try {
+                this.qualityRequirementTechnologyService.delete(qualityRequirementTechnology);
+            } catch (Exception e) {
+                // Ignore if cascade or orphan removal handles it
+            }
+        }
         NotificationUtils.showSuccessNotification("Quality Requirement and Technology Deleted.");
     }
 
-    /***
-     * Creates the dialog window to add quality requirement and technology
-     *
-     * @return Dialog
-     */
-    private Dialog openAddQRAndTech(Grid<QualityRequirementTechnology> qualityRequirementGrid) {
+    private Dialog openQRAndTechDialog(QualityRequirementTechnology itemToEdit, Grid<QualityRequirementTechnology> qualityRequirementGrid) {
         Dialog dialog = new Dialog();
-
-        dialog.setHeaderTitle("Add");
+        boolean isEdit = itemToEdit != null;
+        dialog.setHeaderTitle(isEdit ? "Edit Requirement & Technology" : "Add Requirement & Technology");
 
         VerticalLayout dialogLayout = new VerticalLayout();
 
         ComboBox<QualityRequirement> qualityRequirementComboDialog = new ComboBox<>("Select Quality Requirement", this.qualityRequirementService.findAllOrderedByName());
+        qualityRequirementComboDialog.setWidthFull();
+
         ComboBox<Technology> technologyComboDialog = new ComboBox<>("Select Technology", this.technologyService.findAllOrderedByDescription());
-        TextArea technoNotes = new TextArea();
+        technologyComboDialog.setWidthFull();
+
+        TextArea technoNotes = new TextArea("Notes");
+        technoNotes.setWidthFull();
+
+        if (isEdit) {
+            qualityRequirementComboDialog.setValue(itemToEdit.getQualityRequirement());
+            technologyComboDialog.setValue(itemToEdit.getTechnology());
+            technoNotes.setValue(itemToEdit.getNotes() != null ? itemToEdit.getNotes() : "");
+        }
 
         dialogLayout.add(qualityRequirementComboDialog, technologyComboDialog, technoNotes);
         dialog.add(dialogLayout);
 
-        //Save Quality Requirement and Technology
-        Button saveButton = new Button("Save");
+        Button saveButton = new Button(isEdit ? "Update" : "Save");
         saveButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         saveButton.addClickListener(s -> {
             QualityRequirement qualityRequirement = qualityRequirementComboDialog.getValue();
             Technology technology = technologyComboDialog.getValue();
 
-            QualityRequirementTechnology requirementTechnology = new QualityRequirementTechnology();
-            requirementTechnology.setQualityRequirement(qualityRequirement);
-            requirementTechnology.setTechnology(technology);
-            requirementTechnology.setArchitectureSolution(this.architectureSolution);
-            requirementTechnology.setNotes(technoNotes.getValue());
+            if (qualityRequirement == null || technology == null) {
+                NotificationUtils.showErrorNotification("Quality Requirement and Technology are required.");
+                return;
+            }
 
-            if (this.architectureSolution.getQualityRequirementTechnologies() != null) {
-                this.architectureSolution.getQualityRequirementTechnologies().add(requirementTechnology);
+            if (isEdit) {
+                itemToEdit.setQualityRequirement(qualityRequirement);
+                itemToEdit.setTechnology(technology);
+                itemToEdit.setNotes(technoNotes.getValue());
+                if (itemToEdit.getId() != null) {
+                    this.qualityRequirementTechnologyService.saveAndUpdate(itemToEdit);
+                }
+                NotificationUtils.showSuccessNotification("Quality Requirement and Technology updated.");
             } else {
-                this.architectureSolution.setQualityRequirementTechnologies(new ArrayList<>());
-                this.architectureSolution.getQualityRequirementTechnologies().add(requirementTechnology);
+                QualityRequirementTechnology requirementTechnology = new QualityRequirementTechnology();
+                requirementTechnology.setQualityRequirement(qualityRequirement);
+                requirementTechnology.setTechnology(technology);
+                requirementTechnology.setArchitectureSolution(this.architectureSolution);
+                requirementTechnology.setNotes(technoNotes.getValue());
+
+                if (this.architectureSolution.getQualityRequirementTechnologies() != null) {
+                    this.architectureSolution.getQualityRequirementTechnologies().add(requirementTechnology);
+                } else {
+                    this.architectureSolution.setQualityRequirementTechnologies(new ArrayList<>());
+                    this.architectureSolution.getQualityRequirementTechnologies().add(requirementTechnology);
+                }
+                NotificationUtils.showSuccessNotification("Quality Requirement and Technology added.");
             }
 
             qualityRequirementGrid.setItems(this.architectureSolution.getQualityRequirementTechnologies());
             qualityRequirementGrid.getDataProvider().refreshAll();
 
             dialog.close();
-            NotificationUtils.showSuccessNotification("Quality Requirement added.");
         });
 
-        //Cancel Quality Requirement and Technology
         Button cancelButton = new Button("Cancel", e -> dialog.close());
         cancelButton.addThemeVariants(ButtonVariant.LUMO_ERROR);
 
-        dialog.getFooter().add(cancelButton);
-        dialog.getFooter().add(saveButton);
+        dialog.getFooter().add(cancelButton, saveButton);
 
         return dialog;
     }

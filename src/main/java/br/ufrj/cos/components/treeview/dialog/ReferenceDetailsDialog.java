@@ -10,6 +10,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
@@ -47,23 +48,22 @@ public class ReferenceDetailsDialog {
         dialog.setCloseOnEsc(true);
         dialog.setCloseOnOutsideClick(true);
 
-        dialog.setWidth("40%");
-        dialog.setMaxWidth("1200px");
-        dialog.setHeight("80%");
-        dialog.setMaxHeight("800px");
+        dialog.setWidth("75vw");
+        dialog.setMaxWidth("1100px");
+        dialog.setHeight("85vh");
+        dialog.setMaxHeight("850px");
 
         return dialog;
     }
 
     private void configureAndOpenDialog(String paperTitle, String paperLink) {
-        dialog.setHeaderTitle("Reference Details");
+        dialog.setHeaderTitle("Reference Details & Architecture Hierarchy");
 
         // Create main layout
         VerticalLayout mainLayout = new VerticalLayout();
-        mainLayout.setSpacing(false);
+        mainLayout.setSpacing(true);
         mainLayout.setPadding(true);
         mainLayout.setSizeFull();
-        mainLayout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         // Create compact header section
         HorizontalLayout headerLayout = new HorizontalLayout();
@@ -72,41 +72,45 @@ public class ReferenceDetailsDialog {
         headerLayout.setPadding(false);
         headerLayout.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        // Create combined title and link component
+        // Title and paper link
+        Icon linkIcon = VaadinIcon.EXTERNAL_LINK.create();
+        linkIcon.getStyle().set("margin-right", "0.4em").set("font-size", "1.1em");
+
         Anchor titleLink = new Anchor(paperLink, paperTitle);
         titleLink.setTarget("_blank");
         titleLink.getElement().setAttribute("aria-label", "Open paper in new tab");
         titleLink.addClassName("paper-title-link");
 
-        // Create QR code with smaller size
-        Component qrCode = qrCodeComponent.generateQRCode(paperLink, 60, 60);
+        HorizontalLayout titleBox = new HorizontalLayout(linkIcon, titleLink);
+        titleBox.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        // QR Code
+        Component qrCode = qrCodeComponent.generateQRCode(paperLink, 120, 120);
         Div qrCodeContainer = new Div(qrCode);
         qrCodeContainer.addClassName("qr-code-container");
 
-        // Add components to header layout
-        headerLayout.add(titleLink, qrCodeContainer);
-        headerLayout.setFlexGrow(1, titleLink);
+        headerLayout.add(titleBox, qrCodeContainer);
+        headerLayout.setFlexGrow(1, titleBox);
 
-        // Create diagram section
+        // Diagram section
         Div diagramContainer = new Div();
         diagramContainer.setId("diagram");
         diagramContainer.setWidthFull();
-        diagramContainer.setHeight("600px");
-        diagramContainer.addClassName("diagram-container");
-
-        // Add path information
-        Span pathInfo = new Span(pathString.toString());
-        pathInfo.addClassName("path-info");
+        diagramContainer.setHeight("480px");
+        diagramContainer.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("border-radius", "12px")
+                .set("overflow", "hidden");
 
         // Add CSS styles
         UI.getCurrent().getElement().executeJs(
                 "document.head.innerHTML += '<style>" +
                         ".paper-title-link { " +
-                        //"   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); " +
                         "   margin: 0; " +
                         "   word-wrap: break-word; " +
-                        "   font-size: 1.2em; " +
-                        "   font-weight: 500; " +
+                        "   font-size: 1.15em; " +
+                        "   font-weight: 600; " +
                         "   text-decoration: none; " +
                         "   color: var(--lumo-primary-text-color); " +
                         "} " +
@@ -114,30 +118,25 @@ public class ReferenceDetailsDialog {
                         "   text-decoration: underline; " +
                         "   color: var(--lumo-primary-color); " +
                         "} " +
-                        ".qr-code-container { display: flex; justify-content: center; margin: 0; min-width: 60px; }" +
-                        ".diagram-container { min-height: 200px; margin: 1rem 0; flex-grow: 1; }" +
-                        ".path-info { word-wrap: break-word; max-width: 100%; font-size: 0.9em; color: var(--lumo-secondary-text-color); }" +
+                        ".qr-code-container { display: flex; justify-content: center; align-items: center; margin: 0; min-width: 120px; padding: 6px; border: 1px solid var(--lumo-contrast-15pct); border-radius: 10px; background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }" +
                         "</style>';"
         );
 
-        // Combine all components
         mainLayout.add(
                 headerLayout,
-                diagramContainer,
-                pathInfo
+                diagramContainer
         );
 
-        // Add main content
         dialog.add(mainLayout);
 
-        // Configure header with close button
+        // Header close button
         Button closeButton = new Button(new Icon("lumo", "cross"));
         closeButton.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
         closeButton.addClickListener(e -> dialog.close());
         closeButton.getElement().setAttribute("aria-label", "Close dialog");
         dialog.getHeader().add(closeButton);
 
-        // Configure footer
+        // Footer
         Button footerCloseButton = new Button("Close", e -> dialog.close());
         footerCloseButton.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
 

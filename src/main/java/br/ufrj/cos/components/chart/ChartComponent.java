@@ -57,23 +57,25 @@ public class ChartComponent extends ApexChartsBuilder {
             values.add(d.getValue().doubleValue());
         });
 
-        TitleSubtitle titleChart = createChartTitle(title, "var(--lumo-body-text-color)");
+        boolean showLegend = labels.size() <= 12;
 
-        ApexChartsBuilder b = withChart(ChartBuilder.get().withType(Type.PIE).build())
-                .withLabels(labels.toArray(value ->
-                        new String[value]))
-                .withTitle(titleChart)
-//                .withLegend(LegendBuilder.get()
-//                        .withPosition(Position.BOTTOM)
-//                        .build())
-                .withSeries(values.toArray(new Double[values.size()]))
-                .withResponsive(ResponsiveBuilder.get()
-                        .withBreakpoint(480.0)
-                        .withOptions(OptionsBuilder.get()
-                                .withLegend(LegendBuilder.get()
-                                        .withPosition(Position.BOTTOM)
-                                        .build())
-                                .build())
+        ApexChartsBuilder b = withChart(ChartBuilder.get()
+                .withType(Type.DONUT)
+                .withHeight("280px")
+                .withWidth("100%")
+                .build())
+                .withLabels(labels.toArray(new String[0]))
+                .withSeries(values.toArray(new Double[0]))
+                .withLegend(LegendBuilder.get()
+                        .withShow(showLegend)
+                        .withPosition(Position.RIGHT)
+                        .withFontSize("12px")
+                        .build())
+                .withDataLabels(DataLabelsBuilder.get()
+                        .withEnabled(false)
+                        .build())
+                .withStroke(StrokeBuilder.get()
+                        .withWidth(2.0)
                         .build());
 
         return b.build();
@@ -100,8 +102,6 @@ public class ChartComponent extends ApexChartsBuilder {
             labelColors.add("var(--lumo-body-text-color)");
         });
 
-        TitleSubtitle titleChart = createChartTitle(title, "var(--lumo-body-text-color)");
-
         com.github.appreciated.apexcharts.config.xaxis.labels.Style labelXStyle = StyleBuilder.get()
                 .withColors(labelColors)
                 .build();
@@ -116,8 +116,7 @@ public class ChartComponent extends ApexChartsBuilder {
         colorsBar.setRanges(ranges);
 
         ApexCharts chart = ApexChartsBuilder.get()
-                .withChart(ChartBuilder.get().withType(Type.BAR).withHeight("400px").withWidth("100%").build())
-                .withTitle(titleChart)
+                .withChart(ChartBuilder.get().withType(Type.BAR).withHeight("280px").withWidth("100%").build())
                 .withLegend(LegendBuilder.get().withShow(false).build())
                 .withSeries(new Series<>("Total", values.toArray(new Double[0])))
                 .withPlotOptions(PlotOptionsBuilder.get()

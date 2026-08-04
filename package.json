@@ -69,10 +69,10 @@
     "proj4": "$proj4",
     "apexcharts": "$apexcharts",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
-    "@polymer/iron-media-query": "$@polymer/iron-media-query",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "onecolor": "$onecolor",
     "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
+    "@polymer/iron-media-query": "$@polymer/iron-media-query",
     "@vaadin/vaadin-license-checker": "$@vaadin/vaadin-license-checker"
   },
   "vaadin": {
@@ -122,6 +122,6 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "09c12ca8935338d4eab73181dffaa546f6bea4bf9c01e648fcd9dc57cbcb0455"
+    "hash": "c7e7166a1e872902d251dddd2f5f9088b8363bc0396c950a0995c29f0dc3ad7b"
   }
 }

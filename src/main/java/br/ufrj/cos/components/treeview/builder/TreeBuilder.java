@@ -96,7 +96,7 @@ public class TreeBuilder implements IoTDomainTreeBuilder, ArchitectureSolutionTr
         }
 
         TreeNode<Object> root = new TreeNode<>(null);
-        Object firstItem = list.getFirst();
+        Object firstItem = list.get(0);
 
         if (firstItem instanceof IoTDomain domain) {
             list.stream()

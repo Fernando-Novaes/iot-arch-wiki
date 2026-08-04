@@ -131,36 +131,34 @@ public class IoTArchView extends BaseView implements HasTour {
     }
 
     private void initializeView() {
-        //safelyRemoveTreeView();
         getContent().removeAll();
 
-        // Initialize UI components
-        this.iotDomainCombo = createComboBox("IoT Domains", ActionType.IOTDOMAIN);
-        this.architectureCombo = createComboBox("Architecture Solutions", ActionType.ARCHITECTURESOLUTION);
-        this.qualityCombo = createComboBox("Quality Requirements", ActionType.QUALITYREQUIREMENT);
-        this.technologiesCombo = createComboBox("Technologies", ActionType.TECHNOLOGY);
+        // Initialize UI components with modern icon placeholders
+        this.iotDomainCombo = createComboBox("IoT Domains", "🌐 All IoT Domains", ActionType.IOTDOMAIN);
+        this.architectureCombo = createComboBox("Architecture Solutions", "🏛️ All Architecture Solutions", ActionType.ARCHITECTURESOLUTION);
+        this.qualityCombo = createComboBox("Quality Requirements", "⚡ All Quality Requirements", ActionType.QUALITYREQUIREMENT);
+        this.technologiesCombo = createComboBox("Technologies", "🛠️ All Technologies", ActionType.TECHNOLOGY);
 
         this.filterButton = createFilterButton();
         this.cancelButton = createCancelButton();
         this.comboBoxLayout = createComboBoxLayout();
 
         initTreeView();
-        createHeader("Knowledge Base");
-        //getContent().add(createFilterDiv(), createTreeRootSelectionDiv(), treeView, sliderPanel);
+        getContent().setSpacing(false);
+        getContent().getStyle().set("gap", "0.5rem");
         getContent().add(createFilterDiv(), treeView, sliderPanel);
         loadDataToComboBoxes(ActionType.NONE);
-        //createDetailSliderPanel();
-
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
     }
 
     private void initTreeView() {
-            //safelyRemoveTreeView();
-            this.treeView.setTreeViewType(TreeViewType.IoTDomain);
-            this.treeView.setGridHeader(this.treeRootSelection);
-            this.treeView.load();
+        this.treeView.setTreeViewType(TreeViewType.IoTDomain);
+        this.treeView.setGridHeader(this.treeRootSelection);
+        this.treeView.setSizeFull();
+        this.treeView.setMinHeight("500px");
+        this.treeView.load();
 
             this.filterDataTreeView =
                     new FilterDataTreeView(this.treeView,
@@ -168,66 +166,23 @@ public class IoTArchView extends BaseView implements HasTour {
                             this.architectureSolutionService.findAllOrderedByName(), this.ioTDomainService.findAllOrderByName());
     }
 
-    private enum Direction {
-        LEFT, RIGHT
-    }
-
-//    private void changeRoot(Direction direction) {
-//        safelyRemoveTreeView();
-//
-//        TreeViewType currentType = treeRootSelection.getTreeViewType();
-//        TreeViewType newType = calculateNewTreeViewType(currentType, direction);
-//
-//        treeRootSelection.setTreeViewType(newType);
-//        treeView.load();
-//        getContent().add(treeView);
-//    }
-
-//    private TreeViewType calculateNewTreeViewType(TreeViewType currentType, Direction direction) {
-//        return switch (currentType) {
-//            case IoTDomain, Filtered -> direction == Direction.LEFT ?
-//                    TreeViewType.QualityRequirement : TreeViewType.ArchitectureSolution;
-//            case ArchitectureSolution -> direction == Direction.LEFT ?
-//                    TreeViewType.IoTDomain : TreeViewType.QualityRequirement;
-//            case QualityRequirement, Technology -> direction == Direction.LEFT ?
-//                    TreeViewType.ArchitectureSolution : TreeViewType.IoTDomain;
-//            case IoTDomain_Filtered -> direction == Direction.LEFT ?
-//                    TreeViewType.QualityRequirement_Filtered : TreeViewType.ArchitectureSolution_Filtered;
-//            case ArchitectureSolution_Filtered -> direction == Direction.LEFT ?
-//                    TreeViewType.IoTDomain_Filtered : TreeViewType.QualityRequirement_Filtered;
-//            case QualityRequirement_Filtered, Technology_Filtered -> direction == Direction.LEFT ?
-//                    TreeViewType.ArchitectureSolution_Filtered : TreeViewType.IoTDomain_Filtered;
-//        };
-//    }
-
-    private <T> MultiSelectComboBox<T> createComboBox(String label, ActionType actionType) {
-        MultiSelectComboBox<T> comboBox = new MultiSelectComboBox<>(label);
-        comboBox.setPlaceholder("All " + label);
-        comboBox.setWidth("300px");
-        comboBox.setClearButtonVisible(false);
+    private <T> MultiSelectComboBox<T> createComboBox(String label, String placeholder, ActionType actionType) {
+        MultiSelectComboBox<T> comboBox = new MultiSelectComboBox<>();
+        comboBox.setPlaceholder(placeholder);
+        comboBox.setWidth("260px");
+        comboBox.setClearButtonVisible(true);
         comboBox.setLabel(null);
         comboBox.setSelectedItemsOnTop(true);
 
         applyComboBoxStyles(comboBox);
         setupComboBoxOverlay(comboBox);
 
-//        comboBox.addValueChangeListener(e -> {
-//            currentAction = actionType;
-//            loadDataToComboBoxes(ActionType.NONE);
-//            //loadDataToComboBoxes(currentAction);
-//            cancelButton.setVisible(true);
-//        });
-
         return comboBox;
     }
 
     private void applyComboBoxStyles(MultiSelectComboBox<?> comboBox) {
         comboBox.getStyle()
-//                .set("--lumo-contrast-10pct", "rgba(255, 255, 255, 0.1)")
-//                .set("--lumo-body-text-color", "#ffffff")
-//                .set("--lumo-secondary-text-color", "#e0e0e0")
-//                .set("--lumo-primary-text-color", "#ffffff")
-                .set("margin", "0 0.5em")
+                .set("margin", "0 0.4em")
                 .set("position", "relative")
                 .set("z-index", "5");
     }
@@ -236,69 +191,63 @@ public class IoTArchView extends BaseView implements HasTour {
         comboBox.addAttachListener(event -> {
             event.getSource().getElement().executeJs(
                     "this.style.setProperty('--vaadin-overlay-viewport-bottom', 'auto');" +
-                            "this.style.setProperty('--overlay-box-shadow', '0 2px 8px rgba(0, 0, 0, 0.2)');"
+                            "this.style.setProperty('--overlay-box-shadow', '0 8px 24px rgba(0, 0, 0, 0.15)');"
             );
         });
         comboBox.getElement().getThemeList().add("custom-overlay");
     }
 
     private Button createFilterButton() {
-        Button button = new Button("Filter", VaadinIcon.SEARCH.create());
+        Button button = new Button("Apply Filter", VaadinIcon.SEARCH.create());
         button.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        button.getStyle().setCursor("pointer");
+        button.getStyle()
+                .set("cursor", "pointer")
+                .set("border-radius", "8px")
+                .set("font-weight", "600")
+                .set("padding", "0.5em 1.2em");
 
         button.addClickListener(e -> handleFilterClick());
-
         return button;
     }
 
     private Button createCancelButton() {
-        Button button = new Button("Reset", VaadinIcon.CLOSE_CIRCLE_O.create());
+        Button button = new Button("Reset", VaadinIcon.REFRESH.create());
         button.addThemeVariants(ButtonVariant.LUMO_ERROR);
         button.setVisible(false);
-        button.getStyle().setCursor("pointer");
+        button.getStyle()
+                .set("cursor", "pointer")
+                .set("border-radius", "8px")
+                .set("font-weight", "600");
 
         button.addClickListener(e -> handleCancelClick());
-
         return button;
     }
 
     private void handleFilterClick() {
         if (isAnyFilterSelected()) {
-            // Remove existing tree view first
             safelyRemoveTreeView();
-
-            // Setup new filtered view
             cancelButton.setVisible(true);
             treeView.setIsFiltering(true);
-
-            //treeRootSelection.setTreeViewType(TreeViewType.IoTDomain_Filtered);
             this.treeView.setTreeViewType(TreeViewType.IoTDomain_Filtered);
-
             this.treeRootSelection.setIsFiltering(true);
             this.filterDataTreeView.filterTreeViewDataSource(this.ioTDomainService.findAllOrderByName());
-
-            // Load and add the new tree view
             this.treeView.load();
             this.treeRootSelection.changeToDefaultView();
-
-            //lockFilterPanel(true);
             getContent().add(this.treeView);
         }
     }
 
     private boolean isAnyFilterSelected() {
-        return iotDomainCombo.getValue() != null ||
-                architectureCombo.getValue() != null ||
-                qualityCombo.getValue() != null ||
-                technologiesCombo.getValue() != null;
+        return (iotDomainCombo.getValue() != null && !iotDomainCombo.getValue().isEmpty()) ||
+                (architectureCombo.getValue() != null && !architectureCombo.getValue().isEmpty()) ||
+                (qualityCombo.getValue() != null && !qualityCombo.getValue().isEmpty()) ||
+                (technologiesCombo.getValue() != null && !technologiesCombo.getValue().isEmpty());
     }
 
     private void handleCancelClick() {
         safelyRemoveTreeView();
         currentAction = ActionType.NONE;
         treeView.setIsFiltering(false);
-        //treeRootSelection.setTreeViewType(TreeViewType.IoTDomain);
         treeView.setTreeViewType(TreeViewType.IoTDomain);
         treeView.load();
         getContent().add(treeView);
@@ -310,22 +259,11 @@ public class IoTArchView extends BaseView implements HasTour {
     }
 
     private void safelyRemoveTreeView() {
-        // First check if the content layout exists and contains the tree view
         if (getContent() != null) {
             getContent().getChildren()
                     .filter(component -> component.equals(treeView))
                     .findFirst()
-                    .ifPresent(component -> {
-
-                        getContent().remove(component);
-
-                    });
-
-            // Ensure treeRootSelectionComponent is never removed
-
-//            if ((getContent().getChildren().findAny().isPresent()) && (!getContent().getChildren().anyMatch(component -> component.equals(treeRootSelection)))) {
-//                getContent().addComponentAtIndex(1, this.createTreeRootSelectionDiv());
-//            }
+                    .ifPresent(component -> getContent().remove(component));
         }
     }
 
@@ -341,12 +279,12 @@ public class IoTArchView extends BaseView implements HasTour {
 
         layout.setSpacing(true);
         layout.setPadding(false);
-        layout.setAlignItems(FlexComponent.Alignment.BASELINE);
+        layout.setAlignItems(FlexComponent.Alignment.CENTER);
         layout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
         layout.getStyle()
-                .set("flex-wrap", "nowrap")
-                .set("gap", "1em")
+                .set("flex-wrap", "wrap")
+                .set("gap", "0.8em")
                 .set("width", "100%")
                 .set("position", "relative")
                 .set("z-index", "1")
@@ -357,7 +295,6 @@ public class IoTArchView extends BaseView implements HasTour {
 
     private Div createFilterDiv() {
         Div centerContainer = new Div();
-        centerContainer.setWidthFull();
         centerContainer.getStyle()
                 .set("display", "flex")
                 .set("align-items", "center")
@@ -365,41 +302,46 @@ public class IoTArchView extends BaseView implements HasTour {
                 .set("width", "100%");
 
         VerticalLayout mainLayout = new VerticalLayout();
-        //mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
         styleMainLayout(mainLayout);
 
-        mainLayout.add(comboBoxLayout);
+        HorizontalLayout headerBox = new HorizontalLayout();
+        headerBox.setWidthFull();
+        headerBox.setAlignItems(FlexComponent.Alignment.CENTER);
+
+        H3 title = new H3("🔍 Knowledge Base Explorer & Filter");
+        title.getStyle()
+                .set("margin", "0")
+                .set("font-size", "1.05rem")
+                .set("font-weight", "600");
+
+        Span subtitle = new Span("Filter by IoT domain, architecture solution, quality requirement, or technology stack");
+        subtitle.getStyle()
+                .set("font-size", "0.85rem")
+                .set("color", "var(--lumo-secondary-text-color)");
+
+        VerticalLayout textContainer = new VerticalLayout(title, subtitle);
+        textContainer.setPadding(false);
+        textContainer.setSpacing(false);
+        textContainer.getStyle().set("margin-bottom", "0.3rem");
+
+        mainLayout.add(textContainer, comboBoxLayout);
         centerContainer.add(mainLayout);
 
         return centerContainer;
     }
 
-//    private Div createTreeRootSelectionDiv() {
-//        Div centerContainer = new Div();
-//        centerContainer.getStyle()
-//                .set("display", "flex")
-//                .set("align-items", "center")
-//                .set("justify-content", "left");
-//                //.set("width", "100%");
-//
-//        VerticalLayout mainLayout = new VerticalLayout();
-//        mainLayout.setAlignItems(FlexComponent.Alignment.CENTER);
-//        styleMainLayout(mainLayout);
-//
-//        //mainLayout.add(treeRootSelection);
-//        centerContainer.add(mainLayout);
-//
-//        return centerContainer;
-//    }
-
     private void styleMainLayout(VerticalLayout layout) {
+        layout.setPadding(false);
+        layout.setSpacing(false);
         layout.getStyle()
-                .set("background-color", "var(--lumo-contrast-10pct)")
-                .set("border", "1px solid #4a4d52")
+                .set("padding", "0.6rem 1rem")
+                .set("gap", "0.4rem")
+                .set("background", "var(--lumo-base-color)")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
                 .set("border-radius", "12px")
+                .set("box-shadow", "0 4px 14px rgba(0, 0, 0, 0.05)")
                 .set("width", "100%")
                 .set("max-width", "1800px");
-                //.set("box-shadow", "0 4px 8px rgba(0, 0, 0, 0.2)");
     }
 
     private void lockFilterPanel(boolean lock) {
@@ -419,190 +361,8 @@ public class IoTArchView extends BaseView implements HasTour {
                 this.technologiesCombo.setItems(technologyService.findAllTechnologyGroupedByName());
                 this.qualityCombo.setItems(qualityRequirementService.findAllQualityRequirementGroupedByName());
             }
-//            case IOTDOMAIN -> {
-//                Set<IoTDomainRecord> selectedDomains = iotDomainCombo.getValue();
-//
-//                if (selectedDomains != null && !selectedDomains.isEmpty()) {
-//                    // Converte o Set<IoTDomain> para um Set<String> com os nomes.
-//                    Set<String> domainNames = selectedDomains.stream()
-//                            .map(IoTDomainRecord::name)
-//                            .collect(Collectors.toSet());
-//
-//                    // Busca arquiteturas para TODOS os domínios selecionados.
-//                    List<ArchitectureSolutionRecord> architectures = architectureSolutionService
-//                            .findByIoTDomainNames(domainNames) // Usa o novo método de serviço
-//                            .stream()
-//                            .map(a -> new ArchitectureSolutionRecord(a.getArchitecture().getName()))
-//                            .distinct()
-//                            .sorted(Comparator.comparing(ArchitectureSolutionRecord::name))
-//                            .toList();
-//
-//                    this.architectureCombo.setItems(architectures);
-//                    // Limpa os combos dependentes que ainda não foram preenchidos.
-//                    this.qualityCombo.clear();
-//                    this.technologiesCombo.clear();
-//                } else {
-//                    // Se a seleção de domínio for limpa, reseta os combos dependentes para o estado inicial.
-//                    this.architectureCombo.setItems(architectureSolutionService.findAllArchitectureSolutionGroupedByName());
-//                    this.qualityCombo.setItems(qualityRequirementService.findAllQualityRequirementGroupedByName());
-//                    this.technologiesCombo.setItems(technologyService.findAllTechnologyGroupedByName());
-//                }
-//            }
-//            case ARCHITECTURESOLUTION -> {
-//                Set<IoTDomainRecord> selectedDomains = iotDomainCombo.getValue();
-//                Set<ArchitectureSolutionRecord> selectedArchitectures = architectureCombo.getValue();
-//
-//                if (isSetValid(selectedDomains) && isSetValid(selectedArchitectures)) {
-//                    // Converte os Sets de seleção para Sets de Strings.
-//                    Set<String> domainNames = selectedDomains.stream().map(IoTDomainRecord::name).collect(Collectors.toSet());
-//                    Set<String> archNames = selectedArchitectures.stream().map(ArchitectureSolutionRecord::name).collect(Collectors.toSet());
-//
-//                    // Busca requisitos de qualidade para as combinações selecionadas.
-//                    List<QualityRequirementRecord> qualityRequirements = qualityRequirementService
-//                            .findByIoTDomainsAndArchitectures(domainNames, archNames) // Usa o novo método
-//                            .stream()
-//                            .map(qr -> new QualityRequirementRecord(qr.getName()))
-//                            .distinct()
-//                            .sorted(Comparator.comparing(QualityRequirementRecord::name))
-//                            .toList();
-//
-//                    this.qualityCombo.setItems(qualityRequirements);
-//                    this.technologiesCombo.clear();
-//                } else {
-//                    // Se a seleção de arquitetura for limpa (ou domínio), reseta os combos dependentes.
-//                    this.qualityCombo.setItems(qualityRequirementService.findAllQualityRequirementGroupedByName());
-//                    this.technologiesCombo.setItems(technologyService.findAllTechnologyGroupedByName());
-//                }
-//            }
-//            case QUALITYREQUIREMENT -> {
-//                Set<IoTDomainRecord> selectedDomains = iotDomainCombo.getValue();
-//                Set<ArchitectureSolutionRecord> selectedArchitectures = architectureCombo.getValue();
-//                Set<QualityRequirementRecord> selectedQRs = qualityCombo.getValue();
-//
-//                if (isSetValid(selectedDomains) && isSetValid(selectedArchitectures) && isSetValid(selectedQRs)) {
-//                    // Converte todos os Sets para Sets de Strings.
-//                    Set<String> domainNames = selectedDomains.stream().map(IoTDomainRecord::name).collect(Collectors.toSet());
-//                    Set<String> archNames = selectedArchitectures.stream().map(ArchitectureSolutionRecord::name).collect(Collectors.toSet());
-//                    Set<String> qrNames = selectedQRs.stream().map(QualityRequirementRecord::name).collect(Collectors.toSet());
-//
-//                    // Busca tecnologias para as combinações selecionadas.
-//                    List<TechnologyRecord> technologies = technologyService
-//                            .findByIoTDomainsAndArchitecturesAndQualityRequirements(domainNames, archNames, qrNames) // Usa o novo método
-//                            .stream()
-//                            .map(t -> new TechnologyRecord(t.getDescription()))
-//                            .distinct()
-//                            .sorted(Comparator.comparing(TechnologyRecord::description))
-//                            .toList();
-//
-//                    this.technologiesCombo.setItems(technologies);
-//                } else {
-//                    // Se a seleção de QR for limpa, reseta o combo de tecnologia.
-//                    this.technologiesCombo.setItems(technologyService.findAllTechnologyGroupedByName());
-//                }
-//            }
         }
     }
-
-    /**
-     * Método utilitário para verificar se um Set não é nulo e não está vazio.
-     * @param set O conjunto a ser verificado.
-     * @return true se o conjunto for válido, false caso contrário.
-     */
-    private boolean isSetValid(Set<?> set) {
-        return set != null && !set.isEmpty();
-    }
-
-
-//    private void filterTreeViewDataSource() {
-//        // Start with a copy of the full dataset
-//        List<IoTDomain> filteredDomains = new ArrayList<>((List<IoTDomain>) this.treeView.getTreeViewData());
-//
-//        // Filter by IoT Domain if selected
-//        if (iotDomainCombo.getValue() != null) {
-//            filteredDomains = filteredDomains.stream()
-//                    .filter(domain -> domain.getName().equals(iotDomainCombo.getValue().name()))
-//                    .collect(Collectors.toList());
-//        }
-//
-//        // For each remaining domain, filter its architecture solutions
-//        filteredDomains.forEach(domain -> {
-//            List<ArchitectureSolution> filteredSolutions = new ArrayList<>(domain.getArchitectureSolutions());
-//
-//            // Filter by Architecture if selected
-//            if (architectureCombo.getValue() != null) {
-//                filteredSolutions = filteredSolutions.stream()
-//                        .filter(solution -> solution.getArchitecture().getName()
-//                                .equals(architectureCombo.getValue().name()))
-//                        .collect(Collectors.toList());
-//            }
-//
-//            // Filter by Quality Requirement if selected
-//            if (qualityCombo.getValue() != null) {
-//                filteredSolutions = filteredSolutions.stream()
-//                        .filter(solution -> solution.getQualityRequirements().stream()
-//                                .anyMatch(qr -> qr.getName().equals(qualityCombo.getValue().name())))
-//                        .map(solution -> {
-//                            // Create a copy of the solution with only matching quality requirements
-//                            ArchitectureSolution filteredSolution = new ArchitectureSolution();
-//                            BeanUtils.copyProperties(solution, filteredSolution);
-//
-//                            // Filter QualityRequirementTechnology entries
-//                            List<QualityRequirementTechnology> filteredQRTs = solution.getQualityRequirementTechnologies()
-//                                    .stream()
-//                                    .filter(qrt -> qrt.getQualityRequirement().getName()
-//                                            .equals(qualityCombo.getValue().name()))
-//                                    .collect(Collectors.toList());
-//
-//                            filteredSolution.setQualityRequirementTechnologies(filteredQRTs);
-//                            return filteredSolution;
-//                        })
-//                        .collect(Collectors.toList());
-//            }
-//
-//            // Filter by Technology if needed
-//            if (technologiesCombo != null && technologiesCombo.getValue() != null) {
-//                filteredSolutions = filteredSolutions.stream()
-//                        .filter(solution -> solution.getTechnologies().stream()
-//                                .anyMatch(tech -> tech.getDescription()
-//                                        .equals(technologiesCombo.getValue().description())))
-//                        .map(solution -> {
-//                            // Create a copy of the solution with only matching technologies
-//                            ArchitectureSolution filteredSolution = new ArchitectureSolution();
-//                            BeanUtils.copyProperties(solution, filteredSolution);
-//
-//                            // Filter QualityRequirementTechnology entries
-//                            List<QualityRequirementTechnology> filteredQRTs = solution.getQualityRequirementTechnologies()
-//                                    .stream()
-//                                    .filter(qrt -> qrt.getTechnology().getDescription()
-//                                            .equals(technologiesCombo.getValue().description()))
-//                                    .collect(Collectors.toList());
-//
-//                            filteredSolution.setQualityRequirementTechnologies(filteredQRTs);
-//                            return filteredSolution;
-//                        })
-//                        .collect(Collectors.toList());
-//            }
-//
-//            // Update the domain with filtered solutions
-//            domain.setArchitectureSolutions(filteredSolutions);
-//        });
-//
-//        // Remove domains that have no matching solutions after filtering
-//        filteredDomains = filteredDomains.stream()
-//                .filter(domain -> !domain.getArchitectureSolutions().isEmpty())
-//                .collect(Collectors.toList());
-//
-//        // Update the tree view with filtered results
-//        this.treeView.setTreeViewData(filteredDomains);
-//    }
-
-    /***
-     * Creates the search panel at the bottom of the page
-     */
-//    private void createDetailSliderPanel() {
-//        sliderPanel.setButtonTexts("Hide Details", "Show Details");
-//        sliderPanel.setExpanded(false);
-//    }
 
     @EventListener
     public void handleDataDetailsUpdate(DataDetailsUpdateEvent event) {

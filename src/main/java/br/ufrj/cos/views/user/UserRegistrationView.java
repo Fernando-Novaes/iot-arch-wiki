@@ -4,21 +4,26 @@ import br.ufrj.cos.domain.UserApplication;
 import br.ufrj.cos.service.UserApplicationService;
 import br.ufrj.cos.utils.GridCRUDUtils;
 import br.ufrj.cos.utils.NotificationUtils;
-import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Paragraph;
+import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.component.textfield.PasswordField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.dom.Style;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.vaadin.crudui.crud.impl.GridCrud;
+import org.vaadin.crudui.layout.impl.WindowBasedCrudLayout;
 
 import java.util.Date;
 
-@PageTitle("UserApplication Registration")
+@PageTitle("User Registration")
 @Route(value = "userregistration-view", layout = MainLayout.class)
 @RolesAllowed("ADMIN")
 public class UserRegistrationView extends BaseView {
@@ -30,24 +35,59 @@ public class UserRegistrationView extends BaseView {
 
     public UserRegistrationView(UserApplicationService userApplicationService, PasswordEncoder passwordEncoder) {
         this.userApplicationService = userApplicationService;
+        this.passwordEncoder = passwordEncoder;
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
+        getContent().getStyle().set("padding", "1.25rem");
+        getContent().getStyle().set("box-sizing", "border-box");
+        getContent().getStyle().setOverflow(Style.Overflow.HIDDEN);
 
-        this.createHeader("User Registration");
+        configureHeroBanner();
 
         gridUsers = createUserGridCrud();
         getContent().add(gridUsers);
-        this.passwordEncoder = passwordEncoder;
+    }
+
+    private void configureHeroBanner() {
+        Div heroCard = new Div();
+        heroCard.addClassName("appconfig-hero-card");
+        heroCard.setWidthFull();
+        heroCard.getStyle()
+                .set("margin", "0 0 1.25rem 0")
+                .set("box-sizing", "border-box");
+
+        Span badge = new Span("System Access Control");
+        badge.addClassName("appconfig-badge");
+
+        H3 heroTitle = new H3("👥 User Registration & Management");
+        heroTitle.getStyle()
+                .set("margin", "0 0 0.5rem 0")
+                .set("font-size", "1.5rem")
+                .set("font-weight", "800")
+                .set("color", "white");
+
+        Paragraph heroSubtitle = new Paragraph("Register and manage application user accounts, role-based security credentials, and access permissions.");
+        heroSubtitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "0.9rem")
+                .set("color", "rgba(255, 255, 255, 0.85)");
+
+        VerticalLayout heroContent = new VerticalLayout(badge, heroTitle, heroSubtitle);
+        heroContent.setPadding(false);
+        heroContent.setSpacing(false);
+        heroCard.add(heroContent);
+
+        getContent().add(heroCard);
     }
 
     private GridCrud<UserApplication> createUserGridCrud() {
-        GridCrud<UserApplication> gridUsers = new GridCrud<>(UserApplication.class);
+        GridCrud<UserApplication> gridUsers = new GridCrud<>(UserApplication.class, new WindowBasedCrudLayout());
         gridUsers.setShowNotifications(false);
         gridUsers.setSizeFull();
 
         gridUsers.getGrid().getColumnByKey("password").setVisible(false);
-        gridUsers.getGrid().getColumnByKey("id").setWidth("60px").setFlexGrow(0);
+        gridUsers.getGrid().getColumnByKey("id").setWidth("70px").setFlexGrow(0);
 
         gridUsers.getCrudFormFactory().setVisibleProperties("name", "email", "userName", "role", "password", "notes");
         gridUsers.getGrid().setDetailsVisibleOnClick(true);
@@ -63,7 +103,7 @@ public class UserRegistrationView extends BaseView {
                     passwordEncoder.encode(userApplication.getPassword()));
                 userApplicationService.save(userApplication);
                 refreshAllData();
-                NotificationUtils.showSuccessNotification("User registered.");
+                NotificationUtils.showSuccessNotification("User registered successfully.");
                 return userApplication;
             }
         });
@@ -78,26 +118,16 @@ public class UserRegistrationView extends BaseView {
         gridUsers.setDeleteOperation(userApplication -> {
             userApplicationService.delete(userApplication);
             refreshAllData();
-            NotificationUtils.showSuccessNotification("UserApplication deleted.");
+            NotificationUtils.showSuccessNotification("User deleted.");
         });
 
         // Add filtering functionality
         TextField nameFilter = GridCRUDUtils.createGridTextFilter(gridUsers, "Filter by name", "300px");
         gridUsers.setFindAllOperation(() -> this.userApplicationService.findByName(nameFilter.getValue()));
-//        nameFilter.addValueChangeListener(event -> {
-//            gridUsers.setFindAllOperation(() -> this.userApplicationService.findByName(event.getValue()));
-//            gridUsers.getGrid().getDataProvider().refreshAll();
-//        });
 
-        // Set the initial operation for findAll
-        //gridUsers.setFindAllOperation(userApplicationService::findAll);
+        GridCRUDUtils.setColumnsOrder(gridUsers, "id", "name", "userName", "email", "role", "dateOfCreation", "notes");
 
-        // Add filter to the layout
-        nameFilter.setWidthFull();
-        nameFilter.getStyle().set("margin-bottom", "var(--lumo-space-m)");
-
-        // Setup additional configurations for the grid if needed
-        GridCRUDUtils.setColumnsOrder(gridUsers, "id", "name", "userName", "email", "role", "dateOfCreation", "notes", "password");
+        ((WindowBasedCrudLayout) gridUsers.getCrudLayout()).setFormWindowWidth("50%");
 
         return gridUsers;
     }
@@ -106,4 +136,3 @@ public class UserRegistrationView extends BaseView {
         gridUsers.getGrid().getDataProvider().refreshAll();
     }
 }
-

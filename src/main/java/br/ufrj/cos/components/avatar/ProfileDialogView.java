@@ -6,11 +6,14 @@ import br.ufrj.cos.utils.NotificationUtils;
 import br.ufrj.cos.utils.SecurityUtils;
 import br.ufrj.cos.views.BaseView;
 import br.ufrj.cos.views.MainLayout;
+import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H3;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -22,8 +25,6 @@ import jakarta.annotation.security.PermitAll;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
-
-import static org.reflections.Reflections.log;
 import org.vaadin.addons.joelpop.changepassword.ChangePassword;
 import org.vaadin.addons.joelpop.changepassword.ChangePasswordDialog;
 import org.vaadin.addons.joelpop.changepassword.ChangePasswordRule;
@@ -42,116 +43,189 @@ public class ProfileDialogView extends BaseView {
     public ProfileDialogView(UserApplicationService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
         this.passwordEncoder = passwordEncoder;
-        //Header
-        this.createHeader("User Profile");
 
-        Div box = new Div();
-        box.addClassName("centered-aboutbox");
-        box.getStyle()
-                .set("background-color", "var(--lumo-contrast-10pct)")
-                .set("border-radius", "var(--lumo-border-radius)")
-                //.set("box-shadow", "0 2px 4px rgba(0, 0, 0, 0.1)")
-                .set("padding", "20px");
+        // --- Hero Banner (replaces old H1 header) ---
+        Div heroBanner = new Div();
+        heroBanner.getStyle()
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("border-radius", "16px")
+                .set("padding", "1.75rem 2rem")
+                .set("color", "#ffffff")
+                .set("box-shadow", "0 10px 25px rgba(37, 99, 235, 0.2)")
+                .set("width", "100%")
+                .set("box-sizing", "border-box")
+                .set("margin", "0 auto");
 
-        // Create a HorizontalLayout to center the box horizontally
+        com.vaadin.flow.component.html.H2 bannerTitle = new com.vaadin.flow.component.html.H2("User Profile");
+        bannerTitle.getStyle()
+                .set("margin", "0 0 0.4rem 0")
+                .set("font-size", "1.8rem")
+                .set("font-weight", "700")
+                .set("color", "#ffffff");
+
+        com.vaadin.flow.component.html.Paragraph bannerSubtitle = new com.vaadin.flow.component.html.Paragraph(
+                "View and manage your account details and security settings"
+        );
+        bannerSubtitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "0.95rem")
+                .set("opacity", "0.9")
+                .set("line-height", "1.5");
+
+        heroBanner.add(bannerTitle, bannerSubtitle);
+
+        HorizontalLayout bannerWrapper = new HorizontalLayout(heroBanner);
+        bannerWrapper.setWidthFull();
+        bannerWrapper.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        bannerWrapper.setPadding(true);
+        bannerWrapper.setSpacing(false);
+        bannerWrapper.getStyle().set("margin-bottom", "0");
+
+        getContent().add(bannerWrapper);
+
         HorizontalLayout hLayout = new HorizontalLayout();
-        hLayout.setSizeFull(); // Make it take the full width of the screen
-        hLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER); // Center the content horizontally
+        hLayout.setSizeFull();
+        hLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        hLayout.setPadding(true);
 
-        // Main container with padding and spacing
+        Div card = new Div();
+        card.getStyle()
+                .set("background", "var(--lumo-base-color)")
+                .set("border-radius", "16px")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("box-shadow", "0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)")
+                .set("padding", "2rem 2.5rem")
+                .set("width", "clamp(420px, 600px, 92vw)")
+                .set("margin-top", "0");
+
         VerticalLayout content = new VerticalLayout();
         content.setAlignItems(FlexComponent.Alignment.CENTER);
-        content.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
         content.setSpacing(true);
-        content.setPadding(true);
-        content.setSizeFull();
-
-        // User info form with responsive layout
-        FormLayout formLayout = createResponsiveFormLayout();
-        formLayout.getStyle().set("width", "100%"); // Make the form take up the full width of its container
+        content.setPadding(false);
+        content.setWidthFull();
 
         try {
             this.user = this.userService.findByUserName(SecurityUtils.getUsername());
             if (this.user != null) {
-                // Profile Section Header
-                H3 profileHeader = new H3("Profile Information");
-                profileHeader.getStyle().set("margin-bottom", "10px"); // Space below the header
+                // Hero header with avatar image and role badge
+                Component heroHeader = createProfileHero();
 
+                // User info form with responsive layout
+                FormLayout formLayout = createResponsiveFormLayout();
                 createProfileSection(formLayout);
-                // Action buttons with responsive layout
-                HorizontalLayout buttonLayout = createButtonLayout();
-                // Add components to main layout
-                content.add(profileHeader, formLayout, buttonLayout);
-                // Footer
-                //createFooter();
 
-                box.add(content);
-                hLayout.add(box);
+                // Action buttons
+                HorizontalLayout buttonLayout = createButtonLayout();
+
+                content.add(heroHeader, formLayout, buttonLayout);
+                card.add(content);
+                hLayout.add(card);
             } else {
                 logger.warn("User not found for username: {}", SecurityUtils.getUsername());
-                // Handle the case where the user is not found (e.g., display an error message)
-                content.add(new Div("User profile not found.")); // Simple error message
+                content.add(new Div("User profile not found."));
+                card.add(content);
+                hLayout.add(card);
             }
         } catch (Exception e) {
             logger.error("Error retrieving user profile.", e);
-            content.add(new Div("Error retrieving user profile.  Please contact support.")); // Generic error message
+            content.add(new Div("Error retrieving user profile. Please contact support."));
+            card.add(content);
+            hLayout.add(card);
         }
 
         getContent().add(hLayout);
     }
 
+    private Component createProfileHero() {
+        VerticalLayout hero = new VerticalLayout();
+        hero.setAlignItems(FlexComponent.Alignment.CENTER);
+        hero.setSpacing(false);
+        hero.getStyle().set("margin-bottom", "1.5rem");
+
+        boolean isAdmin = user != null && user.getRole() != null && "ADMIN".equalsIgnoreCase(user.getRole().name());
+        String imagePath = isAdmin ? "/images/admin.png" : "/images/homem.png";
+
+        Image avatarImg = new Image(imagePath, "User Avatar");
+        avatarImg.getStyle()
+                .set("width", "84px")
+                .set("height", "84px")
+                .set("border-radius", "50%")
+                .set("object-fit", "cover")
+                .set("box-shadow", "0 6px 16px rgba(0, 0, 0, 0.15)")
+                .set("border", "3px solid var(--lumo-base-color)")
+                .set("margin-bottom", "0.75rem");
+
+        H3 nameTitle = new H3(user.getName() != null && !user.getName().isBlank() ? user.getName() : user.getUserName());
+        nameTitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "1.35rem")
+                .set("font-weight", "700")
+                .set("color", "var(--lumo-header-text-color)");
+
+        Span roleBadge = new Span(isAdmin ? "ADMINISTRATOR" : "USER");
+        roleBadge.getStyle()
+                .set("font-size", "0.7rem")
+                .set("font-weight", "700")
+                .set("padding", "3px 10px")
+                .set("border-radius", "12px")
+                .set("background", isAdmin ? "linear-gradient(135deg, #e67e22, #f39c12)" : "linear-gradient(135deg, #2563eb, #3b82f6)")
+                .set("color", "#ffffff")
+                .set("margin-top", "0.4rem")
+                .set("letter-spacing", "0.5px");
+
+        hero.add(avatarImg, nameTitle, roleBadge);
+        return hero;
+    }
+
     private FormLayout createResponsiveFormLayout() {
         FormLayout formLayout = new FormLayout();
-
-        // Make form layout responsive
+        formLayout.setWidthFull();
         formLayout.setResponsiveSteps(
-                new FormLayout.ResponsiveStep("0", 1), // One column on small screens
-                new FormLayout.ResponsiveStep("500px", 2) // Two columns on larger screens
+                new FormLayout.ResponsiveStep("0", 1),
+                new FormLayout.ResponsiveStep("500px", 2)
         );
-
         return formLayout;
     }
 
     private void createProfileSection(FormLayout formLayout) {
-        // User info fields with proper styling
-        TextField nameField = createStyledTextField("Name", user.getName());
-        TextField emailField = createStyledTextField("Email", user.getEmail());
-        TextField userNameField = createStyledTextField("Username", user.getUserName());
-        TextField roleField = createStyledTextField("Role", user.getRole().name());
+        TextField nameField = createStyledTextField("Full Name", user.getName(), VaadinIcon.USER);
+        TextField emailField = createStyledTextField("Email Address", user.getEmail(), VaadinIcon.ENVELOPE);
+        TextField userNameField = createStyledTextField("Username", user.getUserName(), VaadinIcon.USER_CHECK);
+        TextField roleField = createStyledTextField("User Role", user.getRole() != null ? user.getRole().name() : "", VaadinIcon.SHIELD);
 
         formLayout.add(nameField, emailField, userNameField, roleField);
     }
 
-    private TextField createStyledTextField(String label, String value) {
+    private TextField createStyledTextField(String label, String value, VaadinIcon icon) {
         TextField field = new TextField(label);
         field.setValue(value != null ? value : "");
         field.setReadOnly(true);
         field.setWidthFull();
+        field.setPrefixComponent(icon.create());
 
-        // Add some styling
         field.getStyle()
-                .set("border-radius", "var(--lumo-border-radius)")
-                .set("margin-bottom", "10px"); // Add some spacing between fields
+                .set("margin-bottom", "10px");
 
         return field;
     }
 
     private HorizontalLayout createButtonLayout() {
-        // Change Password Button
-        Button changePasswordBtn = new Button(
-                "Change Password",
-                VaadinIcon.KEY.create()
-        );
+        Button changePasswordBtn = new Button("Change Password", VaadinIcon.KEY.create());
         changePasswordBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         changePasswordBtn.addClickListener(e -> showChangePasswordDialog());
-        changePasswordBtn.getStyle().set("margin-top", "15px"); // Move button slightly down
+        changePasswordBtn.getStyle()
+                .set("margin-top", "1.5rem")
+        		.set("padding", "0.6rem 1.5rem")
+                .set("border-radius", "8px")
+                .set("font-weight", "600")
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("box-shadow", "0 4px 12px rgba(37, 99, 235, 0.25)")
+                .set("cursor", "pointer");
 
-        // Layout for buttons
         HorizontalLayout buttonLayout = new HorizontalLayout(changePasswordBtn);
         buttonLayout.setWidthFull();
         buttonLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
         buttonLayout.setSpacing(true);
-        buttonLayout.setPadding(true);
 
         return buttonLayout;
     }
@@ -159,7 +233,6 @@ public class ProfileDialogView extends BaseView {
     private void showChangePasswordDialog() {
         ChangePasswordDialog changePasswordDialog = new ChangePasswordDialog(ChangePassword.ChangePasswordMode.CHANGE_KNOWN);
 
-        // Add password rules
         changePasswordDialog.addPasswordRules(
                 ChangePasswordRule.length(8, 20),
                 ChangePasswordRule.hasSpecials(1),

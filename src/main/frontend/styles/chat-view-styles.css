@@ -1,217 +1,295 @@
-/* ./frontend/styles/chat-view-styles.css */
+/* ══════════════════════════════════════════════════════════
+   AI Assistant Chat Screen Styles
+   ══════════════════════════════════════════════════════════ */
 
-/* Overall container for the chat */
+/* Overall container for the chat view */
 .chat-container {
-    display: flex;
-    flex-direction: column;
-    height: 100%; /* Ensure this container has height */
-    width: 100%;
-    background-color: var(--lumo-base-color);
-    border-radius: var(--lumo-border-radius-l);
-    box-shadow: var(--lumo-box-shadow-s);
-    overflow: auto; /* Prevent the main container from scrolling */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  background: transparent;
+  overflow: hidden;
 }
 
-/* The AIChatMessageDisplay component itself */
 .ai-chat-message-display {
-    flex-grow: 1; /* Allow it to take up space */
-    overflow: auto; /* It shouldn't scroll, the Scroller inside does */
-    display: flex; /* Needed for expand() to work correctly */
-    flex-direction: column; /* Needed for expand() to work correctly */
-    width: 100%;
+  flex-grow: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
 }
 
-/* The Scroller component */
 .message-list-scroller {
-    flex-grow: 1; /* Takes up all space within AIChatMessageDisplay */
-    /* overflow-y: auto; */ /* Scroller component handles this internally */
+  flex-grow: 1;
+  width: 100%;
 }
 
-
-/* Message list container */
+/* ─── Message List Container ────────────────────────────── */
 .html-message-list {
-    background-color: var(--lumo-base-color);
-    padding: var(--lumo-space-m);
-    'overflow-y: auto;
-    'flex: 1;
-    display: flex;
-    flex-direction: column;
-
+  background: transparent !important;
+  padding: 1.25rem !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.25rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 
-/* Message container layout */
+/* ─── Message Container Rows ────────────────────────────── */
 .message-container {
-    display: flex;
-    height: 100%;
-    width: 100%;
-    margin-bottom: var(--lumo-space-s);
-    align-items: flex-end;
+  display: flex !important;
+  width: 100% !important;
+  align-items: flex-start !important;
+  gap: 0.75rem !important;
+  box-sizing: border-box !important;
 }
 
 .user-message-container {
-    justify-content: flex-end;
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-self: flex-end !important;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+  width: 100% !important;
 }
 
 .assistant-message-container {
-    justify-content: flex-start;
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-self: flex-start !important;
+  margin-right: auto !important;
+  margin-left: 0 !important;
+  width: 100% !important;
 }
 
 .system-message-container {
-    justify-content: center;
-    width: 80%;
+  justify-content: center !important;
+  width: 100% !important;
 }
 
-/* Avatar styling */
+/* ─── Avatar Styling ─────────────────────────────────────── */
 .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    font-weight: bold;
-    font-size: 18px;
-    color: white;
-    margin-right: 10px;
+  width: 30px !important;
+  height: 30px !important;
+  min-width: 30px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  flex-shrink: 0 !important;
+  border: 1px solid var(--lumo-contrast-15pct);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.user-avatar {
-    margin-left: var(--lumo-space-s);
+.avatar vaadin-avatar,
+.avatar img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
 }
 
-.assistant-avatar {
-    margin-right: var(--lumo-space-s);
-}
-
-/* Message bubble styling */
+/* ─── Message Bubbles ────────────────────────────────────── */
 .message-bubble {
-    max-width: 80%;
-    padding: var(--lumo-space-s);
-    border-radius: var(--lumo-border-radius-m);
-    box-shadow: var(--lumo-box-shadow-xs);
+  max-width: 85% !important;
+  padding: 0.55rem 0.85rem !important;
+  border-radius: 14px !important;
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.72rem !important;
+  line-height: 1.45 !important;
+  box-sizing: border-box !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Style for system messages */
-.system-message {
-    background-color: var(--lumo-contrast-10pct);
-    font-style: italic;
-    color: var(--lumo-secondary-text-color);
-    text-align: center;
-}
-
-/* Style for user messages */
+/* ─── User Message Bubbles ───────────────────────────────── */
 .user-message {
-    'background-color: var(--lumo-primary-color-10pct);
-    background-color: #3f454d;
-    color: var(--lumo-secondary-text-color);
-    border-radius: var(--lumo-border-radius-m) var(--lumo-border-radius-s) var(--lumo-border-radius-s) var(--lumo-border-radius-m);
+  margin-left: auto !important;
+  background: linear-gradient(135deg, #1e293b, #2563eb) !important;
+  color: #ffffff !important;
+  border-radius: 14px 14px 4px 14px !important;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.22) !important;
 }
 
-/* Style for assistant messages */
+html[theme~="dark"] .user-message {
+  background: linear-gradient(135deg, #1e293b, #3b82f6) !important;
+  color: #ffffff !important;
+  border-radius: 14px 14px 4px 14px !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.25) !important;
+}
+
+.user-message .message-username,
+.user-message .message-timestamp {
+  color: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ─── Assistant Message Bubbles ─────────────────────────── */
 .assistant-message {
-    background-color: var(--lumo-contrast-5pct);
-    color: var(--lumo-body-text-color);
-    border-radius: var(--lumo-border-radius-s) var(--lumo-border-radius-m) var(--lumo-border-radius-m) var(--lumo-border-radius-s);
+  margin-right: auto !important;
+  background: var(--lumo-base-color) !important;
+  border: 1px solid var(--lumo-contrast-15pct) !important;
+  color: var(--lumo-body-text-color) !important;
+  border-radius: 14px 14px 14px 4px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Message header styling */
+html[theme~="dark"] .assistant-message {
+  background: var(--lumo-base-color) !important;
+  border: 1px solid var(--lumo-contrast-15pct) !important;
+  color: var(--lumo-body-text-color) !important;
+  border-radius: 14px 14px 14px 4px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ─── Message Header (Username, Timestamp, Copy Icon) ─────── */
 .message-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--lumo-space-xs);
-    font-size: var(--lumo-font-size-xs);
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.35rem !important;
+  margin-bottom: 0.35rem !important;
+  font-size: 0.68rem !important;
+  padding-bottom: 0.25rem !important;
+  border-bottom: 1px solid var(--lumo-contrast-10pct) !important;
+}
+
+.user-message .message-header {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
 }
 
 .message-username {
-    font-weight: bold;
-    color: var(--lumo-primary-text-color);
+  font-family: var(--lumo-font-family) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em !important;
 }
 
 .message-timestamp {
-    color: var(--lumo-tertiary-text-color);
+  font-size: 0.62rem !important;
+  opacity: 0.7;
 }
 
-/* Message content styling */
+/* ─── Message Content Elements ───────────────────────────── */
 .message-content {
-    font-family: var(--lumo-font-family);
-    line-height: 1.5;
-    word-wrap: break-word;
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.72rem !important;
+  line-height: 1.45 !important;
+  word-break: break-word !important;
 }
 
-/* Style for HTML elements within the content */
-.message-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: var(--lumo-border-radius-s);
+.message-content h1, .message-content h2 {
+  font-size: 0.92rem !important;
+  font-weight: 700 !important;
+  margin: 0.5rem 0 0.3rem 0 !important;
+  color: inherit !important;
+}
+
+.message-content h3 {
+  font-size: 0.82rem !important;
+  font-weight: 700 !important;
+  margin: 0.45rem 0 0.25rem 0 !important;
+  color: inherit !important;
+}
+
+.message-content h4 {
+  font-size: 0.75rem !important;
+  font-weight: 600 !important;
+  margin: 0.35rem 0 0.2rem 0 !important;
+  color: inherit !important;
+}
+
+.message-content p {
+  margin: 0 0 0.35rem 0 !important;
+}
+
+.message-content p:last-child {
+  margin-bottom: 0 !important;
 }
 
 .message-content pre {
-    background-color: var(--lumo-contrast-10pct);
-    padding: var(--lumo-space-xs);
-    border-radius: var(--lumo-border-radius-s);
-    overflow-x: auto;
+  background: #1e293b !important;
+  color: #f8fafc !important;
+  padding: 0.6rem 0.8rem !important;
+  border-radius: 8px !important;
+  border: 1px solid var(--lumo-contrast-15pct) !important;
+  overflow-x: auto !important;
+  font-family: 'Fira Code', 'Cascadia Code', Consolas, monospace !important;
+  font-size: 0.70rem !important;
+  margin: 0.45rem 0 !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
 }
 
 .message-content code {
-    font-family: monospace;
-    background-color: var(--lumo-contrast-10pct);
-    padding: 0 var(--lumo-space-xs);
-    border-radius: var(--lumo-border-radius-s);
+  font-family: 'Fira Code', Consolas, monospace !important;
+  font-size: 0.70rem !important;
+  padding: 0.1em 0.3em !important;
+  border-radius: 4px !important;
+  background: var(--lumo-contrast-10pct) !important;
 }
 
 .message-content ul, .message-content ol {
-    padding-left: var(--lumo-space-m);
+  padding-left: 1.1rem !important;
+  margin: 0.4rem 0 !important;
+}
+
+.message-content li {
+  margin-bottom: 0.25rem !important;
+}
+
+.message-content li {
+  margin-bottom: 0.35rem !important;
 }
 
 .message-content a {
-    color: var(--lumo-primary-color);
+  color: var(--lumo-primary-color) !important;
+  text-decoration: underline !important;
 }
 
-.message-content blockquote {
-    border-left: 3px solid var(--lumo-contrast-20pct);
-    margin-left: var(--lumo-space-xs);
-    padding-left: var(--lumo-space-s);
-    color: var(--lumo-secondary-text-color);
+/* ─── Input Container Styling ───────────────────────────── */
+.chat-input-bar {
+  background: transparent !important;
+  padding: 0.75rem 1.25rem 1.25rem 1.25rem !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
 }
 
-/* Custom scrollbar */
-.html-message-list::-webkit-scrollbar {
-    width: 8px;
+.quick-prompts-container {
+  display: flex !important;
+  gap: 0.35rem !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 0.4rem !important;
+  width: 100% !important;
 }
 
-.html-message-list::-webkit-scrollbar-track {
-    background: var(--lumo-contrast-5pct);
-    border-radius: 4px;
+.quick-prompt-chip {
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.73rem !important;
+  font-weight: 500 !important;
+  padding: 3px 10px !important;
+  min-height: 26px !important;
+  height: 26px !important;
+  border-radius: 99px !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
 }
 
-.html-message-list::-webkit-scrollbar-thumb {
-    background: var(--lumo-contrast-20pct);
-    border-radius: 4px;
+html[theme~="dark"] .quick-prompt-chip {
+  background: hsla(220, 14%, 13%, 0.90) !important;
+  border: 1px solid hsla(220, 10%, 55%, 0.15) !important;
+  color: hsl(220, 10%, 80%) !important;
 }
 
-.html-message-list::-webkit-scrollbar-thumb:hover {
-    background: var(--lumo-contrast-30pct);
+/* ─── Streaming Cursor Blink ────────────────────────────── */
+@keyframes cursorBlink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
-.message-list-box {
-    position: relative;
-    flex-grow: 1;
-    overflow-y: auto;
-    height: 70%!important;
-}
-
-.input-box-fixed {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background-color: var(--lumo-base-color);
-    padding: var(--lumo-space-m);
-    box-sizing: border-box;
-    box-shadow: 0px -2px 5px rgba(0, 0, 0, 0.2);
-    /* Define a fixed height for the input box */
-    height: 8%; /* Adjust this value as needed */
-}
-
-/* Adjust the inputComponent within the fixed input box */
-.input-box-fixed vaadin-horizontal-layout {
-    width: 100%;
+.cursor-blink {
+  display: inline-block !important;
+  color: #2563eb !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  animation: cursorBlink 0.7s infinite !important;
+  margin-left: 2px !important;
+  line-height: 1 !important;
+  text-shadow: 0 0 6px rgba(37, 99, 235, 0.6);
 }

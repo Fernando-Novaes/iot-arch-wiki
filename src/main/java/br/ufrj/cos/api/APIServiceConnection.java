@@ -207,15 +207,12 @@ public class APIServiceConnection {
     }
 
     public Mono<EndpointResponse> callListEndpoints() {
-        // Ensure necessary configurations are present
-        if (this.appConfigService.getAppConfig().getApiAddress() == null) {
-            return Mono.error(new RuntimeException("There is no API address configured."));
+        if (this.appConfigService.getAppConfig().getApiAddress() == null || this.appConfigService.getAppConfig().getApiAddress().trim().isEmpty()) {
+            return Mono.empty();
         }
 
         String baseUrl = this.appConfigService.getAppConfig().getApiAddress();
-        // Assuming you have a way to get the specific path "/endpoints"
-        // Replace this with your actual config mechanism or hardcode if stable
-        String servicePath = "/list_endpoints"; // Or fetch from config if needed
+        String servicePath = "/list_endpoints";
 
         String uri = UriComponentsBuilder.fromUriString(baseUrl)
                 .path(servicePath)
@@ -226,26 +223,17 @@ public class APIServiceConnection {
 
         WebClient webClient = webClientBuilder.baseUrl(baseUrl).build();
 
-        // Use GET for this endpoint
         return webClient
-                .get() // Use GET method
-                .uri(uri) // Use the constructed URI
-                // No body or content-type needed for GET
+                .get()
+                .uri(uri)
                 .retrieve()
-                // Deserialize the JSON response body into our POJO structure
                 .bodyToMono(EndpointResponse.class)
-                .timeout(TIMEOUT)
-                .retryWhen(Retry.backoff(2, Duration.ofSeconds(1))) // Example retry logic
+                .timeout(Duration.ofSeconds(5))
                 .doOnSuccess(response -> logger.info("Successfully retrieved {} endpoints.",
-                        response.getEndpoints() != null ? response.getEndpoints().size() : 0))
-                .onErrorResume(WebClientResponseException.class, e -> {
-                    logger.error("WebClient error getting endpoints: Status {}, Body {}", e.getStatusCode(), e.getResponseBodyAsString(), e);
-                    return Mono.error(new RuntimeException("Failed to get API endpoints: " + e.getStatusCode() + " - " + e.getResponseBodyAsString()));
-                })
+                        response != null && response.getEndpoints() != null ? response.getEndpoints().size() : 0))
                 .onErrorResume(e -> {
-                    // Catch other errors like timeouts, connection refused, deserialization errors
-                    logger.error("General error getting endpoints: {}", e.getMessage(), e);
-                    return Mono.error(new RuntimeException("An unexpected error occurred while getting endpoints: " + e.getMessage()));
+                    logger.warn("External API endpoint unavailable ({}): {}", uri, e.getMessage());
+                    return Mono.empty();
                 });
     }
 }

@@ -23,67 +23,75 @@ public class TourUtils {
 
     public TourUtils build() {
         this.onboarding = new Onboarding();
-
         return this;
     }
 
     public TourUtils addStep(Component targetComponent,
-                        String headerTitle,
-                        Component content,
-                        PopupPosition position,
-                        Optional<SerializableConsumer<Popup>> listener) {
+                             String headerTitle,
+                             Component content,
+                             PopupPosition position,
+                             Optional<SerializableConsumer<Popup>> listener) {
         OnboardingStep step = new OnboardingStep(targetComponent);
-
         step.setPosition(position);
 
         HorizontalLayout header = new HorizontalLayout();
-        header.getStyle().setBackgroundColor("#006af5");
-        header.getStyle().setColor("white");
-        header.getStyle().setFontSize("16px");
-        header.getStyle().setFontWeight(Style.FontWeight.BOLD);
+        header.getStyle()
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("color", "#ffffff")
+                .set("font-size", "0.95rem")
+                .set("font-weight", "700")
+                .set("padding", "0.75rem 1.25rem")
+                .set("border-radius", "14px 14px 0 0")
+                .set("box-sizing", "border-box");
+
         header.setSpacing(true);
         header.add(new Html(String.format("<div>%s</div>", headerTitle)));
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        header.setAlignItems(FlexComponent.Alignment.END);
         header.setWidthFull();
-        header.setHeight("50%");
-        header.getStyle().setBorder("solid 1px #006af5");
 
         HorizontalLayout contentBox = new HorizontalLayout();
+        contentBox.getStyle()
+                .set("padding", "1rem 1.25rem")
+                .set("font-size", "0.9rem")
+                .set("line-height", "1.55")
+                .set("color", "var(--lumo-body-text-color)")
+                .set("background", "var(--lumo-base-color)")
+                .set("border-radius", "0 0 14px 14px");
+
         contentBox.setSpacing(true);
-        contentBox.setAlignItems(FlexComponent.Alignment.END);
         contentBox.setWidthFull();
-        contentBox.setHeight("100%");
-        contentBox.setVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         contentBox.add(content);
 
         step.setContent(contentBox);
 
-        step.addBeforePopupShownListener(l ->
-        {
+        step.addBeforePopupShownListener(l -> {
             l.getHeader().removeAll();
             l.getHeader().add(header);
+            l.getHeader().getElement().getStyle().set("padding", "0").set("background", "transparent");
 
-            l.setModeless(true);
+            l.setModeless(false);
             l.setHighlightTarget(true);
             l.setFocusTrap(false);
             l.addThemeVariants(PopupVariant.LUMO_POINTER_ARROW);
             l.setIgnoreTargetClick(true);
 
-            l.getStyle().setBorder("solid 1px gray");
-            l.getStyle().setFontWeight("bold");
-            l.getStyle().setBoxShadow("0 4px 6px rgba(0, 0, 0, 2.0)");
+            l.getStyle()
+                    .set("border", "1px solid var(--lumo-contrast-15pct)")
+                    .set("border-radius", "14px")
+                    .set("box-shadow", "0 12px 32px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.1)")
+                    .set("background", "var(--lumo-base-color)")
+                    .set("overflow", "hidden");
+
             l.addPopupOpenChangedEventListener(e -> {
                 if (e.isOpened()) {
-                    // Ensure opacity is within the valid range [0, 1]
-                    double clampedOpacity = Math.max(0.0, Math.min(1.0, 0.6));
-
                     UI.getCurrent().getPage().executeJs(
-                            String.format("const style = document.createElement('style');" +
-                            "style.textContent = 'vcf-popup-overlay::part(backdrop) { background-color: rgba(0, 0, 0, %f); }';" +
-                            "document.head.appendChild(style);", clampedOpacity));
-
-                    System.out.println("Opacity applied: " + clampedOpacity);
+                            "const styleId = 'tour-backdrop-style';" +
+                            "if (!document.getElementById(styleId)) {" +
+                            "  const style = document.createElement('style');" +
+                            "  style.id = styleId;" +
+                            "  style.textContent = 'vcf-popup-overlay::part(backdrop) { background-color: rgba(0, 0, 0, 0.5) !important; opacity: 1 !important; }';" +
+                            "  document.head.appendChild(style);" +
+                            "}");
                 }
             });
 
@@ -91,15 +99,13 @@ public class TourUtils {
         });
 
         this.onboarding.addStep(step);
-
         return this;
     }
 
     public TourUtils addStep(Component targetComponent,
-                              String headerTitle,
-                              Component content,
-                              PopupPosition position) {
-        // Call the more complex method with an empty Optional.
+                             String headerTitle,
+                             Component content,
+                             PopupPosition position) {
         return addStep(targetComponent, headerTitle, content, position, Optional.empty());
     }
 
@@ -108,5 +114,4 @@ public class TourUtils {
             this.onboarding.start();
         }
     }
-
 }

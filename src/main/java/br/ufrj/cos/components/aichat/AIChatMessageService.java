@@ -31,15 +31,32 @@ public class AIChatMessageService {
 
     @EventListener
     public void handleMessageSent(ChatMessageSentEvent event) {
-        //messages.add(event.getMessage());
+        if (event.getMessage() != null && !messages.contains(event.getMessage())) {
+            messages.add(event.getMessage());
+        }
     }
 
     @EventListener
     public void handleMessageReceived(ChatMessageReceivedEvent event) {
         AIChatMessage message = event.getMessage();
-        message.setText(
-                this.sanitizeHtml(message.getText()));
-        messages.add(event.getMessage());
+        if (message != null) {
+            message.setText(this.sanitizeHtml(message.getText()));
+            // Only add if not already in messages list (to prevent duplicates when replacing)
+            if (!messages.contains(message)) {
+                messages.add(message);
+            }
+        }
+    }
+
+    public void replaceMessage(AIChatMessage oldMessage, AIChatMessage newMessage) {
+        if (newMessage == null) return;
+        newMessage.setText(this.sanitizeHtml(newMessage.getText()));
+        int index = messages.indexOf(oldMessage);
+        if (index != -1) {
+            messages.set(index, newMessage);
+        } else {
+            messages.add(newMessage);
+        }
     }
 
     public void clearMessages() {

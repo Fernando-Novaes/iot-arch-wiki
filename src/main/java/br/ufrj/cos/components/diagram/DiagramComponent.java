@@ -50,8 +50,7 @@ public class DiagramComponent extends VerticalLayout {
     }
 
     public void execute() {
-        //Add the custom JavaScript to initialize the network (https://visjs.github.io/vis-network/examples/)
-       String js =
+        String js =
                 "var nodes = new vis.DataSet([" +
                 this.getNodes() +
                 "]);" +
@@ -61,22 +60,35 @@ public class DiagramComponent extends VerticalLayout {
                 "]);" +
 
                 "var container = document.getElementById('diagram');" +
-                "var data = { nodes: nodes, edges: edges };" +
+                "if (container) {" +
+                "   var data = { nodes: nodes, edges: edges };" +
 
-                "var options = { " +
-                        "nodes: { shape: 'box', size: 16, font: { size: 12 }, borderWidth: 2, shadow: true }, " +
-                        "edges: { smooth: { type: 'vertical', forceDirection: 'vertical', roundness: 0 }, width: 2, shadow: false }, " +
-                        "physics: { hierarchicalRepulsion: { centralGravity: 0, avoidOverlap: null }, " +
-                                    "solver: 'hierarchicalRepulsion', enabled: true, stabilization: true }, interaction: { zoomView: true } };" +
+                "   var options = { " +
+                        "layout: { hierarchical: false }, " +
+                        "nodes: { borderWidth: 0, shadow: { enabled: true, color: 'rgba(0,0,0,0.18)', x: 0, y: 4, size: 8 } }, " +
+                        "edges: { arrows: { to: { enabled: true, scaleFactor: 0.85 } }, smooth: { type: 'continuous', roundness: 0.4 }, width: 3, color: { color: '#3b82f6', highlight: '#2563eb', hover: '#1d4ed8' } }, " +
+                        "physics: { enabled: true, solver: 'forceAtlas2Based', forceAtlas2Based: { gravitationalConstant: -70, centralGravity: 0.005, springLength: 170, springConstant: 0.06, damping: 0.4 }, stabilization: { iterations: 150 } }, " +
+                        "interaction: { dragNodes: true, dragView: true, zoomView: true, hover: true, navigationButtons: false, keyboard: true } };" +
 
-                "var network = new vis.Network(container, data, options);"+
-                "network.once('stabilizationIterationsDone', function () {"+
-                "    network.fit();"+
-                "});"+
-                "network.fit();";
+                "   var network = new vis.Network(container, data, options);" +
+
+                "   network.on('hoverNode', function () { container.style.cursor = 'pointer'; });" +
+                "   network.on('blurNode', function () { container.style.cursor = 'default'; });" +
+
+                "   network.on('selectNode', function(params) {" +
+                "       if (params.nodes.length > 0) {" +
+                "           network.focus(params.nodes[0], { scale: 1.15, animation: { duration: 400, easingFunction: 'easeInOutQuad' } });" +
+                "       }" +
+                "   });" +
+
+                "   network.on('doubleClick', function(params) {" +
+                "       network.fit({ animation: { duration: 400, easingFunction: 'easeInOutQuad' } });" +
+                "   });" +
+
+                "   setTimeout(function () { network.fit(); }, 200);" +
+                "}";
 
         UI.getCurrent().getPage().executeJs(js);
-        System.out.println("#JS: " + js);
     }
 
 }

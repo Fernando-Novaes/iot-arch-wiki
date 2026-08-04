@@ -1,35 +1,286 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 @import url('./main-layout.css');
 @import url('./views/board-view.css');
 @import url('./views/io-t-arch-view.css');
 @import url('./views/quality-requirement-view.css');
-@import url('./views/about-view-view.css');    html {
-      --lumo-font-size: 1rem;
-      --lumo-font-size-xxxl: 1.75rem;
-      --lumo-font-size-xxl: 1.375rem;
-      --lumo-font-size-xl: 1.125rem;
-      --lumo-font-size-l: 1rem;
-      --lumo-font-size-m: 0.875rem;
-      --lumo-font-size-s: 0.8125rem;
-      --lumo-font-size-xs: 0.75rem;
-      --lumo-font-size-xxs: 0.6875rem;
-      --lumo-line-height-m: 1.4;
-      --lumo-line-height-s: 1.2;
-      --lumo-line-height-xs: 1.1;
+@import url('./views/about-view-view.css');
+@import url('./views/home-view.css');
+@import url('./views/login-view.css');
 
-    }
+/* ══════════════════════════════════════════════════════════
+   Typography & Design System
+   ══════════════════════════════════════════════════════════ */
+html {
+  /* Ultra-modern geometric sans for body & UI */
+  --lumo-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Outfit', 'Plus Jakarta Sans', -apple-system, sans-serif;
 
-    [theme~="dark"] {
-      --lumo-base-color: hsl(214, 5%, 19%);
-      --lumo-shade: hsl(214, 4%, 59%);
-      --lumo-shade-5pct: hsla(214, 4%, 59%, 0.05);
-      --lumo-shade-10pct: hsla(214, 4%, 59%, 0.1);
-      --lumo-shade-20pct: hsla(214, 4%, 59%, 0.2);
-      --lumo-shade-30pct: hsla(214, 4%, 59%, 0.3);
-      --lumo-shade-40pct: hsla(214, 4%, 59%, 0.4);
-      --lumo-shade-50pct: hsla(214, 4%, 59%, 0.5);
-      --lumo-shade-60pct: hsla(214, 4%, 59%, 0.6);
-      --lumo-shade-70pct: hsla(214, 4%, 59%, 0.7);
-      --lumo-shade-80pct: hsla(214, 4%, 59%, 0.8);
-      --lumo-shade-90pct: hsla(214, 4%, 59%, 0.9);
-      --lumo-body-text-color: hsla(31, 86%, 50%, 0.9);
-    }
+  /* Modernized Font Size Scale (Clear visual hierarchy) */
+  --lumo-font-size-xxxl: 2rem;       /* 32px */
+  --lumo-font-size-xxl:  1.5rem;     /* 24px */
+  --lumo-font-size-xl:   1.25rem;    /* 20px */
+  --lumo-font-size-l:    1.0625rem;  /* 17px */
+  --lumo-font-size-m:    0.9375rem;  /* 15px - Modern SaaS standard */
+  --lumo-font-size-s:    0.84375rem; /* 13.5px */
+  --lumo-font-size-xs:   0.75rem;    /* 12px */
+  --lumo-font-size-xxs:  0.6875rem;  /* 11px */
+
+  /* Line Heights for enhanced readability */
+  --lumo-line-height-m:  1.6;
+  --lumo-line-height-s:  1.35;
+  --lumo-line-height-xs: 1.15;
+
+  /* Border Radii */
+  --lumo-border-radius-l: 14px;
+  --lumo-border-radius-m: 10px;
+  --lumo-border-radius-s: 6px;
+}
+
+/* Headings font & letter spacing */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading) !important;
+  letter-spacing: -0.025em !important;
+  font-weight: 700 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   DARK THEME — Charcoal + Orange
+   ══════════════════════════════════════════════════════════ */
+html[theme~="dark"] {
+  /* Orange primary */
+  --lumo-primary-color:          hsl(30, 92%, 52%);
+  --lumo-primary-color-50pct:    hsla(30, 92%, 52%, 0.50);
+  --lumo-primary-color-10pct:    hsla(30, 92%, 52%, 0.10);
+  --lumo-primary-text-color:     hsl(30, 100%, 65%);
+  --lumo-primary-contrast-color: hsl(220, 15%, 8%);
+
+  /* Text */
+  --lumo-body-text-color:      hsl(220, 15%, 88%);
+  --lumo-header-text-color:    hsl(220, 5%, 97%);
+  --lumo-secondary-text-color: hsl(220, 10%, 60%);
+  --lumo-disabled-text-color:  hsl(220, 8%, 40%);
+
+  /* Base surface */
+  --lumo-base-color:   hsl(220, 12%, 11%);
+  --lumo-tint:         hsl(220, 10%, 96%);
+
+  /* Shade & Contrast scales */
+  --lumo-shade:        hsl(220, 10%, 55%);
+  --lumo-shade-5pct:   hsla(220, 10%, 55%, 0.05);
+  --lumo-shade-10pct:  hsla(220, 10%, 55%, 0.10);
+  --lumo-shade-20pct:  hsla(220, 10%, 55%, 0.20);
+
+  --lumo-contrast:       hsl(220, 10%, 90%);
+  --lumo-contrast-5pct:  hsla(220, 10%, 90%, 0.05);
+  --lumo-contrast-10pct: hsla(220, 10%, 90%, 0.10);
+  --lumo-contrast-20pct: hsla(220, 10%, 90%, 0.20);
+
+  /* Semantic */
+  --lumo-error-color:   hsl(4, 85%, 58%);
+  --lumo-success-color: hsl(145, 65%, 42%);
+  --lumo-warning-color: hsl(40, 95%, 52%);
+}
+
+html[theme~="dark"],
+html[theme~="dark"] body {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 0%,   hsla(30, 80%, 30%, 0.08) 0%, transparent 60%),
+    linear-gradient(165deg, hsl(220, 14%, 9%) 0%, hsl(220, 12%, 13%) 60%, hsl(218, 10%, 11%) 100%);
+}
+
+/* ══════════════════════════════════════════════════════════
+   LIGHT THEME — White + Blue
+   ══════════════════════════════════════════════════════════ */
+html:not([theme~="dark"]) {
+  /* Blue primary */
+  --lumo-primary-color:          hsl(214, 88%, 50%);
+  --lumo-primary-color-50pct:    hsla(214, 88%, 50%, 0.50);
+  --lumo-primary-color-10pct:    hsla(214, 88%, 50%, 0.10);
+  --lumo-primary-text-color:     hsl(214, 88%, 38%);
+  --lumo-primary-contrast-color: hsl(0, 0%, 100%);
+
+  /* Text */
+  --lumo-body-text-color:      hsl(220, 20%, 15%);
+  --lumo-header-text-color:    hsl(220, 25%, 10%);
+  --lumo-secondary-text-color: hsl(220, 12%, 45%);
+  --lumo-disabled-text-color:  hsl(220, 8%, 70%);
+
+  /* Base surface */
+  --lumo-base-color: hsl(0, 0%, 100%);
+  --lumo-tint:       hsl(214, 20%, 18%);
+
+  /* Semantic */
+  --lumo-error-color:   hsl(4, 82%, 50%);
+  --lumo-success-color: hsl(145, 62%, 38%);
+  --lumo-warning-color: hsl(38, 92%, 48%);
+}
+
+html:not([theme~="dark"]),
+html:not([theme~="dark"]) body {
+  background:
+    radial-gradient(ellipse 80% 50% at 10% 0%, hsla(214, 80%, 95%, 0.7) 0%, transparent 60%),
+    linear-gradient(175deg, hsl(210, 30%, 97%) 0%, hsl(0, 0%, 100%) 50%, hsl(214, 20%, 97%) 100%);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Global Body
+   ══════════════════════════════════════════════════════════ */
+html, body {
+  font-family: var(--lumo-font-family);
+  font-size: var(--lumo-font-size-m);
+  line-height: var(--lumo-line-height-m);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Vaadin Grid
+   ══════════════════════════════════════════════════════════ */
+vaadin-grid {
+  border-radius: var(--lumo-border-radius-l) !important;
+  overflow: hidden;
+  border: 1px solid var(--lumo-contrast-10pct) !important;
+}
+
+vaadin-grid::part(header-cell) {
+  font-family: var(--font-heading) !important;
+  background: var(--lumo-contrast-5pct) !important;
+  color: var(--lumo-primary-text-color) !important;
+  font-weight: 700 !important;
+  font-size: 0.8125rem !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  border-bottom: 2px solid var(--lumo-primary-color-50pct) !important;
+}
+
+vaadin-grid::part(row):hover {
+  background: var(--lumo-primary-color-10pct) !important;
+}
+
+vaadin-grid::part(body-cell) {
+  border-bottom: 1px solid var(--lumo-contrast-5pct) !important;
+  font-size: 0.9375rem !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Buttons
+   ══════════════════════════════════════════════════════════ */
+vaadin-button {
+  font-family: var(--font-heading) !important;
+  font-size: 0.9375rem !important;
+  letter-spacing: -0.01em !important;
+}
+
+vaadin-button[theme~="primary"] {
+  background: var(--lumo-primary-color) !important;
+  color: var(--lumo-primary-contrast-color) !important;
+  border: none !important;
+  box-shadow: 0 3px 12px var(--lumo-primary-color-50pct) !important;
+  font-weight: 700 !important;
+  transition: box-shadow 0.2s, transform 0.15s, filter 0.2s !important;
+}
+
+vaadin-button[theme~="primary"]:hover {
+  box-shadow: 0 6px 20px var(--lumo-primary-color-50pct) !important;
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08) !important;
+}
+
+vaadin-button[theme~="primary"]:active {
+  transform: translateY(0) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Inputs & Controls
+   ══════════════════════════════════════════════════════════ */
+vaadin-text-field::part(input-field),
+vaadin-text-area::part(input-field),
+vaadin-password-field::part(input-field),
+vaadin-combo-box::part(input-field),
+vaadin-email-field::part(input-field),
+vaadin-integer-field::part(input-field) {
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.9375rem !important;
+  border: 1px solid var(--lumo-contrast-20pct) !important;
+  border-radius: var(--lumo-border-radius-m) !important;
+  transition: border-color 0.2s, box-shadow 0.2s !important;
+}
+
+vaadin-text-field:focus-within::part(input-field),
+vaadin-text-area:focus-within::part(input-field),
+vaadin-password-field:focus-within::part(input-field),
+vaadin-combo-box:focus-within::part(input-field),
+vaadin-email-field:focus-within::part(input-field),
+vaadin-integer-field:focus-within::part(input-field) {
+  border-color: var(--lumo-primary-color) !important;
+  box-shadow: 0 0 0 3px var(--lumo-primary-color-10pct) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Dialog
+   ══════════════════════════════════════════════════════════ */
+vaadin-dialog-overlay::part(overlay) {
+  border: 1px solid var(--lumo-contrast-10pct) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 20px 60px hsla(220, 20%, 5%, 0.25) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Tab navigation
+   ══════════════════════════════════════════════════════════ */
+vaadin-tab {
+  font-family: var(--font-heading) !important;
+  font-size: 0.9375rem !important;
+  letter-spacing: -0.01em !important;
+}
+
+vaadin-tab[selected]::before {
+  background: var(--lumo-primary-color) !important;
+}
+
+vaadin-tab[selected] {
+  color: var(--lumo-primary-text-color) !important;
+  font-weight: 700 !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Avatar
+   ══════════════════════════════════════════════════════════ */
+vaadin-avatar {
+  border: 2px solid var(--lumo-primary-color-50pct) !important;
+}
+
+vaadin-avatar:hover {
+  border-color: var(--lumo-primary-color) !important;
+}
+
+/* ══════════════════════════════════════════════════════════
+   Scrollbars
+   ══════════════════════════════════════════════════════════ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--lumo-contrast-20pct);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lumo-primary-color-50pct);
+}
+
+/* ══════════════════════════════════════════════════════════
+   Badges
+   ══════════════════════════════════════════════════════════ */
+[theme~="badge"] {
+  font-family: var(--font-heading) !important;
+  border-radius: 99px !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  letter-spacing: 0.03em !important;
+}
+
+[theme~="badge"][theme~="primary"] {
+  background: var(--lumo-primary-color-10pct) !important;
+  color: var(--lumo-primary-text-color) !important;
+  border: 1px solid var(--lumo-primary-color-50pct) !important;
+}

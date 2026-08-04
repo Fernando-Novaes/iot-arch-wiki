@@ -20,6 +20,9 @@ public class AppConfig extends DomainBase {
 
     private String apiAddress;
 
+    @Column(length = 500)
+    private String googleApiKey;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ScrapWebSite> scrapWebSites;
 
@@ -29,6 +32,12 @@ public class AppConfig extends DomainBase {
     private Instant knowledgeDatabaseLastUpdate;
 
     private Instant aiRagDocumentsLastUpdate;
+
+    @Builder.Default
+    private Boolean allowExternalContext = true;
+
+    @Builder.Default
+    private Boolean allowUserContextOverride = true;
 
     @ToString.Exclude
     @OneToMany(mappedBy = "appConfig", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)

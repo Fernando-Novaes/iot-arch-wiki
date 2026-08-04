@@ -82,7 +82,9 @@ public class TreeViewComponent extends VerticalLayout {
      * Load the TreeView with all data from the knowledge base
      */
     public void load() {
+        removeAll();
         treeGrid = new TreeGrid<>();
+        treeGrid.setSizeFull();
 
         TreeNode<Object> tree = treeViewService.getTree(this.treeViewType);
         this.setTreeViewData(treeViewService.getTreeViewData());
@@ -124,10 +126,11 @@ public class TreeViewComponent extends VerticalLayout {
 
         root = tree;
         this.rootNode = root;
-        if (root != null) treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
-        //}
-
-        treeGrid.expand(root);
+        if (root != null) {
+            treeGrid.setItems(List.of(root), node -> ((TreeNode<?>) node).getChildren());
+            // Tree is collapsed by default on the main page
+            treeGrid.expand(root);
+        }
 
         treeGrid.setClassNameGenerator(node -> {
             Object data = node.getData();
@@ -157,7 +160,7 @@ public class TreeViewComponent extends VerticalLayout {
 
         // Add styling variant to the TreeGrid for better visibility
         treeGrid.addThemeVariants(GridVariant.LUMO_NO_ROW_BORDERS);
-        treeGrid.getStyle().setBackgroundColor("#var(--lumo-contrast-10pct)");
+        treeGrid.getStyle().set("background-color", "var(--lumo-contrast-5pct)");
 
         // Add the TreeGrid to the main layout
         add(treeGrid);
@@ -251,11 +254,11 @@ public class TreeViewComponent extends VerticalLayout {
      */
     private String setBoxStyleToNodes(String domain) {
         return switch (domain) {
-            case "IoT Domain" -> "#ED8312E5";
-            case "Architecture Solution" -> "#ffffff";
-            case "Quality Requirement" -> "yellow";
-            case "Technology" -> "green";
-            default -> "#ED8312E5";
+            case "IoT Domain" -> "#e67e22";
+            case "Architecture", "Architecture Solution" -> "#2980b9";
+            case "Quality Requirement" -> "#8e44ad";
+            case "Technology" -> "#27ae60";
+            default -> "#e67e22";
         };
     }
 

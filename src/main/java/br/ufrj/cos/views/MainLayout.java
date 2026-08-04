@@ -1,27 +1,20 @@
 package br.ufrj.cos.views;
 
-
 import br.ufrj.cos.components.avatar.AvatarComponent;
 import br.ufrj.cos.utils.TourUtils;
 import br.ufrj.cos.views.about.AboutView;
 import br.ufrj.cos.views.aichat.AiChatView;
 import br.ufrj.cos.views.board.BoardView;
+import br.ufrj.cos.views.builder.ArchitectureBuilderView;
 import br.ufrj.cos.views.home.HomeView;
 import br.ufrj.cos.views.iotarch.IoTArchView;
 import br.ufrj.cos.views.mynotes.MyNotesView;
-import com.vaadin.componentfactory.Popup;
-import com.vaadin.componentfactory.PopupAlignment;
-import com.vaadin.componentfactory.PopupPosition;
-import com.vaadin.componentfactory.PopupVariant;
 import com.vaadin.componentfactory.onboarding.Onboarding;
-import com.vaadin.componentfactory.onboarding.OnboardingStep;
 import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.ComponentEvent;
-import com.vaadin.flow.component.HasText;
 import com.vaadin.flow.component.Html;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.button.Button;
-import com.vaadin.flow.component.dependency.CssImport;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
@@ -29,161 +22,158 @@ import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.shared.Registration;
-import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
-import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
-import com.vaadin.flow.theme.lumo.LumoUtility.Display;
-import com.vaadin.flow.theme.lumo.LumoUtility.FlexDirection;
-import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
-import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
-import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import com.vaadin.flow.theme.lumo.LumoUtility.Height;
-import com.vaadin.flow.theme.lumo.LumoUtility.ListStyleType;
-import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
-import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
-import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
-import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
-import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
-import com.vaadin.flow.theme.lumo.LumoUtility.Width;
 import jakarta.annotation.security.PermitAll;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
- * The main view is a top-level placeholder for other views.
+ * Main layout featuring a top header and a vertically-centered icon sidebar menu.
  */
 @PermitAll
 public class MainLayout extends AppLayout {
 
-    private AvatarComponent avatarComponent = new AvatarComponent();
-    private final String HELP_DOC_PATH = "docs/user-manual.pdf";
-    private Nav nav;
-    private Header header;
+    private final AvatarComponent avatarComponent = new AvatarComponent();
+    private static final String HELP_DOC_PATH = "docs/user-manual.pdf";
     private Button tourBtn;
     private Button helpBtn;
-    Registration clickRegistration;
-    /**
-     * A simple navigation item component, based on ListItem element.
-     */
-    public static class MenuItemInfo extends ListItem {
+    private Registration clickRegistration;
 
+    public static class MenuItemInfo extends ListItem {
         private final Class<? extends Component> view;
 
         public MenuItemInfo(String menuTitle, Component icon, Class<? extends Component> view) {
             this.view = view;
             RouterLink link = new RouterLink();
-            // Use Lumo classnames for various styling
-            link.addClassNames(Display.FLEX, Gap.XSMALL, Height.MEDIUM, AlignItems.CENTER, Padding.Horizontal.SMALL,
-                    TextColor.BODY);
             link.setRoute(view);
-
-            Span text = new Span(menuTitle);
-            // Use Lumo classnames for various styling
-            text.addClassNames(FontWeight.MEDIUM, FontSize.MEDIUM, Whitespace.NOWRAP);
+            link.addClassName("drawer-link");
+            link.getElement().setAttribute("title", menuTitle);
 
             if (icon != null) {
+                icon.getElement().getClassList().add("drawer-link-icon");
                 link.add(icon);
             }
-            link.add(text);
+
             add(link);
         }
+
         public Class<?> getView() {
             return view;
         }
     }
 
     public MainLayout() {
+        setPrimarySection(Section.NAVBAR);
+        setDrawerOpened(true);
         addToNavbar(createHeaderContent());
+        addToDrawer(createDrawerContent());
     }
 
     private Component createHeaderContent() {
-        header = new Header();
-        header.addClassNames(BoxSizing.BORDER, Display.FLEX, FlexDirection.COLUMN, Width.FULL);
+        HorizontalLayout navbar = new HorizontalLayout();
+        navbar.addClassName("header-navbar");
+        navbar.setWidthFull();
+        navbar.setAlignItems(FlexComponent.Alignment.CENTER);
 
-        HorizontalLayout layout = new HorizontalLayout();
-        layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE, Padding.Vertical.SMALL);
-        layout.getStyle().setBoxShadow("0 4px 8px rgba(0, 0, 0, 0.2)");
+        // App title / Logo
+        Div logoDiv = new Div();
+        logoDiv.addClassName("header-logo-container");
 
-        layout.setAlignItems(FlexComponent.Alignment.START);
-        layout.add(new Html("<div style='font-weight: bold; font-size: xx-large'>ArchIoTect</div>"),
-                new Span(" "),
-                new Html("<div style='width: 100%'><h3>IoT Architecture Solution Knowledge Base</h3><p >IoT Design Decision Assistant</p></div>"),
-                this.avatarComponent.createAvatar());
+        Span logoName = new Span("ArchIoTect");
+        logoName.addClassName("header-logo-title");
 
-        nav = new Nav();
-        nav.addClassNames(Display.FLEX, Overflow.AUTO, Padding.Horizontal.MEDIUM, Padding.Vertical.XSMALL, Width.FULL);
+        Span subBadgeDot = new Span();
+        subBadgeDot.getStyle()
+                .set("width", "6px")
+                .set("height", "6px")
+                .set("border-radius", "50%")
+                .set("background", "var(--lumo-primary-color)")
+                .set("display", "inline-block")
+                .set("box-shadow", "0 0 8px var(--lumo-primary-color)");
 
-        // Wrap the links in a list; improves accessibility
+        Span logoSubText = new Span("IoT Architecture Assistant");
+
+        Span logoSub = new Span(subBadgeDot, logoSubText);
+        logoSub.addClassName("header-logo-sub");
+
+        logoDiv.add(logoName, logoSub);
+
+        // User action buttons on the right
+        HorizontalLayout actionsLayout = new HorizontalLayout();
+        actionsLayout.addClassName("header-actions");
+        actionsLayout.setAlignItems(FlexComponent.Alignment.CENTER);
+        actionsLayout.setSpacing(true);
+
+        HorizontalLayout toolsGroup = new HorizontalLayout();
+        toolsGroup.setAlignItems(FlexComponent.Alignment.CENTER);
+        toolsGroup.setSpacing(false);
+        toolsGroup.getStyle()
+                .set("background", "var(--lumo-contrast-5pct)")
+                .set("border-radius", "20px")
+                .set("padding", "2px 6px")
+                .set("border", "1px solid var(--lumo-contrast-15pct)")
+                .set("margin-right", "8px");
+
+        helpBtn = new Button(new Icon(VaadinIcon.QUESTION_CIRCLE));
+        helpBtn.setTooltipText("User Manual");
+        helpBtn.getStyle()
+                .set("min-width", "32px")
+                .set("height", "32px")
+                .set("border-radius", "50%")
+                .set("border", "none")
+                .set("background", "transparent")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("cursor", "pointer");
+        helpBtn.addClickListener(click ->
+                getUI().ifPresent(ui -> ui.getPage().open(HELP_DOC_PATH, "_blank"))
+        );
+
+        tourBtn = new Button(VaadinIcon.INFO_CIRCLE.create());
+        tourBtn.setTooltipText("Start guided tour of this page");
+        tourBtn.getStyle()
+                .set("min-width", "32px")
+                .set("height", "32px")
+                .set("border-radius", "50%")
+                .set("border", "none")
+                .set("background", "transparent")
+                .set("color", "var(--lumo-secondary-text-color)")
+                .set("cursor", "pointer");
+
+        toolsGroup.add(helpBtn, tourBtn);
+
+        actionsLayout.add(toolsGroup, avatarComponent.createAvatar());
+
+        navbar.add(logoDiv, actionsLayout);
+        return navbar;
+    }
+
+    private Component createDrawerContent() {
+        Nav nav = new Nav();
+        nav.addClassName("drawer-nav");
+
         UnorderedList list = new UnorderedList();
-        list.addClassNames(Display.FLEX, Gap.SMALL, ListStyleType.NONE, Margin.NONE, Padding.NONE, Width.FULL); // Ensure the list itself takes full width
-
+        list.addClassName("drawer-menu-list");
         nav.add(list);
 
         for (MenuItemInfo menuItem : createMenuItems()) {
             list.add(menuItem);
         }
 
-        // 1. Create the help item. It should NOT take up the full width.
-        //    It should only be as wide as its content (the icon).
-        ListItem helpItem = new ListItem();
-        helpBtn = new Button(new Icon(VaadinIcon.QUESTION_CIRCLE));
-        helpBtn.getStyle().setCursor("pointer");
-        helpBtn.setTooltipText("User manual");
-
-        tourBtn = new Button(VaadinIcon.INFO_CIRCLE.create());
-        tourBtn.setTooltipText("Start a guided tour of this page's features.");
-        tourBtn.getStyle().setCursor("pointer");
-        //tourBtn.getStyle().setBorder("solid 1px blue");
-
-        helpBtn.addClickListener(click -> {
-            getUI().ifPresent(ui -> ui.getPage().open(HELP_DOC_PATH, "_blank"));
-        });
-
-        helpItem.setWhiteSpace(HasText.WhiteSpace.NORMAL);
-        //helpBtn.getStyle().setBorder("solid 1px blue");
-
-        Div space = new Div();
-        space.setWidth("2px");
-
-        helpItem.add(helpBtn, space, tourBtn);
-
-        // 2. Apply the magic style: margin-left: auto
-        //    This tells the flex item to consume all available space to its left,
-        //    pushing it to the far right of the flex container (the UnorderedList).
-        helpItem.addClassNames(Margin.Start.AUTO, AlignItems.CENTER, Display.FLEX, Padding.Horizontal.XLARGE);
-
-        // 3. Add the correctly styled help item to the list.
-        list.add(helpItem);
-
-        header.add(layout, nav);
-
-        return header;
+        return nav;
     }
 
     private MenuItemInfo[] createMenuItems() {
         List<MenuItemInfo> menu = new ArrayList<>(List.of(
                 new MenuItemInfo("Home", LineAwesomeIcon.HOME_SOLID.create(), HomeView.class),
-                new MenuItemInfo("BoK", LineAwesomeIcon.WHMCS.create(), BoardView.class),
+                new MenuItemInfo("BoK", LineAwesomeIcon.TACHOMETER_ALT_SOLID.create(), BoardView.class),
                 new MenuItemInfo("Knowledge Base", LineAwesomeIcon.PENCIL_RULER_SOLID.create(), IoTArchView.class),
+                new MenuItemInfo("Arch Builder", LineAwesomeIcon.CUBES_SOLID.create(), ArchitectureBuilderView.class),
                 new MenuItemInfo("AI-Assistant", LineAwesomeIcon.TERMINAL_SOLID.create(), AiChatView.class),
-                //new MenuItemInfo("IoT Architecture", LineAwesomeIcon.NETWORK_WIRED_SOLID.create(), QualityRequirementView.class),
-                //new MenuItemInfo("IoT Domains", LineAwesomeIcon.PROJECT_DIAGRAM_SOLID.create(), QualityRequirementView.class),
-                //new MenuItemInfo("Quality Requirement", LineAwesomeIcon.CHECK_SQUARE_SOLID.create(), QualityRequirementView.class)
-                new MenuItemInfo("My Notes", LineAwesomeIcon.NOTES_MEDICAL_SOLID.create(), MyNotesView.class)
+                new MenuItemInfo("My Notes", LineAwesomeIcon.NOTES_MEDICAL_SOLID.create(), MyNotesView.class),
+                new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutView.class)
         ));
 
-        // Dynamically add the "Knowledge Manager" menu item if the user is an ADMIN
-//        if (SecurityUtils.hasRole("ADMIN")) {
-//            menu.add(new MenuItemInfo("App Config", LineAwesomeIcon.COG_SOLID.create(), AppConfigView.class));
-//            menu.add(new MenuItemInfo("Knowledge Manager", LineAwesomeIcon.DATABASE_SOLID.create(), DataManagerView.class));
-//            menu.add(new MenuItemInfo("User Manager", LineAwesomeIcon.USER_ALT_SOLID.create(), UserRegistrationView.class));
-//        }
-
-        menu.add(new MenuItemInfo("About", LineAwesomeIcon.ADDRESS_CARD_SOLID.create(), AboutView.class));
-
-        // Convert list to an array and return it
         return menu.toArray(new MenuItemInfo[0]);
     }
 
@@ -196,23 +186,15 @@ public class MainLayout extends AppLayout {
             clickRegistration.remove();
         }
 
-        // Set the content area to be a full-height flex container
         getElement().getStyle().set("height", "100%");
         getContent().getElement().getStyle().set("flex-grow", "1");
 
         Component currentView = getContent();
-        // Check if the current view implements our HasTour interface
         if (currentView instanceof HasTour viewWithTour) {
-            // 2. Ask the view to create its specific tour
             Onboarding tour = (Onboarding) viewWithTour.createTour();
 
-            // 1. Make the tour button visible
             if (tour != null && !tour.getSteps().isEmpty()) {
                 tourBtn.setVisible(true);
-                tourBtn.addClickListener(ComponentEvent::unregisterListener);
-
-                // 4. Wire the button's click listener to start THIS specific tour
-                //    We need to remove old listeners first to prevent them from stacking up.
                 clickRegistration = tourBtn.addClickListener(e -> tour.start());
             }
 
@@ -220,14 +202,11 @@ public class MainLayout extends AppLayout {
                 createPageTour();
             }
 
-            //Demo tour to show the user manual and tour buttons
             if (viewWithTour.startDemoTour()) {
-               tourBtn.setVisible(true);
-               startDemoTour();
+                tourBtn.setVisible(true);
+                startDemoTour();
             }
-
         } else {
-            // If the page doesn't have a tour, hide the button.
             tourBtn.setVisible(false);
         }
     }
@@ -235,28 +214,21 @@ public class MainLayout extends AppLayout {
     private void startDemoTour() {
         tourBtn.addClickListener(ComponentEvent::unregisterListener);
 
-        this.addAttachListener(l ->  new TourUtils().build()
+        this.addAttachListener(l -> new TourUtils().build()
                 .addStep(tourBtn,
                         "Page Features and Tips Tour",
                         new Html("<div>When this button is visible a guided tour is available for the page.</div>"),
-                        PopupPosition.BOTTOM).startTour());
+                        com.vaadin.componentfactory.PopupPosition.BOTTOM).startTour());
     }
 
     private void createPageTour() {
         tourBtn.addClickListener(ComponentEvent::unregisterListener);
         if (clickRegistration != null) { clickRegistration.remove(); }
 
-        System.out.println("Created tourx...");
         clickRegistration = tourBtn.addClickListener(e -> new TourUtils().build()
-                .addStep(header,
-                        "Avatar and Menu Options",
-                        new Html("<div>Profile, Change Password, and Logout options.</div>"),
-                        PopupPosition.BOTTOM)
-                .addStep(nav,
-                        "Nav Bar",
-                        new Html("<div>From here, you can explore the application in several ways: browse the menu options, open the User Manual, or take a guided tour of the page's features.</div>"),
-                        PopupPosition.BOTTOM).startTour());
-        System.out.println("Tourx done.");
+                .addStep(tourBtn,
+                        "Page Features and Manual",
+                        new Html("<div>From here, you can open the User Manual or take a guided tour of the page.</div>"),
+                        com.vaadin.componentfactory.PopupPosition.BOTTOM).startTour());
     }
-
 }

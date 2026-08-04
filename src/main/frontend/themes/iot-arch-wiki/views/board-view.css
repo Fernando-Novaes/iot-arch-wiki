@@ -1,166 +1,197 @@
-.board-view {
-  padding: 2px;
-  box-sizing: border-box;
-  display: block;
-  position: relative;
-  height: 100%;
-  overflow-y: auto;
-  --cv-blue: 212 96% 54%;
-  --cv-purple: 259 97% 66%;
-  --cv-dropzone-border-color: hsl(var(--cv-blue) / 0.5);
-  --cv-dropzone-bg-color: hsl(var(--cv-blue) / 0.2);
-  --cv-droptarget-border-color: hsl(var(--cv-purple) / 1);
-  --cv-droptarget-bg-color: hsl(var(--cv-purple) / 0.4);
-  --cv-stripe-width: 1.5px;
-  --cv-stripe-gap: 9px;
-  --cv-stripe-color: hsl(var(--cv-blue) / 0.2);
-  --cv-layout-border-color: var(--lumo-contrast-40pct);
-  --cv-checkerboard-color1: hsl(0 0% 0% / 0.05);
-  --cv-checkerboard-color2: hsl(0 0% 100% / 0.05);
-  --cv-checkerboard-size: 16px;
+/* ══════════════════════════════════════════════════════════
+   Body of Knowledge (Board View) — High-Impact Chart Dashboard
+   ══════════════════════════════════════════════════════════ */
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
-.board-view[dragging] {
-  --cv-checkerboard-color1: hsl(var(--cv-blue) / 0.2);
-  --cv-checkerboard-color2: hsl(var(--cv-blue) / 0.1);
-  --cv-layout-border-color: var(--cv-dropzone-border-color);
+/* ─── Root View Container ─────────────────────────────────── */
+.board-view-root {
+  min-height: 100%;
+  height: auto !important;
+  overflow-y: auto !important;
+  width: 100% !important;
+  max-width: 1600px;
+  margin: 0 auto;
+  padding: 1.25rem 1.5rem !important;
+  box-sizing: border-box !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
-.board-view .preview-container {
-  display: contents;
-}
-
-/* The root layout is not necessarily inside a flex box so width/height needs to be used */
-.board-view .preview-container > .layout[style*='align-self: stretch'] {
+/* ─── Header Banner ──────────────────────────────────────── */
+.bv-header-banner {
+  text-align: center;
   width: 100%;
-}
-.board-view .preview-container > .layout[style*='flex-grow: 1'] {
-  height: 100%;
-}
-
-/* Apply some default gap and padding to layouts that don't have inline styles for them while dragging. */
-.board-view[dragging] .layout:not([style*='gap:']) {
-  gap: 8px;
+  margin-bottom: 1.25rem !important;
+  animation: fadeSlideUp 0.3s ease both;
 }
 
-.board-view[dragging] .layout:not([style*='padding:'], [empty]) {
-  padding: 8px;
+.bv-header-title {
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: clamp(1.5rem, 2.5vw, 2.0rem) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+  margin: 0 0 0.25rem 0 !important;
+  line-height: 1.2 !important;
 }
 
-.board-view .cover-overlay {
-  position: absolute;
-  border-radius: 1px;
+html[theme~="dark"] .bv-header-title {
+  background: linear-gradient(135deg, hsl(30, 100%, 72%), hsl(38, 95%, 62%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.board-view:not([starting-drag]) .cover-overlay.editable-hovering {
-  outline: 2px solid hsl(var(--cv-blue) / 1);
-  outline-offset: -1px;
+html:not([theme~="dark"]) .bv-header-title {
+  background: linear-gradient(135deg, hsl(214, 88%, 42%), hsl(200, 82%, 50%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
-.board-view:not([starting-drag]) .cover-overlay.editable-editing {
-  outline: 1px solid hsl(var(--cv-blue) / 1);
-  outline-offset: -1px;
-  box-shadow: inset 0 0 0 2px var(--lumo-base-color);
+.bv-header-subtitle {
+  font-family: var(--lumo-font-family) !important;
+  font-size: 0.9375rem !important;
+  color: var(--lumo-secondary-text-color) !important;
+  margin: 0 !important;
 }
 
-.board-view .overlays,
-.board-view .drop-zones {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
+/* ─── 2x2 Balanced Grid (2 equal columns) ───────────────── */
+.bv-charts-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, 1fr) !important;
+  gap: 1.25rem !important;
+  width: 100% !important;
+  margin-bottom: 1.25rem !important;
 }
 
-.board-view:not([dragging]) .drop-zones {
-  pointer-events: none;
+@media (max-width: 900px) {
+  .bv-charts-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
-.board-view .drop-zone {
-  position: absolute;
-  box-sizing: border-box;
-  border-radius: 1px;
-  min-height: 10px;
-  min-width: 10px;
+/* ─── Chart Card Surface ─────────────────────────────────── */
+.bv-chart-card {
+  border-radius: 18px !important;
+  padding: 1.25rem !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 380px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  animation: fadeSlideUp 0.4s ease both;
 }
 
-.board-view[dragging] .drop-zone:not([empty-layout]) {
-  outline: 1px dashed var(--cv-dropzone-border-color);
-  outline-offset: -2px;
-  background-color: var(--cv-dropzone-bg-color);
+html[theme~="dark"] .bv-chart-card {
+  background: linear-gradient(
+    145deg,
+    hsla(220, 14%, 13%, 0.95) 0%,
+    hsla(220, 12%, 11%, 0.98) 100%
+  ) !important;
+  border: 1px solid hsla(220, 10%, 55%, 0.12) !important;
+  box-shadow: 0 4px 20px hsla(220, 20%, 3%, 0.40) !important;
 }
 
-.board-view .drop-zone[remaining-space] {
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--cv-stripe-color),
-    var(--cv-stripe-color) var(--cv-stripe-width),
-    transparent var(--cv-stripe-width),
-    transparent var(--cv-stripe-gap)
-  );
+html[theme~="dark"] .bv-chart-card:hover {
+  border-color: hsla(30, 95%, 52%, 0.30) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px hsla(220, 20%, 3%, 0.60) !important;
 }
 
-.board-view[dragging] .drop-zone[drag-over] {
-  background: var(--cv-droptarget-bg-color);
-  outline: 1px solid var(--cv-droptarget-border-color);
-  outline-offset: -1px;
-  box-shadow: inset 0 0 0 2px var(--lumo-base-color);
+html:not([theme~="dark"]) .bv-chart-card {
+  background: hsl(0, 0%, 100%) !important;
+  border: 1px solid hsla(214, 15%, 35%, 0.10) !important;
+  box-shadow: 0 2px 10px hsla(214, 20%, 35%, 0.05) !important;
 }
 
-.drop-zone[empty-layout] {
-  z-index: -1;
+html:not([theme~="dark"]) .bv-chart-card:hover {
+  border-color: hsla(214, 88%, 52%, 0.25) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px hsla(214, 20%, 35%, 0.10) !important;
 }
 
-.board-view:not([readonly]) .layout[empty],vaadin-form-layout[empty] {
-  border-radius: 1px;
-  background: repeating-conic-gradient(var(--cv-checkerboard-color1) 0% 25%, var(--cv-checkerboard-color2) 0% 50%) 50% /
-    var(--cv-checkerboard-size) var(--cv-checkerboard-size);
-  background-clip: content-box;
-  outline: 1px dashed var(--cv-layout-border-color);
-  outline-offset: -2px;
-}
-.board-view[dragging]:not([readonly]) vaadin-form-layout[empty]{
-  background: transparent;
+/* Ensure ApexCharts inside card fills available space */
+.bv-chart-card > div:not(.bv-card-header) {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-height: 320px !important;
 }
 
-
-.board-view .layout[empty]::before {
-  content: '';
-  display: block;
-  min-width: 64px;
-  min-height: 32px;
+/* ─── Card Header (Title + Button) ───────────────────────── */
+.bv-card-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  padding-bottom: 0.5rem !important;
+  margin-bottom: 0.5rem !important;
+  border-bottom: 1px solid var(--lumo-contrast-10pct) !important;
+  font-family: var(--font-heading, 'Outfit', sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.015em !important;
+  color: var(--lumo-header-text-color) !important;
+  flex: 0 0 auto !important;
 }
 
-.board-view[readonly] .drop-zones,
-.board-view[readonly] .overlays {
-  display: none;
+/* ─── Expand Button ──────────────────────────────────────── */
+vaadin-button.bv-expand-btn {
+  background: transparent !important;
+  border: 1px solid var(--lumo-contrast-10pct) !important;
+  color: var(--lumo-secondary-text-color) !important;
+  padding: 4px 8px !important;
+  border-radius: var(--lumo-border-radius-m) !important;
+  cursor: pointer !important;
+  transition: background 0.2s, border-color 0.2s, color 0.2s !important;
 }
 
-.board-view[inline-editing] .drop-zones,
-.board-view[inline-editing] .overlays {
-  display: none;
-}
-.board-view .content-wrapper[contenteditable='true']{
-  display: inline-block;
-  overflow: hidden;
-  width: 100%;
+html[theme~="dark"] vaadin-button.bv-expand-btn:hover {
+  background: hsla(30, 95%, 52%, 0.12) !important;
+  border-color: hsla(30, 95%, 52%, 0.35) !important;
+  color: hsl(30, 100%, 65%) !important;
 }
 
-
-.board-view[dragging] vaadin-form-layout {
-  padding: 8px;
-}
-.board-view vaadin-form-layout[empty]::before {
-  content: '';
-  display: block;
-  min-width: 64px;
-  min-height: 32px;
+html:not([theme~="dark"]) vaadin-button.bv-expand-btn:hover {
+  background: hsla(214, 88%, 50%, 0.08) !important;
+  border-color: hsla(214, 88%, 50%, 0.30) !important;
+  color: hsl(214, 88%, 40%) !important;
 }
 
-.board-view[dragging] vaadin-form-layout:not([empty])::after {
-  content: '';
-  display: block;
-  min-width: 64px;
-  min-height: 32px;
+/* ─── Summary Bar Card (Bottom) ──────────────────────────── */
+.bv-summary-card {
+  border-radius: 18px !important;
+  padding: 1.25rem !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-height: 360px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  animation: fadeSlideUp 0.5s ease both;
+}
+
+.bv-summary-card > div {
+  flex: 1 1 auto !important;
+  width: 100% !important;
+  min-height: 300px !important;
+}
+
+html[theme~="dark"] .bv-summary-card {
+  background: linear-gradient(
+    145deg,
+    hsla(220, 14%, 13%, 0.95) 0%,
+    hsla(220, 12%, 11%, 0.98) 100%
+  ) !important;
+  border: 1px solid hsla(220, 10%, 55%, 0.14) !important;
+  box-shadow: 0 4px 24px hsla(220, 20%, 3%, 0.45) !important;
+}
+
+html:not([theme~="dark"]) .bv-summary-card {
+  background: hsl(0, 0%, 100%) !important;
+  border: 1px solid hsla(214, 15%, 35%, 0.12) !important;
+  box-shadow: 0 2px 16px hsla(214, 20%, 35%, 0.08) !important;
 }

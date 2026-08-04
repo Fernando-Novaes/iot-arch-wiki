@@ -1,78 +1,91 @@
-/* Place this in your frontend/themes/[your-theme]/components/slider-panel.css */
-
 .slider-panel {
     position: fixed;
     top: 0;
-    right: 0;
+    right: -55vw !important;
     height: 100vh;
-    width: clamp(800px, 25vw, 1200px); /* Responsive width */
+    width: 55vw !important;
     z-index: 1000;
     background-color: var(--lumo-base-color);
-    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.4);
-    transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
-    transform: translateX(100%); /* Hide to the right */
-    border-color: #4a4d52;
-    border-style: solid;
-    border-width: 1px;
-    'overflow: hidden; /* Prevents content overflow during resize */
+    box-shadow: -8px 0 24px rgba(0, 0, 0, 0.18);
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    border-left: 1px solid var(--lumo-contrast-15pct);
+    overflow: visible !important;
 }
 
 .slider-panel.expanded {
-    transform: translateX(0); /* Show panel */
+    right: 0 !important;
 }
 
 /* Toggle button for opening/closing the panel */
 .slider-toggle {
     position: absolute;
-    left: -40px;
+    left: -44px;
     top: 50%;
     transform: translateY(-50%);
-    border-radius: 0 0 0 0 !important;
+    border-radius: 16px 0 0 16px !important;
     margin: 0 !important;
-    min-width: 25px !important;
-    min-height: 150px;
-    padding: 12px 8px !important;
-    background-color: var(--lumo-primary-color) !important;
-    color: var(--lumo-primary-contrast-color) !important;
+    min-width: 44px !important;
+    min-height: 140px;
+    padding: 14px 6px !important;
+    background: linear-gradient(135deg, #1e293b, #3b82f6) !important;
+    color: #ffffff !important;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    writing-mode: vertical-lr;
+    writing-mode: vertical-rl;
     text-orientation: mixed;
+    box-shadow: -6px 0 14px rgba(0, 0, 0, 0.25) !important;
+    border: none !important;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    z-index: 1001 !important;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.slider-toggle:hover {
+    background: linear-gradient(135deg, #2563eb, #1d4ed8) !important;
 }
 
 .slider-toggle vaadin-icon {
     font-size: var(--lumo-font-size-l);
-    transform: rotate(180deg); /* Ensure correct orientation */
+    margin-bottom: 6px;
 }
 
 /* Content inside the slider panel */
 .slider-content {
-    padding: var(--lumo-space-m);
+    padding: 1rem 1.25rem;
     overflow-y: auto;
-    height: 95%;
+    height: calc(100vh - 60px);
     width: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.slider-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.slider-content::-webkit-scrollbar-thumb {
+    background: var(--lumo-contrast-20pct);
+    border-radius: 3px;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .slider-panel {
-        width: clamp(60px, 70vw, 85vw); /* Use viewport width on smaller screens */
+        right: -85vw !important;
+        width: 85vw !important;
     }
 
     .slider-content {
         padding: var(--lumo-space-s);
     }
-
-    .slider-toggle {
-        min-width: 100px;
-    }
 }
 
-/* Adjusting Vaadin overlays inside the slider panel */
 vaadin-combo-box-overlay {
     z-index: 1000 !important;
 }
@@ -88,10 +101,15 @@ vaadin-combo-box-overlay {
 .slider-resizer {
     position: absolute;
     top: 0;
-    left: 0; /* Position on the left border */
-    width: 5px; /* Resizer width */
+    left: 0;
+    width: 6px;
     height: 100%;
-    background: rgba(0, 0, 0, 0.2);
-    cursor: ew-resize; /* East-West resize cursor */
-    z-index: 1; /* Ensure it's above the content */
+    background: transparent;
+    cursor: ew-resize;
+    z-index: 2;
+    transition: background 0.2s ease;
+}
+
+.slider-resizer:hover {
+    background: var(--lumo-primary-color);
 }

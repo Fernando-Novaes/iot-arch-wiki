@@ -1,14 +1,16 @@
 package br.ufrj.cos.service;
 
+import br.ufrj.cos.domain.*;
 import br.ufrj.cos.components.chart.data.ArchitectureSolutionChartRecord;
 import br.ufrj.cos.components.chart.data.IoTDomainChartRecord;
 import br.ufrj.cos.components.chart.data.QualityRequirementChartRecord;
-import br.ufrj.cos.domain.*; // Assuming all your domain classes are here
+import dev.langchain4j.data.document.Document;
+import dev.langchain4j.data.document.Metadata;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
-import java.util.List;
-// No iText imports needed for this specific RAG string generation method
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class RAGService {
@@ -306,13 +308,214 @@ public class RAGService {
         return finalText;
     }
 
-    // The generateStringData(ArchitectureSolution architectureSolution) method
-    // can be similarly refactored to use the Markdown format and the
-    // formatQRAndTechForMarkdown helper if it's intended for RAG.
-    // The current one has `\\n` which might not render as expected in all Markdown parsers
-    // and its formatting is different from the main one.
-    // For consistency, I'd recommend refactoring it too if it feeds into the RAG.
+    public List<Document> generateStructuredDocuments() {
+        List<Document> documents = new ArrayList<>();
 
-    // The setQRandTech method is now replaced by formatQRAndTechForMarkdown
-    // and its old implementation is no longer needed if you adopt the Markdown list style.
+        List<br.ufrj.cos.domain.IoTDomain> domains = this.ioTDomainService.findAll();
+        List<br.ufrj.cos.domain.Architecture> architectures = this.architectureService.findAll();
+        List<br.ufrj.cos.domain.Technology> technologies = this.technologyService.findAll();
+        List<br.ufrj.cos.domain.QualityRequirement> qualityRequirements = this.qualityRequirementService.findAll();
+        List<br.ufrj.cos.domain.PaperReference> papers = this.paperReferenceService.findAll();
+
+        List<String> domainNames = domains != null ? domains.stream().map(IoTDomain::getName).filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList()) : Collections.emptyList();
+        List<String> archNames = architectures != null ? architectures.stream().map(Architecture::getName).filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList()) : Collections.emptyList();
+        List<String> techNames = technologies != null ? technologies.stream().map(Technology::getDescription).filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList()) : Collections.emptyList();
+        List<String> qrNames = qualityRequirements != null ? qualityRequirements.stream().map(QualityRequirement::getName).filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList()) : Collections.emptyList();
+        List<String> paperTitles = papers != null ? papers.stream().map(PaperReference::getTitle).filter(Objects::nonNull).distinct().sorted().collect(Collectors.toList()) : Collections.emptyList();
+
+        // 0. Master Categorized Knowledge Base Entity Catalog Document
+        StringBuilder masterSb = new StringBuilder("## Knowledge Base Master Categorized Catalog Index\n\n");
+        masterSb.append("This document provides a complete categorized inventory of all canonical entities in the IoT System Architecture Knowledge Base:\n\n");
+        masterSb.append("* **IoT Domains in Knowledge Base:** ").append(String.join(", ", domainNames)).append("\n");
+        masterSb.append("* **Architectural Patterns in Knowledge Base:** ").append(String.join(", ", archNames)).append("\n");
+        masterSb.append("* **ISO 25010 Quality Requirements in Knowledge Base:** ").append(String.join(", ", qrNames)).append("\n");
+        masterSb.append("* **Technologies & Building Blocks in Knowledge Base:** ").append(String.join(", ", techNames)).append("\n");
+        masterSb.append("* **Scientific Paper References in Knowledge Base:** ").append(String.join("; ", paperTitles)).append("\n");
+
+        Map<String, String> masterMetaMap = new HashMap<>();
+        masterMetaMap.put("type", "MASTER_INDEX");
+        masterMetaMap.put("document", "Master Categorized Catalog Index");
+        documents.add(Document.from(masterSb.toString(), Metadata.from(masterMetaMap)));
+
+        // 1. Statistics Chunk
+        String statsText = loadDataStatistics();
+        if (statsText != null && !statsText.isBlank()) {
+            Map<String, String> metaMap = new HashMap<>();
+            metaMap.put("type", "STATISTICS");
+            metaMap.put("document", "Knowledge Base Statistics Overview");
+            documents.add(Document.from(statsText, Metadata.from(metaMap)));
+        }
+
+        // 2. All IoT Domains Chunk
+        if (domains != null && !domains.isEmpty()) {
+            StringBuilder sb = new StringBuilder("## Canonical IoT Domains in Knowledge Base\n\n");
+            sb.append("Summary List: ").append(String.join(", ", domainNames)).append("\n\n");
+            domains.forEach(domain -> {
+                sb.append(String.format("*   **%s**", domain.getName()));
+                if (domain.getDescription() != null && !domain.getDescription().isBlank()) {
+                    sb.append(String.format(": %s\n", domain.getDescription()));
+                } else {
+                    sb.append("\n");
+                }
+            });
+            Map<String, String> metaMap = new HashMap<>();
+            metaMap.put("type", "DOMAINS");
+            metaMap.put("document", "IoT Domains Catalog");
+            documents.add(Document.from(sb.toString(), Metadata.from(metaMap)));
+        }
+
+        // 3. Quality Requirements Chunk
+        if (qualityRequirements != null && !qualityRequirements.isEmpty()) {
+            StringBuilder sb = new StringBuilder("## Canonical Quality Requirements in Knowledge Base (ISO 25010:2023)\n\n");
+            sb.append("Summary List: ").append(String.join(", ", qrNames)).append("\n\n");
+            qualityRequirements.forEach(qr -> {
+                sb.append(String.format("*   **%s**", qr.getName()));
+                if (qr.getDescription() != null && !qr.getDescription().isBlank()) {
+                    sb.append(String.format(": %s\n", qr.getDescription()));
+                } else {
+                    sb.append("\n");
+                }
+            });
+            Map<String, String> metaMap = new HashMap<>();
+            metaMap.put("type", "QUALITY_REQUIREMENTS");
+            metaMap.put("document", "Quality Requirements Catalog");
+            documents.add(Document.from(sb.toString(), Metadata.from(metaMap)));
+        }
+
+        // 4. Architectural Patterns Chunk
+        if (architectures != null && !architectures.isEmpty()) {
+            StringBuilder sb = new StringBuilder("## Canonical Architectural Patterns Cataloged in Knowledge Base\n\n");
+            sb.append("Summary List: ").append(String.join(", ", archNames)).append("\n\n");
+            architectures.forEach(arch -> {
+                sb.append(String.format("*   **%s**\n", arch.getName()));
+            });
+            Map<String, String> metaMap = new HashMap<>();
+            metaMap.put("type", "ARCHITECTURES");
+            metaMap.put("document", "Architectural Patterns Catalog");
+            documents.add(Document.from(sb.toString(), Metadata.from(metaMap)));
+        }
+
+        // 5. Technologies & Building Blocks Chunk
+        if (technologies != null && !technologies.isEmpty()) {
+            StringBuilder sb = new StringBuilder("## Canonical Technologies & Building Blocks in Knowledge Base\n\n");
+            sb.append("Summary List: ").append(String.join(", ", techNames)).append("\n\n");
+            technologies.forEach(tech -> {
+                sb.append(String.format("*   **%s**", tech.getDescription()));
+                if (tech.getNotes() != null && !tech.getNotes().isBlank()) {
+                    sb.append(String.format(" - Details: %s\n", tech.getNotes()));
+                } else {
+                    sb.append("\n");
+                }
+            });
+            Map<String, String> metaMap = new HashMap<>();
+            metaMap.put("type", "TECHNOLOGIES");
+            metaMap.put("document", "Technologies and Building Blocks Catalog");
+            documents.add(Document.from(sb.toString(), Metadata.from(metaMap)));
+        }
+
+        // 6. Scientific Paper References Chunk
+        if (papers != null && !papers.isEmpty()) {
+            StringBuilder sb = new StringBuilder("## Scientific Paper References Cataloged in Knowledge Base\n\n");
+            sb.append("Summary List of Publications: ").append(String.join("; ", paperTitles)).append("\n\n");
+            papers.forEach(paper -> {
+                sb.append(String.format("*   **%s** (%s) - Ref: %s (DOI: %s)\n",
+                        paper.getTitle() != null ? paper.getTitle() : "N/A",
+                        paper.getPublishYear() != null ? paper.getPublishYear() : "N/A",
+                        paper.getReference() != null ? paper.getReference() : "N/A",
+                        paper.getDoi() != null ? paper.getDoi() : "N/A"));
+            });
+            Map<String, String> metaMap = new HashMap<>();
+            metaMap.put("type", "PAPER_REFERENCES");
+            metaMap.put("document", "Scientific Paper References Catalog");
+            documents.add(Document.from(sb.toString(), Metadata.from(metaMap)));
+        }
+
+        // 7. Individual Architecture Solution Chunks
+        List<br.ufrj.cos.domain.ArchitectureSolution> solutions = this.architectureSolutionService.findAll();
+        if (solutions != null && !solutions.isEmpty()) {
+            for (br.ufrj.cos.domain.ArchitectureSolution architectureSolution : solutions) {
+                br.ufrj.cos.domain.PaperReference paper = architectureSolution.getPaperReference();
+                br.ufrj.cos.domain.Architecture archEntity = architectureSolution.getArchitecture();
+                br.ufrj.cos.domain.IoTDomain domainEntity = architectureSolution.getIoTDomain();
+
+                String paperTitle = (paper != null && paper.getTitle() != null) ? paper.getTitle() : "N/A";
+                String paperLink = (paper != null && paper.getLink() != null) ? paper.getLink() : "#";
+                String paperDOI = (paper != null && paper.getDoi() != null) ? paper.getDoi() : "N/A";
+                String paperRef = (paper != null && paper.getReference() != null) ? paper.getReference() : "N/A";
+                String paperYear = (paper != null && paper.getPublishYear() != null) ? paper.getPublishYear().toString() : "N/A";
+
+                String archName = (archEntity != null && archEntity.getName() != null) ? archEntity.getName() : "N/A";
+                String solutionDesc = (architectureSolution.getDescription() != null) ? architectureSolution.getDescription() : "No specific solution description provided.";
+                String iotDomainName = (domainEntity != null && domainEntity.getName() != null) ? domainEntity.getName() : "N/A";
+
+                StringBuilder qrBlockBuilder = new StringBuilder();
+                List<br.ufrj.cos.domain.QualityRequirementTechnology> qrTechs = architectureSolution.getQualityRequirementTechnologies();
+                if (qrTechs == null || qrTechs.isEmpty()) {
+                    qrBlockBuilder.append("No specific quality requirement technologies detailed for this solution.\n");
+                } else {
+                    qrTechs.forEach(qrTech -> {
+                        br.ufrj.cos.domain.QualityRequirement qr = qrTech.getQualityRequirement();
+                        br.ufrj.cos.domain.Technology tech = qrTech.getTechnology();
+                        if (qr != null && tech != null) {
+                            qrBlockBuilder.append(
+                                    this.formatQRAndTechForMarkdown(
+                                            qr.getName() != null ? qr.getName() : "N/A",
+                                            tech.getDescription() != null ? tech.getDescription() : tech.getDescription(),
+                                            tech.getNotes(),
+                                            qrTech.getNotes()
+                                    )
+                            );
+                        }
+                    });
+                }
+
+                String solutionChunk = String.format("""
+                        ## Architectural Solution: %s for %s
+
+                        ### Source Publication
+                        *   **Title:** %s
+                        *   **Year:** %s
+                        *   **Link:** [%s](%s)
+                        *   **DOI:** [https://doi.org/%s](https://doi.org/%s)
+                        *   **Full Reference:** %s
+
+                        ### Proposed Architectural Pattern
+                        *   **Name:** %s
+
+                        ### Solution Description
+                        %s
+
+                        ### Target IoT Domain
+                        *   %s
+
+                        ### Quality Requirements Addressed & Technologies/Features
+                        %s
+                        """,
+                        archName, iotDomainName,
+                        paperTitle, paperYear,
+                        paperLink.equals("#") ? paperTitle : paperLink, paperLink,
+                        paperDOI.equals("N/A") ? paperDOI : paperDOI, paperDOI.equals("N/A") ? "#" : "https://doi.org/" + paperDOI,
+                        paperRef,
+                        archName,
+                        solutionDesc,
+                        iotDomainName,
+                        qrBlockBuilder.toString().isBlank() ? "Details not specified." : qrBlockBuilder.toString()
+                );
+
+                Map<String, String> metaMap = new HashMap<>();
+                metaMap.put("type", "ARCHITECTURE_SOLUTION");
+                metaMap.put("architecture", archName);
+                metaMap.put("domain", iotDomainName);
+                metaMap.put("paper", paperTitle);
+                metaMap.put("doi", paperDOI);
+                metaMap.put("reference", paperRef);
+                metaMap.put("year", paperYear);
+                metaMap.put("document", "Solution: " + archName + " (" + iotDomainName + ")");
+
+                documents.add(Document.from(solutionChunk, Metadata.from(metaMap)));
+            }
+        }
+
+        return documents;
+    }
 }

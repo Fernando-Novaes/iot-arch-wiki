@@ -41,8 +41,10 @@ public class DataManagerView extends BaseView {
     private final QualityRequirementService qualityRequirementService;
     private final PaperReferenceService paperReferenceService;
     private final TechnologyService technologyService;
+    private final UploadedDocumentService uploadedDocumentService;
 
     private final ArchitectureSolutionDataManager architectureSolutionDataManager;
+    private final ReferenceDocumentDataManager referenceDocumentDataManager;
 
     GridCrud<IoTDomain> gridDomains;
     GridCrud<Architecture> gridArchs;
@@ -58,6 +60,7 @@ public class DataManagerView extends BaseView {
     private Span techBadge;
     private Span paperBadge;
     private Span archSolutionBadge;
+    private Span docBadge;
 
     ComboBox<IoTDomain> iotDomainRegisterCombo = new ComboBox<>();
     ComboBox<PaperReference> paperReferenceRegisterCombo = new ComboBox<>();
@@ -70,21 +73,27 @@ public class DataManagerView extends BaseView {
     public DataManagerView(IoTDomainService domainService, ArchitectureSolutionService architectureSolutionService,
                            ArchitectureService architectureService, QualityRequirementService qualityRequirementService,
                            PaperReferenceService paperReferenceService, TechnologyService technologyService,
-                           ArchitectureSolutionDataManager architectureSolutionDataManager) {
+                           UploadedDocumentService uploadedDocumentService,
+                           ArchitectureSolutionDataManager architectureSolutionDataManager,
+                           ReferenceDocumentDataManager referenceDocumentDataManager) {
         this.domainService = domainService;
         this.architectureSolutionService = architectureSolutionService;
         this.architectureService = architectureService;
         this.qualityRequirementService = qualityRequirementService;
         this.paperReferenceService = paperReferenceService;
         this.technologyService = technologyService;
+        this.uploadedDocumentService = uploadedDocumentService;
         this.architectureSolutionDataManager = architectureSolutionDataManager;
+        this.referenceDocumentDataManager = referenceDocumentDataManager;
         this.architectureSolutionDataManager.setArchitectureSolution(this.architectureSolution);
 
         getContent().setSizeFull();
         getContent().getStyle().set("flex-grow", "1");
-        getContent().getStyle().setOverflow(Style.Overflow.HIDDEN);
+        getContent().getStyle().set("padding", "1.25rem");
+        getContent().getStyle().set("box-sizing", "border-box");
+        getContent().getStyle().setOverflow(Style.Overflow.AUTO);
 
-        this.createHeader("Knowledge Manager");
+        configureHeroBanner();
 
         tabs = createTabs();
 
@@ -94,7 +103,41 @@ public class DataManagerView extends BaseView {
         gridTechs = createTechnolgyGridCrud();
         gridPapers = createPaperReferenceGridCrud();
 
+        this.referenceDocumentDataManager.setOnDataChangedCallback(this::refreshBadgeCount);
+
         this.createTabLayout();
+    }
+
+    private void configureHeroBanner() {
+        Div heroCard = new Div();
+        heroCard.addClassName("appconfig-hero-card");
+        heroCard.setWidthFull();
+        heroCard.getStyle()
+                .set("margin", "0 0 1.25rem 0")
+                .set("box-sizing", "border-box");
+
+        Span badge = new Span("Knowledge Base Administration");
+        badge.addClassName("appconfig-badge");
+
+        com.vaadin.flow.component.html.H3 heroTitle = new com.vaadin.flow.component.html.H3("📚 Knowledge Manager & Architecture Catalog");
+        heroTitle.getStyle()
+                .set("margin", "0 0 0.5rem 0")
+                .set("font-size", "1.5rem")
+                .set("font-weight", "800")
+                .set("color", "white");
+
+        com.vaadin.flow.component.html.Paragraph heroSubtitle = new com.vaadin.flow.component.html.Paragraph("Manage scientific paper references, IoT domain classifications, quality requirements, technologies, architectural solution mappings, and offline ISO standards & reference documents.");
+        heroSubtitle.getStyle()
+                .set("margin", "0")
+                .set("font-size", "0.9rem")
+                .set("color", "rgba(255, 255, 255, 0.85)");
+
+        com.vaadin.flow.component.orderedlayout.VerticalLayout heroContent = new com.vaadin.flow.component.orderedlayout.VerticalLayout(badge, heroTitle, heroSubtitle);
+        heroContent.setPadding(false);
+        heroContent.setSpacing(false);
+        heroCard.add(heroContent);
+
+        getContent().add(heroCard);
     }
 
     private Span createBadge(String text) {
@@ -105,9 +148,6 @@ public class DataManagerView extends BaseView {
         return span;
     }
 
-    /***
-     * Refreshes badge count
-     */
     private void refreshBadgeCount() {
         this.paperBadge = this.createBadge(String.valueOf(this.paperReferenceService.findAll().size()));
         this.archBadge = this.createBadge(String.valueOf(this.architectureService.findAll().size()));
@@ -115,15 +155,18 @@ public class DataManagerView extends BaseView {
         this.techBadge = this.createBadge(String.valueOf(this.technologyService.findAll().size()));
         this.archSolutionBadge = this.createBadge(String.valueOf(this.architectureSolutionService.findAll().size()));
         this.domainBadge = this.createBadge(String.valueOf(this.domainService.findAll().size()));
+        this.docBadge = this.createBadge(String.valueOf(this.uploadedDocumentService.count()));
     }
 
     private void createTabLayout() {
         Div contentContainer = new Div();
-        contentContainer.setSizeFull();
+        contentContainer.setWidthFull();
+        contentContainer.getStyle().set("flex-grow", "1");
+        contentContainer.getStyle().set("min-height", "0");
+        contentContainer.getStyle().set("overflow", "auto");
         contentContainer.add(gridPapers);
         refreshBadgeCount();
 
-        // Add a listener to switch the content when the tab changes
         tabs.addSelectedChangeListener(event -> {
             contentContainer.removeAll();
             Component selectedContent = null;
@@ -146,6 +189,9 @@ public class DataManagerView extends BaseView {
                 case 5:
                     selectedContent = this.architectureSolutionDataManager.createKnowledgeCrud();
                     break;
+                case 6:
+                    selectedContent = this.referenceDocumentDataManager.createDocumentCrud();
+                    break;
             }
             contentContainer.add(selectedContent);
         });
@@ -153,10 +199,6 @@ public class DataManagerView extends BaseView {
         getContent().add(tabs, contentContainer);
     }
 
-    /***
-     * Creates all CRUD tabs
-     * @return Tabs
-     */
     private Tabs createTabs() {
         this.refreshBadgeCount();
 
@@ -166,8 +208,12 @@ public class DataManagerView extends BaseView {
         Tab qrs = new Tab(new Span("Quality Requirements"), this.qualityBadge);
         Tab techs = new Tab(new Span("Technologies"), this.techBadge);
         Tab knowledge = new Tab(new Span("Architecture Solution"), this.archSolutionBadge);
+        Tab docs = new Tab(new Span("Standards & Reference Docs (PDF)"), this.docBadge);
 
-        return new Tabs(papers, domains, archs, qrs, techs, knowledge);
+        Tabs tabs = new Tabs(papers, domains, archs, qrs, techs, knowledge, docs);
+        tabs.addClassName("km-tabs");
+        tabs.getStyle().set("margin-bottom", "1rem");
+        return tabs;
     }
 
     /***
@@ -253,6 +299,15 @@ public class DataManagerView extends BaseView {
         gridPapers.getGrid().getColumnByKey("id").setWidth("100px").setFlexGrow(0);
         gridPapers.getGrid().getColumnByKey("title").setAutoWidth(true);
         gridPapers.getCrudFormFactory().setVisibleProperties("title", "doi", "link", "publishYear", "reference");
+        gridPapers.getCrudFormFactory().setFieldCaptions("Title", "DOI", "Link", "Publish Year", "Reference (APA 7)");
+        gridPapers.getCrudFormFactory().setFieldProvider("reference", paper -> {
+            com.vaadin.flow.component.textfield.TextArea refInput = new com.vaadin.flow.component.textfield.TextArea("Reference (APA 7)");
+            refInput.setWidthFull();
+            return refInput;
+        });
+        if (gridPapers.getGrid().getColumnByKey("reference") != null) {
+            gridPapers.getGrid().getColumnByKey("reference").setHeader("Reference (APA 7)");
+        }
         gridPapers.setAddOperation(paper -> {
             this.paperReferenceService.saveAndFlush(paper);
             this.refreshAllData();
@@ -443,7 +498,7 @@ public class DataManagerView extends BaseView {
         gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.ADD, "name");
         gridArchs.getCrudFormFactory().setVisibleProperties(CrudOperation.UPDATE, "name");
         gridArchs.getCrudFormFactory().setFieldProvider("paperReference",
-                new ComboBoxProvider<PaperReference>("Reference", this.paperReferenceService.findAll()));
+                new ComboBoxProvider<PaperReference>("Reference (APA 7)", this.paperReferenceService.findAll()));
         gridArchs.getCrudFormFactory().setFieldProvider("ioTDomain",
                 new ComboBoxProvider<IoTDomain>("IoT Domain", this.domainService.findAllOrderByName().stream().toList()));
 
