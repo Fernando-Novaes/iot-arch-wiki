@@ -55,22 +55,33 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
     @com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
     public static record CommunicationArrowRecord(
-            String id,
-            String sourceName,
-            String targetName,
-            String protocol,
-            String security,
-            String pattern,
-            String colorHex
+            @com.fasterxml.jackson.annotation.JsonProperty("id") String id,
+            @com.fasterxml.jackson.annotation.JsonProperty("sourceName") String sourceName,
+            @com.fasterxml.jackson.annotation.JsonProperty("targetName") String targetName,
+            @com.fasterxml.jackson.annotation.JsonProperty("protocol") String protocol,
+            @com.fasterxml.jackson.annotation.JsonProperty("security") String security,
+            @com.fasterxml.jackson.annotation.JsonProperty("pattern") String pattern,
+            @com.fasterxml.jackson.annotation.JsonProperty("colorHex") String colorHex,
+            @com.fasterxml.jackson.annotation.JsonProperty("annotation") String annotation
     ) {
+        public CommunicationArrowRecord(String id, String sourceName, String targetName, String protocol, String security, String pattern, String colorHex) {
+            this(id, sourceName, targetName, protocol, security, pattern, colorHex, "");
+        }
+
+        public CommunicationArrowRecord withAnnotation(String newAnnotation) {
+            return new CommunicationArrowRecord(id, sourceName, targetName, protocol, security, pattern, colorHex, newAnnotation);
+        }
+
         @com.fasterxml.jackson.annotation.JsonIgnore
         public String getFormattedSummary() {
-            return String.format("%s ➔ %s: %s (%s | %s)",
+            String noteSuffix = (annotation != null && !annotation.isBlank()) ? " | 📝 Note: " + annotation : "";
+            return String.format("%s ➔ %s: %s (%s | %s)%s",
                     sourceName != null ? sourceName : "Origin",
                     targetName != null ? targetName : "Destination",
                     protocol != null ? protocol : "MQTT",
                     security != null ? security : "TLS 1.3",
-                    pattern != null ? pattern : "Real-time");
+                    pattern != null ? pattern : "Real-time",
+                    noteSuffix);
         }
 
         public static String determineColor(String protocol, String security) {
@@ -137,6 +148,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     private String selectedOriginName = null;
 
     // UI Containers
+    private final VerticalLayout canvasContentLayout = new VerticalLayout();
     private final Div domainContainer = new Div();
     private final Div patternContainer = new Div();
     private final Div edgeContainer = new Div();
@@ -227,6 +239,48 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         refreshAllViews();
 
         getContent().add(mainLayout);
+    }
+
+    @Override
+    protected void onAttach(com.vaadin.flow.component.AttachEvent attachEvent) {
+        super.onAttach(attachEvent);
+        checkAndLoadSuggestedStack();
+    }
+
+    private void checkAndLoadSuggestedStack() {
+        com.vaadin.flow.server.VaadinSession session = com.vaadin.flow.server.VaadinSession.getCurrent();
+        if (session != null) {
+            br.ufrj.cos.domain.SuggestedArchitectureStack stack = (br.ufrj.cos.domain.SuggestedArchitectureStack) session.getAttribute("SUGGESTED_ARCH_STACK");
+            if (stack != null) {
+                session.setAttribute("SUGGESTED_ARCH_STACK", null);
+
+                if (stack.getDomain() != null && !stack.getDomain().isEmpty()) {
+                    this.selectedDomain = stack.getDomain();
+                }
+                if (stack.getPattern() != null && !stack.getPattern().isEmpty()) {
+                    this.selectedPattern = stack.getPattern();
+                }
+                if (stack.getEdgeTechs() != null) {
+                    this.edgeTechs.clear();
+                    this.edgeTechs.addAll(stack.getEdgeTechs());
+                }
+                if (stack.getFogTechs() != null) {
+                    this.fogTechs.clear();
+                    this.fogTechs.addAll(stack.getFogTechs());
+                }
+                if (stack.getCloudTechs() != null) {
+                    this.cloudTechs.clear();
+                    this.cloudTechs.addAll(stack.getCloudTechs());
+                }
+                if (stack.getQualityReqs() != null) {
+                    this.qualityReqs.clear();
+                    this.qualityReqs.addAll(stack.getQualityReqs());
+                }
+
+                refreshAllViews();
+                NotificationUtils.showSuccessNotification("🚀 Suggested Architecture Stack loaded from AI Assistant!");
+            }
+        }
     }
 
     private Component createHeroCard() {
@@ -1661,15 +1715,27 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     }
 
     private Component createCanvas() {
-        VerticalLayout canvasLayout = new VerticalLayout();
-        canvasLayout.setId("architecture-canvas-container");
-        canvasLayout.setWidthFull();
-        canvasLayout.getStyle()
+        VerticalLayout canvasWrapper = new VerticalLayout();
+        canvasWrapper.setId("architecture-canvas-container");
+        canvasWrapper.setWidthFull();
+        canvasWrapper.getStyle()
                 .set("background", "var(--lumo-base-color)")
                 .set("border", "1px solid var(--lumo-contrast-15pct)")
                 .set("border-radius", "16px")
                 .set("padding", "1.25rem")
                 .set("box-shadow", "0 4px 14px rgba(0, 0, 0, 0.04)");
+
+        canvasContentLayout.setWidthFull();
+        canvasContentLayout.setPadding(false);
+        canvasContentLayout.setSpacing(false);
+
+        canvasWrapper.add(canvasContentLayout);
+        rebuildCanvasContent();
+        return canvasWrapper;
+    }
+
+    private void rebuildCanvasContent() {
+        canvasContentLayout.removeAll();
 
         HorizontalLayout titleLayout = new HorizontalLayout();
         titleLayout.setAlignItems(FlexComponent.Alignment.CENTER);
@@ -1680,7 +1746,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         title.getStyle().set("margin", "0").set("font-size", "1.05rem");
 
         titleLayout.add(title);
-        canvasLayout.add(titleLayout);
+        canvasContentLayout.add(titleLayout);
 
         if (isArrowConnectionActive) {
             Div banner = new Div();
@@ -1706,33 +1772,15 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             cancelBtn.getStyle().set("color", "#ffffff").set("text-decoration", "underline");
 
             banner.add(msg, cancelBtn);
-            canvasLayout.add(banner);
+            canvasContentLayout.add(banner);
         }
 
-        canvasLayout.add(createCanvasLayerBox("🌐 Selected Domain", domainContainer));
-        canvasLayout.add(createCanvasLayerBox("🏛️ Selected Architecture Pattern", patternContainer));
-        canvasLayout.add(createCanvasLayerBox("⚡ Edge Layer (Devices & Sensors)", edgeContainer));
-
-        // Inter-layer gap between Edge Layer and Fog Layer (Image 2 location)
-        canvasLayout.add(createInterLayerGapComponent("Edge", "Fog"));
-
-        canvasLayout.add(createCanvasLayerBox("🌉 Fog / Gateway Layer", fogContainer));
-
-        // Inter-layer gap between Fog Layer and Cloud Layer (Image 2 location)
-        canvasLayout.add(createInterLayerGapComponent("Fog", "Cloud"));
-
-        canvasLayout.add(createCanvasLayerBox("☁️ Cloud & Enterprise Layer", cloudContainer));
-
-        // Render any remaining custom component-to-component arrows
-        for (CommunicationArrowRecord arrow : activeFlowArrows) {
-            if (!isArrowBetween(arrow, "edge", "fog") && !isArrowBetween(arrow, "fog", "cloud")) {
-                canvasLayout.add(createGraphicalArrowElement(arrow));
-            }
-        }
-
-        canvasLayout.add(createCanvasLayerBox("🛡️ Target Quality Requirements (ISO 25010)", qualityReqContainer));
-
-        return canvasLayout;
+        canvasContentLayout.add(createCanvasLayerBox("🌐 Selected Domain", domainContainer));
+        canvasContentLayout.add(createCanvasLayerBox("🏛️ Selected Architecture Pattern", patternContainer));
+        canvasContentLayout.add(createCanvasLayerBox("⚡ Edge Layer (Devices & Sensors)", edgeContainer));
+        canvasContentLayout.add(createCanvasLayerBox("🌉 Fog / Gateway Layer", fogContainer));
+        canvasContentLayout.add(createCanvasLayerBox("☁️ Cloud & Enterprise Layer", cloudContainer));
+        canvasContentLayout.add(createCanvasLayerBox("🛡️ Target Quality Requirements (ISO 25010)", qualityReqContainer));
     }
 
     private Component createInterLayerGapComponent(String sourceLayerLabel, String targetLayerLabel) {
@@ -1765,6 +1813,100 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         return (src.contains(l1) && tgt.contains(l2));
     }
 
+    private void openArrowAnnotationDialog(CommunicationArrowRecord arrow) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("📝 Flow Link Annotation & Technical Notes");
+        dialog.setWidth("540px");
+
+        Div cardHeader = new Div();
+        cardHeader.getStyle()
+                .set("background", "linear-gradient(135deg, #1e293b, #2563eb)")
+                .set("color", "#ffffff")
+                .set("padding", "0.85rem 1.1rem")
+                .set("border-radius", "12px")
+                .set("margin-bottom", "1rem")
+                .set("box-shadow", "0 4px 12px rgba(37, 99, 235, 0.2)");
+
+        Span flowTitle = new Span("🏹 " + arrow.sourceName() + " ━━━━► " + arrow.targetName());
+        flowTitle.getStyle().set("font-weight", "800").set("font-size", "0.95rem").set("display", "block").set("margin-bottom", "0.3rem");
+
+        Span flowDetails = new Span("Protocol: " + arrow.protocol() + " | Security: " + arrow.security() + " | Pattern: " + arrow.pattern());
+        flowDetails.getStyle().set("font-size", "0.74rem").set("opacity", "0.9");
+
+        cardHeader.add(flowTitle, flowDetails);
+
+        boolean hasExistingAnnotation = arrow.annotation() != null && !arrow.annotation().isBlank();
+
+        VerticalLayout contentLayout = new VerticalLayout();
+        contentLayout.setPadding(false);
+        contentLayout.setSpacing(true);
+        contentLayout.add(cardHeader);
+
+        if (hasExistingAnnotation) {
+            Div viewCard = new Div();
+            viewCard.getStyle()
+                    .set("background", "rgba(245, 158, 11, 0.1)")
+                    .set("border", "1px solid #f59e0b")
+                    .set("border-left", "5px solid #f59e0b")
+                    .set("border-radius", "10px")
+                    .set("padding", "0.85rem 1rem")
+                    .set("margin-bottom", "0.75rem")
+                    .set("font-size", "0.82rem")
+                    .set("color", "var(--lumo-header-text-color)");
+
+            Span viewHeader = new Span("📌 Active Annotation:");
+            viewHeader.getStyle().set("font-weight", "700").set("color", "#d97706").set("display", "block").set("margin-bottom", "0.4rem");
+
+            Paragraph viewText = new Paragraph(arrow.annotation());
+            viewText.getStyle().set("margin", "0").set("white-space", "pre-wrap").set("line-height", "1.4");
+
+            viewCard.add(viewHeader, viewText);
+            contentLayout.add(viewCard);
+        }
+
+        TextArea notesArea = new TextArea("Edit Technical Annotation / SLA Notes");
+        notesArea.setWidthFull();
+        notesArea.setHeight("120px");
+        notesArea.setPlaceholder("e.g., Latency SLA < 100ms; TLS 1.3 mTLS client certs; Fallback over cellular 5G...");
+        notesArea.setValue(arrow.annotation() != null ? arrow.annotation() : "");
+
+        contentLayout.add(notesArea);
+        dialog.add(contentLayout);
+
+        Button saveBtn = new Button("Save Annotation", VaadinIcon.CHECK.create(), e -> {
+            String newNote = notesArea.getValue().trim();
+            int idx = activeFlowArrows.indexOf(arrow);
+            if (idx != -1) {
+                CommunicationArrowRecord updated = arrow.withAnnotation(newNote);
+                activeFlowArrows.set(idx, updated);
+                refreshAllViews();
+                updateSaveButtonState();
+                NotificationUtils.showSuccessNotification("Saved annotation for flow link: " + arrow.sourceName() + " ➔ " + arrow.targetName());
+            }
+            dialog.close();
+        });
+        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
+
+        if (hasExistingAnnotation) {
+            Button removeBtn = new Button("Clear Note", VaadinIcon.TRASH.create(), e -> {
+                int idx = activeFlowArrows.indexOf(arrow);
+                if (idx != -1) {
+                    CommunicationArrowRecord updated = arrow.withAnnotation("");
+                    activeFlowArrows.set(idx, updated);
+                    refreshAllViews();
+                    updateSaveButtonState();
+                    NotificationUtils.showSuccessNotification("Cleared annotation from flow link.");
+                }
+                dialog.close();
+            });
+            removeBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR);
+            dialog.getFooter().add(removeBtn);
+        }
+
+        dialog.getFooter().add(new Button("Close", e -> dialog.close()), saveBtn);
+        dialog.open();
+    }
+
     private Component createGraphicalArrowElement(CommunicationArrowRecord arrow) {
         Div container = new Div();
         container.getStyle()
@@ -1782,12 +1924,11 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("position", "relative")
                 .set("transition", "all 0.2s ease");
 
-        // Hover effect for instant delete
         container.getElement().addEventListener("mouseenter", e -> {
             container.getStyle()
-                    .set("border", "2px solid #ef4444")
-                    .set("background", "rgba(239, 68, 68, 0.12)")
-                    .set("box-shadow", "0 0 10px rgba(239, 68, 68, 0.3)");
+                    .set("border", "2px solid " + arrow.colorHex())
+                    .set("background", "var(--lumo-contrast-10pct)")
+                    .set("box-shadow", "0 2px 8px rgba(0,0,0,0.06)");
         });
 
         container.getElement().addEventListener("mouseleave", e -> {
@@ -1797,13 +1938,8 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                     .set("box-shadow", "none");
         });
 
-        // Hover/Click to delete action
-        container.addClickListener(e -> {
-            activeFlowArrows.remove(arrow);
-            refreshAllViews();
-            updateSaveButtonState();
-            NotificationUtils.showSuccessNotification("Deleted flow arrow link: " + arrow.sourceName() + " ➔ " + arrow.targetName());
-        });
+        // Click anywhere on container to open Annotation Popup
+        container.addClickListener(e -> openArrowAnnotationDialog(arrow));
 
         // Origin Box
         Span originBox = new Span(arrow.sourceName());
@@ -1817,7 +1953,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("border-left", "4px solid " + arrow.colorHex())
                 .set("box-shadow", "0 2px 5px rgba(0,0,0,0.04)");
 
-        // Arrow Shaft Div with Protocol Badge centered on line
+        // Arrow Shaft Div with Protocol & Annotation Badges centered on line
         Div arrowShaftContainer = new Div();
         arrowShaftContainer.getStyle()
                 .set("flex-grow", "1")
@@ -1827,7 +1963,11 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("position", "relative")
                 .set("margin", "0 12px");
 
-        // Protocol Badge above shaft
+        HorizontalLayout badgeRow = new HorizontalLayout();
+        badgeRow.setAlignItems(FlexComponent.Alignment.CENTER);
+        badgeRow.setSpacing(true);
+        badgeRow.getStyle().set("margin-bottom", "3px");
+
         Span protoBadge = new Span(arrow.protocol() + ("Unencrypted (Plaintext)".equalsIgnoreCase(arrow.security()) ? " ⚠️ Plaintext" : " 🔒 " + arrow.security()));
         protoBadge.getStyle()
                 .set("background", arrow.colorHex())
@@ -1837,8 +1977,41 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("padding", "2px 10px")
                 .set("border-radius", "12px")
                 .set("box-shadow", "0 2px 6px rgba(0,0,0,0.15)")
-                .set("margin-bottom", "3px")
                 .set("white-space", "nowrap");
+
+        boolean hasNote = arrow.annotation() != null && !arrow.annotation().isBlank();
+        Span noteBadge;
+        if (hasNote) {
+            String snippet = arrow.annotation().length() > 22 ? arrow.annotation().substring(0, 19) + "..." : arrow.annotation();
+            noteBadge = new Span("📝 " + snippet);
+            noteBadge.getStyle()
+                    .set("background", "#f59e0b")
+                    .set("color", "#ffffff")
+                    .set("font-weight", "700")
+                    .set("font-size", "0.65rem")
+                    .set("padding", "2px 8px")
+                    .set("border-radius", "10px")
+                    .set("box-shadow", "0 2px 6px rgba(245, 158, 11, 0.3)")
+                    .set("cursor", "pointer")
+                    .set("white-space", "nowrap");
+            noteBadge.getElement().setAttribute("title", "Click to view annotation: " + arrow.annotation());
+        } else {
+            noteBadge = new Span("+ 📝 Add Note");
+            noteBadge.getStyle()
+                    .set("background", "var(--lumo-contrast-10pct)")
+                    .set("color", "var(--lumo-secondary-text-color)")
+                    .set("font-weight", "600")
+                    .set("font-size", "0.65rem")
+                    .set("padding", "2px 8px")
+                    .set("border-radius", "10px")
+                    .set("cursor", "pointer")
+                    .set("white-space", "nowrap");
+            noteBadge.getElement().setAttribute("title", "Click to add technical note to this flow link");
+        }
+        noteBadge.getElement().executeJs("this.addEventListener('click', function(e){ e.stopPropagation(); });");
+        noteBadge.addClickListener(e -> openArrowAnnotationDialog(arrow));
+
+        badgeRow.add(protoBadge, noteBadge);
 
         // Graphical Arrow Line and Pointer
         Div lineAndPointer = new Div();
@@ -1863,7 +2036,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("border-left", "10px solid " + arrow.colorHex());
 
         lineAndPointer.add(shaftLine, pointerHead);
-        arrowShaftContainer.add(protoBadge, lineAndPointer);
+        arrowShaftContainer.add(badgeRow, lineAndPointer);
 
         // Destination Box
         Span targetBox = new Span(arrow.targetName());
@@ -1877,15 +2050,18 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("border-right", "4px solid " + arrow.colorHex())
                 .set("box-shadow", "0 2px 5px rgba(0,0,0,0.04)");
 
-        // Hover Delete Indicator Badge
-        Span deleteHint = new Span("🗑️ Delete");
-        deleteHint.getStyle()
-                .set("font-size", "0.65rem")
-                .set("font-weight", "700")
-                .set("color", "#ef4444")
-                .set("margin-left", "6px");
+        // Right side Action Buttons (Delete)
+        Button deleteBtn = new Button(VaadinIcon.TRASH.create(), e -> {
+            activeFlowArrows.remove(arrow);
+            refreshAllViews();
+            updateSaveButtonState();
+            NotificationUtils.showSuccessNotification("Deleted flow arrow link: " + arrow.sourceName() + " ➔ " + arrow.targetName());
+        });
+        deleteBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+        deleteBtn.setTooltipText("Delete arrow connection");
+        deleteBtn.getElement().executeJs("this.addEventListener('click', function(e){ e.stopPropagation(); });");
 
-        container.add(originBox, arrowShaftContainer, targetBox, deleteHint);
+        container.add(originBox, arrowShaftContainer, targetBox, deleteBtn);
         return container;
     }
 
@@ -1965,9 +2141,13 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         header.add(titleRight, hideBtn);
         rightPanelContainer.add(header);
 
-        // Accordion for Arrow Tools & Legend
-        Accordion accordion = new Accordion();
-        accordion.setWidthFull();
+        // Independent Collapsible Accordion Panels (both can be opened at the same time)
+        Div accordionContainer = new Div();
+        accordionContainer.setWidthFull();
+        accordionContainer.getStyle()
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("gap", "0.5rem");
 
         // Panel 1: Arrow Tools
         Div paletteGrid = new Div();
@@ -1980,21 +2160,13 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         paletteGrid.add(createArrowToolPill("HTTP (Plaintext)", "Unencrypted (Plaintext)", "Real-time", "#ef4444", "🔴 Plaintext Warning Link"));
         paletteGrid.add(createCustomArrowToolPill());
 
-        accordion.add("🎯 Communication Arrow Tools", paletteGrid);
+        AccordionPanel panel1 = new AccordionPanel("🎯 Communication Arrow Tools", paletteGrid);
+        panel1.setWidthFull();
+        panel1.setOpened(true);
 
-        rightPanelContainer.add(accordion);
-
-        // Active Flow Arrows Section
-        Div activeHeaderDiv = new Div();
-        activeHeaderDiv.getStyle().set("margin-top", "0.2rem");
-        Span activeTitle = new Span("⚡ Active Flow Links (" + activeFlowArrows.size() + ")");
-        activeTitle.getStyle().set("font-weight", "700").set("font-size", "0.86rem").set("color", "var(--lumo-header-text-color)");
-        activeHeaderDiv.add(activeTitle);
-
-        rightPanelContainer.add(activeHeaderDiv);
-
+        // Panel 2: Active Flow Links
         Div flowListDiv = new Div();
-        flowListDiv.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "0.6rem").set("max-height", "260px").set("overflow-y", "auto");
+        flowListDiv.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "0.6rem").set("max-height", "280px").set("overflow-y", "auto").set("padding", "0.4rem 0");
 
         if (activeFlowArrows.isEmpty()) {
             Div emptyState = new Div();
@@ -2012,7 +2184,19 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 flowListDiv.add(createRightPanelActiveArrowRow(arrow));
             }
         }
-        rightPanelContainer.add(flowListDiv);
+
+        AccordionPanel panel2 = new AccordionPanel("⚡ Active Flow Links (" + activeFlowArrows.size() + ")", flowListDiv);
+        panel2.setWidthFull();
+        panel2.setOpened(true);
+
+        accordionContainer.add(panel1, panel2);
+        rightPanelContainer.add(accordionContainer);
+    }
+
+    private boolean isBlockName(String name) {
+        if (name == null) return false;
+        String n = name.trim().toLowerCase();
+        return n.contains("architecture pattern") || n.contains("edge layer") || n.contains("fog") || n.contains("cloud & enterprise") || n.contains("cloud layer") || n.contains("selected domain") || n.contains("quality requirements");
     }
 
     private Component createRightPanelActiveArrowRow(CommunicationArrowRecord arrow) {
@@ -2026,13 +2210,103 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("display", "flex")
                 .set("align-items", "center")
                 .set("justify-content", "space-between")
-                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.02)");
+                .set("box-shadow", "0 2px 4px rgba(0,0,0,0.02)")
+                .set("cursor", "pointer")
+                .set("transition", "all 0.2s ease");
+
+        boolean isSrcBlock = isBlockName(arrow.sourceName());
+        boolean isTgtBlock = isBlockName(arrow.targetName());
+
+        row.getElement().addEventListener("mouseenter", e -> {
+            row.getStyle()
+                    .set("background", "rgba(37, 99, 235, 0.08)")
+                    .set("border-color", arrow.colorHex())
+                    .set("box-shadow", "0 0 10px " + arrow.colorHex());
+
+            UI.getCurrent().getPage().executeJs("""
+                (function(src, tgt, color, isSrcBlock, isTgtBlock) {
+                    function cleanName(n) {
+                        if (!n) return '';
+                        var s = n.endsWith(' ✕') ? n.substring(0, n.length - 2).trim() : n.trim();
+                        return s.replace(/^Pattern:\\s*/i, '').replace(/^Domain:\\s*/i, '').trim();
+                    }
+
+                    var cleanSrc = cleanName(src).toLowerCase();
+                    var cleanTgt = cleanName(tgt).toLowerCase();
+
+                    function matchesTarget(el, isBlock, targetClean) {
+                        if (!targetClean) return false;
+                        var attr = isBlock ? 'data-layer-name' : 'data-pill-name';
+                        var rawName = el.getAttribute(attr) || el.getAttribute('data-drop-layer') || el.innerText || '';
+                        var cName = cleanName(rawName).toLowerCase();
+                        if (!cName) return false;
+                        return cName === targetClean || cName.includes(targetClean) || targetClean.includes(cName);
+                    }
+
+                    var srcSelector = isSrcBlock ? '[data-layer-name], [data-drop-layer]' : '[data-pill-name], [id^="canvas-pill-"]';
+                    var tgtSelector = isTgtBlock ? '[data-layer-name], [data-drop-layer]' : '[data-pill-name], [id^="canvas-pill-"]';
+
+                    var elementsToHighlight = [];
+
+                    document.querySelectorAll(srcSelector).forEach(function(el) {
+                        if (matchesTarget(el, isSrcBlock, cleanSrc)) {
+                            elementsToHighlight.push(el);
+                        }
+                    });
+
+                    document.querySelectorAll(tgtSelector).forEach(function(el) {
+                        if (matchesTarget(el, isTgtBlock, cleanTgt)) {
+                            elementsToHighlight.push(el);
+                        }
+                    });
+
+                    elementsToHighlight.forEach(function(el) {
+                        el.dataset.highlighted = 'true';
+                        el.dataset.origBorder = el.style.border || '';
+                        el.dataset.origShadow = el.style.boxShadow || '';
+                        el.dataset.origTransform = el.style.transform || '';
+                        el.style.border = '3px solid ' + (color || '#2563eb');
+                        el.style.boxShadow = '0 0 16px ' + (color || '#2563eb');
+                        el.style.transform = 'scale(1.06)';
+                        el.style.transition = 'all 0.2s ease';
+                    });
+                })($0, $1, $2, $3, $4);
+                """, arrow.sourceName(), arrow.targetName(), arrow.colorHex(), isSrcBlock, isTgtBlock);
+        });
+
+        row.getElement().addEventListener("mouseleave", e -> {
+            row.getStyle()
+                    .set("background", "var(--lumo-contrast-5pct)")
+                    .set("border-color", "var(--lumo-contrast-15pct)")
+                    .set("box-shadow", "0 2px 4px rgba(0,0,0,0.02)");
+
+            UI.getCurrent().getPage().executeJs("""
+                (function() {
+                    document.querySelectorAll('[data-highlighted="true"]').forEach(function(el) {
+                        if (el.dataset.origBorder !== undefined) {
+                            el.style.border = el.dataset.origBorder;
+                            el.style.boxShadow = el.dataset.origShadow;
+                            el.style.transform = el.dataset.origTransform;
+                            delete el.dataset.origBorder;
+                            delete el.dataset.origShadow;
+                            delete el.dataset.origTransform;
+                            delete el.dataset.highlighted;
+                        }
+                    });
+                })();
+                """);
+        });
 
         Span text = new Span(arrow.sourceName() + " ━━━━► " + arrow.targetName());
         text.getStyle().set("font-weight", "700").set("font-size", "0.76rem").set("color", "var(--lumo-header-text-color)");
 
         Span badge = new Span(arrow.protocol());
         badge.getStyle().set("background", arrow.colorHex()).set("color", "#ffffff").set("padding", "2px 8px").set("border-radius", "10px").set("font-size", "0.68rem").set("font-weight", "700");
+
+        boolean hasNote = arrow.annotation() != null && !arrow.annotation().isBlank();
+        Button noteBtn = new Button(VaadinIcon.NOTEBOOK.create(), e -> openArrowAnnotationDialog(arrow));
+        noteBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, hasNote ? ButtonVariant.LUMO_SUCCESS : ButtonVariant.LUMO_CONTRAST, ButtonVariant.LUMO_SMALL);
+        noteBtn.setTooltipText(hasNote ? "View Annotation: " + arrow.annotation() : "Add annotation to this flow link");
 
         Button delBtn = new Button(VaadinIcon.TRASH.create(), e -> {
             activeFlowArrows.remove(arrow);
@@ -2043,7 +2317,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         delBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY_INLINE, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
         delBtn.setTooltipText("Delete arrow connection");
 
-        HorizontalLayout right = new HorizontalLayout(badge, delBtn);
+        HorizontalLayout right = new HorizontalLayout(badge, noteBtn, delBtn);
         right.setAlignItems(FlexComponent.Alignment.CENTER);
         right.setSpacing(true);
 
@@ -2194,6 +2468,28 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
         refreshAllViews();
     }
 
+    private boolean isArchitecturePatternBlock(String name) {
+        if (name == null) return false;
+        String n = name.toLowerCase();
+        return n.contains("architecture pattern") || n.startsWith("pattern:");
+    }
+
+    private boolean isTechLayerBlock(String name) {
+        if (name == null) return false;
+        String n = name.toLowerCase();
+        return n.contains("edge layer") || n.contains("fog") || n.contains("cloud & enterprise") || n.contains("cloud layer");
+    }
+
+    private boolean isOtherLayerBlock(String name) {
+        if (name == null) return false;
+        String n = name.toLowerCase();
+        return n.contains("selected domain") || n.startsWith("domain:") || n.contains("target quality requirements") || n.contains("quality requirements");
+    }
+
+    private boolean isAnyLayerBlock(String name) {
+        return isArchitecturePatternBlock(name) || isTechLayerBlock(name) || isOtherLayerBlock(name);
+    }
+
     private void handleCanvasItemClick(String name) {
         if (!isArrowConnectionActive) return;
 
@@ -2214,6 +2510,23 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             if (selectedOriginName.equalsIgnoreCase(name)) {
                 NotificationUtils.showErrorNotification("Destination must be different from Origin.");
                 return;
+            }
+
+            // Layer block arrow constraint validation:
+            boolean isOriginBlock = isAnyLayerBlock(selectedOriginName);
+            boolean isDestBlock = isAnyLayerBlock(name);
+
+            if (isOriginBlock || isDestBlock) {
+                boolean isOriginArch = isArchitecturePatternBlock(selectedOriginName);
+                boolean isDestArch = isArchitecturePatternBlock(name);
+                boolean isOriginTech = isTechLayerBlock(selectedOriginName);
+                boolean isDestTech = isTechLayerBlock(name);
+
+                boolean validBlockPair = (isOriginArch && isDestTech) || (isOriginTech && isDestArch);
+                if (!validBlockPair) {
+                    NotificationUtils.showErrorNotification("Layer block arrows are only allowed between Architecture Pattern and Edge / Fog / Cloud layers.");
+                    return;
+                }
             }
 
             CommunicationArrowRecord newArrow = new CommunicationArrowRecord(
@@ -2502,26 +2815,39 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
     private Component createCanvasLayerBox(String titleText, Div... containers) {
         Div box = new Div();
-        String cleanLayerName = titleText.replace("⚡ ", "").replace("🌉 ", "").replace("☁️ ", "").replace("🌐 ", "").replace("🛡️ ", "");
+        String cleanLayerName = titleText
+                .replace("⚡ ", "")
+                .replace("🌉 ", "")
+                .replace("☁️ ", "")
+                .replace("🌐 ", "")
+                .replace("🏛️ ", "")
+                .replace("🛡️ ", "")
+                .trim();
         String domId = "canvas-layer-" + cleanLayerName.replaceAll("[^a-zA-Z0-9_-]", "_").toLowerCase();
         box.setId(domId);
         box.getElement().setAttribute("data-drop-layer", cleanLayerName);
+        box.getElement().setAttribute("data-layer-name", cleanLayerName);
 
+        boolean isConnectableBlock = isArchitecturePatternBlock(cleanLayerName) || isTechLayerBlock(cleanLayerName);
         boolean isSelectedOrigin = isArrowConnectionActive && cleanLayerName.equalsIgnoreCase(selectedOriginName);
 
         box.getStyle()
                 .set("background", isSelectedOrigin ? "rgba(37, 99, 235, 0.08)" : "var(--lumo-contrast-5pct)")
-                .set("border", isSelectedOrigin ? "2px solid " + (activeToolColor != null ? activeToolColor : "#2563eb") : "1px dashed var(--lumo-contrast-20pct)")
+                .set("border", isSelectedOrigin ? "2px solid " + (activeToolColor != null ? activeToolColor : "#2563eb") : (isArrowConnectionActive && isConnectableBlock ? "2px dashed #2563eb" : "1px dashed var(--lumo-contrast-20pct)"))
                 .set("box-shadow", isSelectedOrigin ? "0 0 14px " + activeToolColor : "none")
                 .set("border-radius", "12px")
                 .set("padding", "0.75rem 1rem")
                 .set("margin-bottom", "0.75rem")
                 .set("width", "100%")
                 .set("box-sizing", "border-box")
-                .set("cursor", isArrowConnectionActive ? "pointer" : "default")
+                .set("cursor", isArrowConnectionActive && isConnectableBlock ? "pointer" : "default")
                 .set("transition", "all 0.2s ease");
 
-        Span header = new Span(titleText + (isArrowConnectionActive ? " (Click to select as " + (selectedOriginName == null ? "ORIGIN" : "DESTINATION") + ")" : ""));
+        String hint = "";
+        if (isArrowConnectionActive && isConnectableBlock) {
+            hint = " 🎯 (Click block to select as " + (selectedOriginName == null ? "ORIGIN" : "DESTINATION") + ")";
+        }
+        Span header = new Span(titleText + hint);
         header.getStyle().set("font-size", "0.78rem").set("font-weight", "700").set("color", "var(--lumo-primary-text-color)").set("display", "block").set("margin-bottom", "0.4rem");
 
         box.add(header);
@@ -2530,7 +2856,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             box.add(container);
         }
 
-        if (isArrowConnectionActive) {
+        if (isArrowConnectionActive && isConnectableBlock) {
             box.addClickListener(e -> handleCanvasItemClick(cleanLayerName));
         }
 
@@ -2542,10 +2868,10 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
             Map<String, Object> map = new LinkedHashMap<>();
             map.put("domain", selectedDomain != null ? selectedDomain : "");
             map.put("pattern", selectedPattern != null ? selectedPattern : "");
-            map.put("edge", new ArrayList<>(edgeTechs));
-            map.put("fog", new ArrayList<>(fogTechs));
-            map.put("cloud", new ArrayList<>(cloudTechs));
-            map.put("quality", new ArrayList<>(qualityReqs));
+            map.put("edgeTechs", new ArrayList<>(edgeTechs));
+            map.put("fogTechs", new ArrayList<>(fogTechs));
+            map.put("cloudTechs", new ArrayList<>(cloudTechs));
+            map.put("qualityReqs", new ArrayList<>(qualityReqs));
             map.put("notes", notesTextArea.getValue() != null ? notesTextArea.getValue().trim() : "");
             map.put("activeFlowArrows", new ArrayList<>(activeFlowArrows));
             map.put("arrowPositions", new LinkedHashMap<>(arrowPositionsMap));
@@ -2677,6 +3003,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 qualityReqContainer.add(pill);
             }
         }
+        rebuildCanvasContent();
     }
 
     private Span createPill(String label, String bgColor, boolean clickable, boolean disabled, String category) {
@@ -2728,6 +3055,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
         Span pill = new Span(label + (onRemove != null && !isArrowConnectionActive ? " ✕" : ""));
         pill.setId(domId);
+        pill.getElement().setAttribute("data-pill-name", cleanName);
         pill.getStyle()
                 .set("font-size", "0.72rem")
                 .set("font-weight", "600")
@@ -2740,6 +3068,7 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
                 .set("cursor", "pointer")
                 .set("user-select", "none");
 
+        pill.getElement().executeJs("this.addEventListener('click', function(e){ e.stopPropagation(); });");
         pill.addClickListener(e -> {
             if (isArrowConnectionActive) {
                 handleCanvasItemClick(cleanName);
@@ -2899,24 +3228,36 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
 
             if (arch.getLayersJson() != null && !arch.getLayersJson().isEmpty()) {
                 Map<String, Object> stateMap = objectMapper.readValue(arch.getLayersJson(), new TypeReference<>() {});
+                this.edgeTechs.clear();
                 if (stateMap.containsKey("edgeTechs")) {
-                    this.edgeTechs.clear();
                     this.edgeTechs.addAll((List<String>) stateMap.get("edgeTechs"));
+                } else if (stateMap.containsKey("edge")) {
+                    this.edgeTechs.addAll((List<String>) stateMap.get("edge"));
                 }
+
+                this.fogTechs.clear();
                 if (stateMap.containsKey("fogTechs")) {
-                    this.fogTechs.clear();
                     this.fogTechs.addAll((List<String>) stateMap.get("fogTechs"));
+                } else if (stateMap.containsKey("fog")) {
+                    this.fogTechs.addAll((List<String>) stateMap.get("fog"));
                 }
+
+                this.cloudTechs.clear();
                 if (stateMap.containsKey("cloudTechs")) {
-                    this.cloudTechs.clear();
                     this.cloudTechs.addAll((List<String>) stateMap.get("cloudTechs"));
+                } else if (stateMap.containsKey("cloud")) {
+                    this.cloudTechs.addAll((List<String>) stateMap.get("cloud"));
                 }
+
+                this.qualityReqs.clear();
                 if (stateMap.containsKey("qualityReqs")) {
-                    this.qualityReqs.clear();
                     this.qualityReqs.addAll((List<String>) stateMap.get("qualityReqs"));
+                } else if (stateMap.containsKey("quality")) {
+                    this.qualityReqs.addAll((List<String>) stateMap.get("quality"));
                 }
+
+                this.activeFlowArrows.clear();
                 if (stateMap.containsKey("activeFlowArrows")) {
-                    this.activeFlowArrows.clear();
                     List<CommunicationArrowRecord> arrows = objectMapper.convertValue(stateMap.get("activeFlowArrows"), new TypeReference<List<CommunicationArrowRecord>>() {});
                     if (arrows != null) {
                         this.activeFlowArrows.addAll(arrows);
@@ -3063,6 +3404,8 @@ public class ArchitectureBuilderView extends BaseView implements HasTour {
     @Override
     public Onboarding createTour() {
         return new TourUtils().build()
+                .addStep(paletteDrawerPanel, "Architecture Solution Palette", new Html("<div>Browse and drag & drop IoT Domains, Architectural Patterns, Edge/Fog/Cloud Technologies, and Quality ISO 25010 Requirements into your design canvas.</div>"), PopupPosition.END)
+                .addStep(rightPanelContainer, "Communication Palette & Active Links", new Html("<div>Select interactive protocol arrow tools (MQTT, HTTPS, Kafka, Modbus, etc.) and click origin ➔ destination blocks/pills to connect communication flows. Manage active links in expandable accordion panels and hover over any link to dynamically highlight its connected components on the canvas!</div>"), PopupPosition.BOTTOM)
                 .addStep(openButton, "Open Saved Work", new Html("<div>Click here to open a gallery of your saved architecture designs.</div>"), PopupPosition.BOTTOM)
                 .addStep(saveButton, "Save Blueprint", new Html("<div>Save your active block layout and AI report directly to the database.</div>"), PopupPosition.BOTTOM)
                 .addStep(exportImageButton, "Export Image PNG", new Html("<div>Export and download a high-resolution PNG image blueprint of your active architecture canvas.</div>"), PopupPosition.BOTTOM)

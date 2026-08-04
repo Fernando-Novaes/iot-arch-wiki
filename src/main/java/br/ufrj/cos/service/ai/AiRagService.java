@@ -565,6 +565,22 @@ public class AiRagService {
                - For IoT Domains: List ALL cataloged domains (Smart Farming, Industry 4.0, Healthcare, Smart City, Generic).
                - For Architectural Patterns: List ALL cataloged patterns.
             3. NO UNNECESSARY DIAGNOSTIC HEADERS: DO NOT output architectural evaluation report headers (like Evidence Confidence Indicator, Layer Placement Check, or Quality Requirements Adaptability) unless the user explicitly requested a full stack trade-off analysis.
+            4. ARCHITECTURAL SOLUTION RECOMMENDATION STACK:
+               ONLY IF the user asks for an architecture recommendation, suggestion, design proposal, or stack recommendation (e.g., "sugira uma arquitetura...", "qual arquitetura usar...", "recomende uma solução...", "design an architecture for..."):
+               - First provide your detailed explanation in HTML.
+               - THEN, at the VERY END of your response, append a structured JSON payload inside `<script type="application/json" class="suggested-arch-stack">` with the exact stack components matching cataloged names.
+               Example format:
+               <script type="application/json" class="suggested-arch-stack">
+               {
+                 "domain": "Smart Farming",
+                 "pattern": "3-Tier (Edge-Fog-Cloud)",
+                 "edgeTechs": ["Edge Sensors", "LoRaWAN"],
+                 "fogTechs": ["Node-RED", "Docker Container"],
+                 "cloudTechs": ["AWS IoT Core", "Apache Kafka", "Time-Series DB"],
+                 "qualityReqs": ["High Availability", "Performance / Low Latency"]
+               }
+               </script>
+               - DO NOT append this script tag for simple questions, listings, definitions, or general non-architectural inquiries.
 
             --- FEW-SHOT EXAMPLE ---
             Question: "liste os dominios de iot"

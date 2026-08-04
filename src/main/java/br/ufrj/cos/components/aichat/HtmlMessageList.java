@@ -156,11 +156,32 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                 contentDiv.setId("content-div");
                 contentDiv.addClassName("message-content");
 
-                // Use setInnerHtml to render HTML content
-                contentDiv.getElement().setProperty("innerHTML", message.getText());
+                String rawText = message.getText();
+                br.ufrj.cos.domain.SuggestedArchitectureStack suggestedStack = extractSuggestedStack(rawText);
+                String displayHtml = cleanHtmlForDisplay(rawText);
 
-                // Add all components to the message bubble
+                // Use setInnerHtml to render HTML content
+                contentDiv.getElement().setProperty("innerHTML", displayHtml);
+
+                // Add message header and content
                 messageBubble.add(messageHeader, contentDiv);
+
+                if (suggestedStack != null) {
+                    com.vaadin.flow.component.button.Button testInBuilderBtn = new com.vaadin.flow.component.button.Button("🚀 Test this Architecture in Builder", new Icon(VaadinIcon.EXTERNAL_LINK));
+                    testInBuilderBtn.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY, com.vaadin.flow.component.button.ButtonVariant.LUMO_SUCCESS);
+                    testInBuilderBtn.getStyle()
+                            .set("margin-top", "12px")
+                            .set("font-weight", "700")
+                            .set("background", "linear-gradient(135deg, #059669, #10b981)")
+                            .set("border-radius", "8px")
+                            .set("cursor", "pointer");
+                    testInBuilderBtn.addClickListener(e -> {
+                        com.vaadin.flow.server.VaadinSession.getCurrent().setAttribute("SUGGESTED_ARCH_STACK", suggestedStack);
+                        getUI().ifPresent(ui -> ui.getPage().open("builder", "_blank"));
+                    });
+                    messageBubble.add(testInBuilderBtn);
+                }
+
                 messageContainer.add(messageBubble);
 
                 // Add the message container to this VerticalLayout (HtmlMessageList)
@@ -169,6 +190,35 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
         }
 
         log.info("Finished adding message elements to HtmlMessageList.");
+    }
+
+    private br.ufrj.cos.domain.SuggestedArchitectureStack extractSuggestedStack(String rawHtml) {
+        if (rawHtml == null) return null;
+        try {
+            int startIdx = rawHtml.indexOf("suggested-arch-stack\">");
+            if (startIdx != -1) {
+                startIdx += "suggested-arch-stack\">".length();
+                int endIdx = rawHtml.indexOf("</script>", startIdx);
+                if (endIdx != -1) {
+                    String jsonStr = rawHtml.substring(startIdx, endIdx).trim();
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper()
+                            .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                    return mapper.readValue(jsonStr, br.ufrj.cos.domain.SuggestedArchitectureStack.class);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Could not parse suggested architecture stack JSON", e);
+        }
+        return null;
+    }
+
+    private String cleanHtmlForDisplay(String rawHtml) {
+        if (rawHtml == null) return "";
+        int scriptIdx = rawHtml.indexOf("<script type=\"application/json\" class=\"suggested-arch-stack\">");
+        if (scriptIdx != -1) {
+            return rawHtml.substring(0, scriptIdx).trim();
+        }
+        return rawHtml;
     }
 
     /**
@@ -183,7 +233,9 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
         for (int i = componentCount - 1; i >= 0; i--) {
             com.vaadin.flow.component.Component comp = getComponentAt(i);
             if (comp instanceof Div container && container.hasClassName("assistant-message-container")) {
-                // Find the message-content div inside the bubble and scroll scroller to bottom
+                br.ufrj.cos.domain.SuggestedArchitectureStack suggestedStack = extractSuggestedStack(newHtml);
+                String cleanHtml = cleanHtmlForDisplay(newHtml);
+
                 container.getElement().executeJs(
                         "var contentDiv = this.querySelector('.message-content');" +
                         "if (contentDiv) {" +
@@ -192,8 +244,33 @@ public class HtmlMessageList extends VerticalLayout { // It's still a VerticalLa
                         "  if (scroller) { scroller.scrollTop = scroller.scrollHeight; }" +
                         "  return true;" +
                         "} return false;",
-                        newHtml
+                        cleanHtml
                 );
+
+                if (suggestedStack != null) {
+                    com.vaadin.flow.component.Component bubbleComp = container.getChildren()
+                            .filter(c -> c.hasClassName("assistant-message"))
+                            .findFirst().orElse(null);
+                    if (bubbleComp instanceof Div bubble) {
+                        boolean alreadyHasBtn = bubble.getChildren().anyMatch(c -> c instanceof com.vaadin.flow.component.button.Button);
+                        if (!alreadyHasBtn) {
+                            com.vaadin.flow.component.button.Button testInBuilderBtn = new com.vaadin.flow.component.button.Button("🚀 Test this Architecture in Builder", new Icon(VaadinIcon.EXTERNAL_LINK));
+                            testInBuilderBtn.addThemeVariants(com.vaadin.flow.component.button.ButtonVariant.LUMO_PRIMARY, com.vaadin.flow.component.button.ButtonVariant.LUMO_SUCCESS);
+                            testInBuilderBtn.getStyle()
+                                    .set("margin-top", "12px")
+                                    .set("font-weight", "700")
+                                    .set("background", "linear-gradient(135deg, #059669, #10b981)")
+                                    .set("border-radius", "8px")
+                                    .set("cursor", "pointer");
+                            testInBuilderBtn.addClickListener(e -> {
+                                com.vaadin.flow.server.VaadinSession.getCurrent().setAttribute("SUGGESTED_ARCH_STACK", suggestedStack);
+                                getUI().ifPresent(ui -> ui.getPage().open("builder", "_blank"));
+                            });
+                            bubble.add(testInBuilderBtn);
+                        }
+                    }
+                }
+
                 return true;
             }
         }
